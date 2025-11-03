@@ -56,6 +56,7 @@ model User {
   sessions Session[]
   companies Company[] @relation("CompanyOwner")
   moderations Moderation[] @relation("ModerationReviewer")
+  memberships Membership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

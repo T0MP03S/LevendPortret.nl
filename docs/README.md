@@ -14,20 +14,20 @@ Links ter referentie:
 ---
 
 ## 1) Setup & Infra
-- [ ] GitHub repo (monorepo: Turborepo + pnpm + TypeScript)
-- [ ] Lokaal ontwikkelen: Node 18+, pnpm, Turbo
+- [x] GitHub repo (monorepo: Turborepo + pnpm + TypeScript)
+- [x] Lokaal ontwikkelen: Node 18+, pnpm, Turbo
 - [x] Database lokaal: Postgres 16 via Docker Compose
 - [x] Compose en env voorbeeld toegevoegd (docker-compose.yml, .env.example)
-- [ ] Prisma .env voor lokaal instellen (DATABASE_URL)
+- [x] Prisma .env voor lokaal instellen (DATABASE_URL)
 - [ ] Auth providers: Google OAuth + e-mail/wachtwoord (Auth.js)
 - [ ] ENV variabelen gezet (NEXTAUTH, DB, R2, VIMEO, enz.)
 - [ ] (Later) Vercel projecten: web, club, fund, admin
 - [ ] (Later) Cloudflare DNS: CNAME records naar Vercel voor web/club/fund/admin
 
 ## 2) Codebase opzetten
-- [ ] Turborepo skeleton met apps: `web`, `club`, `fund`, `admin`
+- [x] Turborepo skeleton met apps: `web`, `club`, `fund`, `admin`
 - [ ] Packages: `ui`, `config`, `db` (Prisma), `auth`, `utils`
-- [ ] Prisma schema + eerste migratie
+- [x] Prisma schema + eerste migratie
 - [ ] Tailwind + shadcn/ui + Lucide setup gedeeld in `ui`
 - [ ] Auth SSO: shared cookie domein `.levendportret.nl`
 
@@ -49,7 +49,14 @@ Links ter referentie:
 - [ ] Staging-deploys werkend; redirect www→apex, http→https
 - [ ] Go-live checklist doorlopen en akkoord
 
----
+## Lokale URLs en run
+- web: http://localhost:3000
+- club: http://localhost:3001
+- fund: http://localhost:3002
+- admin: http://localhost:3003
+
+Start alles: `pnpm dev`
+Per app: `pnpm -C apps/web dev` (of club/fund/admin)
 
 ## Notities
 - Foto’s/galerij via Cloudflare R2 (S3), video via Vimeo.
