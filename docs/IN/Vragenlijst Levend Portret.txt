@@ -1,0 +1,510 @@
+﻿Vragenlijst Levend Portret - Project Intake (Inhoud & Pagina's)
+Vul zo volledig mogelijk in. Laat vragen die niet van toepassing zijn leeg of vink "Niet van toepassing" aan. Voeg links/bestanden toe waar nodig (logo's, beelden, video's, documenten).
+• Invulwijze
+- Tekstvakken: schrijf onder "Antwoord".
+- Keuzes: vink aan met [x].
+- Lever assets via een maplink (bijv. Drive/Dropbox) of als bijlage.
+- Vul Tom in als er nog iets is wat ik moet beantwoorden.
+
+Korte samenvatting van het bedrijf (in gewone taal)
+• Wie zijn jullie? (1-2 zinnen over wat jullie doen)
+- Antwoord: We helpen startende ondernemers met het creeeren van een netwerk met andere ondernemers. 
+• Voor wie is dit bedoeld? (soort ondernemer/branche/regio)
+- Antwoord: Alle ondernemers in het midden en kleinbedrijf.
+• Wat krijgt iemand precies? (bijv. coachgesprek, video 3-5 min, clip 30 sec, plaatsing op site, 3 jaar Club, webinars/bijeenkomst)
+- Antwoord: 
+- Een coachingsgesprek met een ervaren ondernemer om de doelstelling van het bedrijf duidelijk te krijgen en dit samen te vatten in een goed lopend en pakkend verhaal (elevator pitch)
+- Een clip van de ondernemer en de onderneming van ongeveer 5 minuten.
+- Een social mediaclip van 30 seconden. 
+- 3 jaar lidmaatschap van de Levend Portretclub.
+- Een eigen pagina binnen de Levendportretclubomgeving.
+- 4 keer per jaar deelname aan een webinar
+- 1 keer per jaar netwerkdag.
+• Hoe werkt het stap voor stap? (max. 10 bullets)
+- Antwoord: 
+- 1. Aanmelding
+- 2. Telefonisch introductiegesprek met je vaste accountmanager.
+- 3. Coachingsgesprek.
+- 4. Evalueren van de toegezonden scripts.
+- 5. Opnames clip's
+- 6. Montage clip's
+- 7. Evaluatie montage.
+- 8. 30 secondenclip wordt op de Levend Portret clubwebsite geplaatst.
+- 9. Link naar eigen bedrijfspagina met daarop de lange clip.
+• Wat is de prijs en wat zit daarbij inbegrepen?
+- Antwoord: €2.450,-
+• Waarom is dit waardevol? (2-3 voordelen)
+- Antwoord: Je krijgt een vliegende start in het ontsluiten van een relevant netwerk. De coach helpt je hoe je jouw bedrijfsidee pakkend kunt verwoorden. En de clips laten dat zien.
+• Belangrijkste actie die jullie willen (bijv. contact opnemen, aanvraag doen, lid worden)
+- Antwoord: meld je aan. Dan komen wij in actie.
+• Eventuele extra info
+- Antwoord: Het is mogelijk om de financiering van het abonnement cadeau te doen, aan jezelf, via fundraising aan jezelf, of aan een ander.
+Begrippenlijst (lastige woorden)
+• Slug: het leesbare stukje tekst in een webadres (URL) na de schuine streep. Bijvoorbeeld: /bedrijf/jouw-bedrijfsnaam.
+• CTA (Call to Action): een knop of link die oproept tot actie, zoals "Neem contact op", "Word lid", of "Doneer".
+• Hero (sectie/beeld): het bovenste, opvallende blok op een pagina met grote kop, korte uitleg en een beeld of video.
+• Sitemap: een overzicht van alle pagina's van de website.
+• Navigatie: het menu en de links die bezoekers gebruiken om door de site te gaan (hoofdmenu, subnavigatie, footer).
+• SSO (Single Sign-On): met één login kun je in meerdere onderdelen (subdomeinen) van de site.
+• Subdomein: een apart adres vóór de domeinnaam, bijvoorbeeld club.levendportret.nl of fund.levendportret.nl.
+• SEO: zoekmachine-optimalisatie; zorgen dat pagina's goed gevonden worden in Google.
+• OG-tags (Open Graph): gegevens (titel/afbeelding) waarmee gedeelde links op social media er goed uitzien.
+• Structured data / Schema.org: extra informatie voor zoekmachines om beter te begrijpen wat er op een pagina staat.
+• WCAG 2.1 AA: richtlijnen om de site goed toegankelijk te maken voor iedereen (incl. mensen met beperkingen).
+• CDN: een dienst die bestanden (zoals afbeeldingen/video's) sneller levert via servers wereldwijd.
+• HLS (video streaming): techniek om video soepel te streamen op verschillende apparaten en snelheden.
+• Thumbnail: kleine voorvertoningsafbeelding van een video of pagina.
+• UTM (meetcodes): code in een link om te meten waar bezoekers vandaan komen (bijv. uit nieuwsbrief of social).
+• Donor wall: een (optionele) lijst van donateurs op een fund-pagina; doneren kan ook anoniem.
+• Refund / chargeback: een terugbetaling of betwiste betaling bij donaties/betalingen.
+• Consent (cookiebanner): toestemming van bezoekers voor het plaatsen van cookies/trackers.
+• Eventtracking: het meten van acties, zoals klikken op knoppen, formulierverzendingen of donaties.
+• Headless CMS: systeem om content te beheren dat losstaat van de voorkant van de website.
+• Checkout: de afrekenpagina of het donatieproces.
+• Tagline: korte, pakkende zin die jouw bedrijf/aanbod samenvat.
+• Subheader: korte toelichtende regel direct onder de hoofdkop.
+• Footer: onderste deel van de site met links en informatie (bijv. privacy en contact).
+• Moderatie: controleren/goedkeuren van content voordat het zichtbaar wordt voor bezoekers.
+• Export (CSV): gegevens kunnen downloaden als spreadsheetbestand.
+• KPI: belangrijkste meetcijfer om succes te volgen (bijv. aantal aanvragen, donaties).
+• 2FA (tweestapsverificatie): extra beveiligingsstap naast wachtwoord.
+• Rate limiting: bescherming tegen misbruik door te veel verzoeken in korte tijd.
+• Audit logging: bijhouden wie wat heeft gedaan voor controle en veiligheid.
+• Dataretentie: hoelang gegevens worden bewaard.
+• reCAPTCHA: middel om spam en bots tegen te gaan bij formulieren.
+
+0) Basisgegevens en contact
+• Organisatie/entiteit
+- Juridische entiteit (nu: project van A1 Films en Het Beleef Instituut, entiteit t.b.d.):
+• Antwoord: wordt een aparte BV
+- KVK, BTW, bankrekening (voor factuur/uitbetalingen):
+• Antwoord: volgt
+• Contactpersonen (naam, rol, e-mail, tel)
+- Antwoord: info@levendportret.nl
+• Partners (huisstijl, website, social, editing, etc.) en creditregels op de site
+- Antwoord:
+• Planning 
+- Bevestiging/aanpassing planning en deadlines per pagina:
+• Antwoord:  15 november live met minimaal 5 clips
+
+1) Doelen, doelgroep en propositie
+• Doelen 2025-2026
+- Primair (bijv.)
+• Toelichting: wat is voor jullie het belangrijkste meetbare resultaat?
+• Antwoord: aantal Levend Portret Cadeaus per maand: 5 per coach. We hebben 2 coaches
+- Secundair (bereik/traffic, nieuwsbrief, clubleden, funds, totale donaties)
+• Toelichting: mooie extra's naast het primaire doel.
+• Antwoord: fundraising
+• Doelgroep(en) (starter/MKB, sectoren, regio/land)
+- Toelichting: beschrijf kort het type klant en waar ze zitten (regio/taal).
+- Antwoord: Nederland
+• Waardepropositie/USP's (top-3 redenen om te kiezen voor Levend Portret)
+- Toelichting: waarom kiezen klanten voor jullie en niet voor een alternatief?
+- Antwoord: 
+- Er is geen alternatief. 
+- Levend Portret biedt niet alleen coaching en clips, maar je wordt ook lid van een actieve club ondernemers die elkaar opdrachten gunnen.
+- Dank zij Levend Portret heb je een korte aanloopcurve.
+• Bezwaren & garanties (veelgehoorde bezwaren en hoe vangen we die op?)
+- Toelichting: welke twijfels hoor je vaak en hoe neem je die weg?
+- Antwoord: 
+- Het is duur. Het alternatief is duurde. Wij bieden veel voor een vaste prijs.
+- Iedereen kan filmpjes maken. Wij werken met ervaren en professionele videomakers.
+• Tone of voice (zakelijk, coachend, enthousiasmerend; referenties/voorbeelden)
+- Toelichting: noem 1-2 merken of voorbeelden die qua toon goed passen.
+- Antwoord: Vriendschappelijk, maar wel zakelijk.
+
+2) Branding en assets
+• Huisstijl (logo's, kleuren, typografie, iconstijl)
+- Link(s) of bijlage(n): voor iconen dacht ik aan: https://lucide.dev of https://lucide.dev of https://fonts.google.com/icons
+• Beeld & video
+- Video-hostingkeuze (waar staan de video's?):
+• ☐ YouTube
+• X Vimeo
+• ☐ Zelf hosten (HLS)
+• ☐ Anders, namelijk:
+- Antwoord:
+- Subtitels gewenst?
+• ☐ Ja
+• x Nee
+- Taal/talen voor ondertitels:
+• Antwoord: 
+- Beeldverhouding van video's (formaat):
+• X 16:9 (liggend)
+• X 9:16 (staand/vertical)
+• ☐ 1:1 (vierkant)
+• ☐ Anders, namelijk:
+- Antwoord:
+- Thumbnails: aanleveren of genereren?
+• Antwoord: Aanleveren
+- Portret-/naamrechten geregeld?
+• X Ja
+• ☐ Nee
+• ☐ In overleg
+• Social media
+- Kanalen en urls: Instagram, TikTok, LinkedIn, overige:
+• Antwoord: Instagram, TikTok, LinkedIn
+- Integraties (wat wil je tonen/kunnen delen?):
+• ☐ Social feed (laatste posts tonen)
+• ☐ Deelknoppen (share)
+• ☐ Social proof (volgers/mentions)
+• Copy
+- Wie schrijft/keurt teksten? Deadlines:
+• Antwoord: Henk en Frank
+
+3) Sitemap en navigatie
+• Sitemap (bevestigen/aanpassen)
+- levendportret.nl: Home, Communicatie (artikelen), Over ons (evt. andere naam), [Contact?]
+- club.levendportret.nl: Overzicht bedrijven, Login/Registreren, Wachtwoord vergeten, Bedrijf aanmaken/Instellingen
+- fund.levendportret.nl: Overzicht funds, Fund aanmaken (max 1 per bedrijf), Doneren/Betalen, Analytics voor bedrijf
+- admin.levendportret.nl: Admin login, Dashboard, Bedrijven beheren, Donaties beheren, Analytics, [overig]
+- Wijzigingen/aanvullingen:
+• Antwoord:
+• Navigatie
+- Hoofdmenu-items (volgorde), subnavigatie, footer-links (privacy, voorwaarden, KVK/BTW):
+• Antwoord:
+• Accountdeling
+- Eén gedeeld account voor Club/Fund?
+• X Ja
+• ☐ Nee
+• ☐ Onzeker
+- Inloggen werkt overal tegelijk (SSO) gewenst?
+• X Ja
+• ☐ Nee
+
+4) levendportret.nl - pagina's en inhoud
+4.1 Home
+• Doel van de pagina (primair/secondair):
+- Antwoord: Welkomstpagina en ontsluiting van de rest van de website
+• Bovenste blok (Hero)
+- Headline + subheader:
+• Antwoord: Levend Portret, het eerlijke verhaal
+- Groot beeld of video bovenaan:
+• Antwoord: Clips van de nieuwste deelnemers.
+- Belangrijkste knop(pen) of links (CTA's), bijv. "Ontvang een Levend Portret", "Word lid van de Club":
+• Antwoord: Geef een levend portret. Wordt een levend portret
+• Kernsecties (vink aan wat moet komen en voeg teksten/links toe)
+- X Coach (uitleg en belofte)
+• Antwoord:
+- X Clips 
+• Antwoord: 
+- X Club (verzameling clips & gezamenlijke marketing)
+• Antwoord:
+- X Cadeau (aanbieding/packaging)
+• Inhoud en knop of link (CTA):
+• Antwoord:
+- X Werkwijze/stappenplan (van intake tot publicatie)
+• Antwoord:
+- ☐ Case(s) / eerste 5 sets highlight
+• Antwoord:
+- ☐ Partners/credits (MoMOLab etc.)
+• Antwoord:
+- ☐ estimonials/quotes
+• Antwoord:
+- ☐ FAQ (top 5-10 vragen)
+• Antwoord:
+- ☐ Nieuwsbriefsignup
+• Antwoord:
+• Prijscommunicatie (Levend Portret Cadeau €1.995 ex. btw)
+- Prijs tonen op site?
+• X Ja
+• ☐ Nee
+- BTW-weergave erbij vermelden?
+• ☐ Inclusief btw
+• X Exclusief btw
+- Hoe wil je dat mensen dit aanvragen/kopen?
+• Toelichting: online afrekenen of eerst contact opnemen.
+• Antwoord: Contact opnemen door het aanmeldingsformulier in te vullen
+• Campagneblok (eerste 5 sets voor €500 productie films/clips)
+- Campagne tonen?
+• ☐ Ja
+• X Nee
+• ☐ Tijdgebonden
+- Tekst en voorwaarden:
+• Antwoord:
+4.2 Communicatie (artikelen/blog)
+• Doel en rol (nieuws, educatie, SEO):
+- Antwoord:
+• Categorieën/tags
+- Antwoord:
+• Auteurs en workflow (wie schrijft, wie keurt):
+- Wie schrijft de artikelen?
+• Antwoord:
+- Wie keurt de artikelen?
+• Antwoord:
+• Publicatiefrequentie en contentkalender:
+- Antwoord:
+• Reacties toestaan onder artikelen?
+- ☐ Ja
+- ☐ Nee
+- ☐ Alleen na beoordeling (moderatie)
+• Artikeltemplate (cover, intro, body, video, CTA):
+- Antwoord:
+4.3 Over ons (evt. andere naam)
+• Naam pagina:
+- Antwoord: Even voorstellen
+• Missie/visie/verhaal:
+- Antwoord: Levend Portret biedt een communityoplosssing voor ondernemingen aan het begin van hun bestaansgeschiedenis. 
+• Team/partners (A1 Films, Het Beleef Instituut, overige):
+- Antwoord: Smoelenoverzicht van: coach Bert Kranendonk, coach Henk van Schilt, accountmanager Herma Holtland, Filmmaker Barry Annes, Filmmaker Frank van Eijk; alles zonder telefoonnummers maar wel met email adres.
+• Events/webinars (3x per jaar gratis LP-webinar; 1x p/j bijeenkomst tegen kostprijs)
+- Hoe tonen/aanmelden?
+• Antwoord: Lijkt mij niet dat dat hier moet
+• Contactblok en CTA's:
+- Antwoord: email van info@ etc.
+4.4 Contact (optioneel)
+• Contactdoelen (offerte, intake, algemene vragen):
+- Antwoord: info@etc.
+• Formuliervelden (naam, e-mail, tel, bedrijf, bericht, toestemmingen):
+- Antwoord: Aanmeldingsformulier
+• Bevestiging/bedankpagina en e-mailnotificaties:
+- Antwoord: niet
+
+5) club.levendportret.nl - bedrijven & accounts
+• Overzicht bedrijven
+- Filters (sector, locatie, nieuw/populair):
+• Antwoord: locatie zou nog met een km afstand kunnen zoals op funda bijv. 
+• Sectoren zijn nog nader te bepalen
+- Kaartweergave gewenst?
+• X Ja
+• ☐ Nee
+- Kaartvelden (locatie):
+• Antwoord: Graag punaise op plek waar een deelnemer gevestigd is. Beetje zoals hotels als je onderweg bent in Maps
+• Kaarten/tegelontwerp (logo, titel, korte pitch, clip-voorbeeld, knop/link):
+- Antwoord: :Logo met bedrijfsnaam eronder. Als je erop klikt de 30 sec clip
+• Detailpagina bedrijf
+- Velden: naam, tagline, lange beschrijving, sector, locatie, website, socials, clip(s), gallery, contactopties:
+• Antwoord: ok
+• Lidmaatschap Club (3 jaar volgens concept)
+- Hoe tonen status/voordelen? Upsells?
+• Antwoord: Per deelnemer aangeven hoe lang al lid
+• Authenticatie
+- Inloggen met:
+• X Google
+• ☐ LinkedIn
+• X E-mail en wachtwoord
+- Wachtwoord vergeten - reset per e-mail werkt zo:
+• X Ja, akkoord
+• ☐ Nee, anders graag:
+- Antwoord:
+- Bij registratie akkoord vragen met voorwaarden en privacy?
+• X Ja maar graag aanvullen met algemene leveringsvoorwaarden
+• Bedrijf aanmaken/instellingen (admin voor bedrijf)
+- Vereiste velden en validaties:
+• Antwoord: Persoonlijke naam en adres, bedrijfsnaam en adres kvk nummer
+- Rollen: eigenaar, editor?
+• Antwoord: Er is maar een rol, ondernemer/eigenaar
+- Contentmoderatie (goedkeuring nodig?)
+• Antwoord: weten niet goed wat je hiermee bedoelt
+• Marketing features
+- Delen/embeds voor clips:
+• X Ja
+• ☐ Nee
+- Meetlinkjes (UTM) ondersteunen:
+• X Ja
+• ☐ Nee
+
+6) fund.levendportret.nl - funds & doneren
+• Overzicht funds
+- Sortering (nieuwste, bijna doelbedrag, trending):
+• Antwoord: We werken liever met de mogelijkheid voor de kandidaat om aan te geven of hij het profiel openbaar wil hebben of juist privé. Het zou bij openbaar profiel wel leuk kunnen zijn om het bij de zoekkaart dan ook te laten zien met een bepaald indicatie bijv. Groen randje. 
+- Filters/categorieën:
+• Antwoord: zie eerder
+• Fund detail
+- Velden: titel, verhaal, video, doelbedrag, deadline, voortgangsbalk, updates, donor wall (anoniem optioneel):
+• Antwoord: Het is iets persoonlijks dus ik zou ook de naam toevoegen met een fotootje van de persoon. Doelbedrag is voor iedereen hetzelfde
+- Maximaal 1 fund per bedrijf - extra regels/beperkingen:
+• Antwoord: Ja 
+• Doneren/betalen
+- Betaalprovider:
+• ☐ Mollie
+• ☐ Stripe
+• ☐ Adyen
+• ☐ Anders, namelijk:
+- Antwoord:we weten het niet, Mollie hoor je wel vaker.
+- Betaalmethoden:
+• X iDEAL
+• ☐ Bancontact
+• ☐ Creditcard
+• ☐ Apple Pay
+• ☐ PayPal
+• ☐ Anders, namelijk:
+- Antwoord:
+- Bedragen: presets + vrij veld?
+• Antwoord: 50 100 250 500 1000 hele bedrag
+- Terugkerende donaties?
+• X Ja
+• ☐ Nee
+- Donatiebewijs per e-mail sturen?
+• X Ja
+• ☐ Nee
+- Inhoud donatiebewijs (wat wil je dat erin staat?):
+• Antwoord: Nou iets dat bijvoorbeeld zou kunnen dienen als kaartje dat je in een enveloppe doet als kadootje
+- Anoniem doneren toestaan?
+• X Ja
+• ☐ Nee
+- Restitutiebeleid:
+• Antwoord: Als het bedrag niet gehaald wordt binnen 3 maanden wordt de actie beeindigd en het geld teruggestort.
+• Transparantie & kosten
+- Platform fee / payment fees / BTW-communicatie:
+• Antwoord:Geen transparantie over de kosten
+• Analytics voor bedrijf
+- Gewenste metrics: aantal donaties, omzet, conversie, herkomst (UTM), tijdreeksen, export CSV:
+• Antwoord: even niet
+- Toegang: alleen eigenaar/rollen?
+• Antwoord: alleen eigenaar
+
+7) admin.levendportret.nl - beheer & analytics
+• Toegang en rollen
+- Admin login:
+• X E-mail en wachtwoord
+• ☐ Inloggen via bestaande accounts (SSO)
+- Rollen/machtigingen (superadmin, content-admin, finance, support):
+• Antwoord:doe maar wat
+• Beheerobjecten (selecteer)
+- Selecteer wat je wilt kunnen beheren:
+• X Gebruikers
+• ☐ Bedrijven gebruikers zijn toch bedrijven?
+• X Clips
+• X Funds
+• X Donaties
+• ☐ Artikelen
+• ☐ Pagina's
+• X Webinars
+• ☐ Instellingen
+• Moderatie/goedkeuring (workflow voor bedrijf/fund/clip/artikel)
+- Antwoord: Voor het publiceren van een Levend Portret moet wel een bepaalde redactieproces worden ingesteld. Eindredactie is erg belangrijk voor de kwaliteitszorg. De coach?
+• Donatiebeheer
+- Refunds, chargebacks, uitbetalingen, rapportages:
+• Antwoord: Daar moet wel beheer op plaats vinden. Het terugbetalen na een mislukte fundraising zal met de hand moeten gebeuren dus er moet wel bijgehouden worden wie wat betaald heeft. Dus een rekeningnummer en bewijs van betaling.
+• Analytics dashboards
+- KPI's: verkeer, conversies, top content, donaties per periode, herkomstkanalen:
+• Antwoord:nvt
+- Exports (CSV/Excel), geplande rapporten:
+• Antwoord: Vooral een uitvoer van de info van de donateurs bij mislukte fundraising is wenselijk
+
+8) Cross-cutting (SEO, legal, privacy, security, performance)
+• SEO
+- Doelzoekwoorden per pagina, meta titles/descriptions, OG-tags:
+• Antwoord:
+- Structured data (extra info voor Google) toevoegen?
+• ☐ Organization (organisatie)
+• ☐ VideoObject (video's)
+• ☐ Article (artikelen)
+• ☐ Breadcrumb (kruimelpad)
+• ☐ Product/Offer (cadeau/aanbod)
+• Juridisch (AVG/GDPR)
+- Privacy policy, Terms/Voorwaarden, Cookie banner (consent):
+• Antwoord:ja
+- Dataretention (accounts, donaties, logs), recht op vergetelheid:
+• Antwoord:Na 5 jaar
+- Media- & portretrechten (clips en foto's), licenties/IP:
+• Antwoord: Dit moet geregeld zijn in het contract met het bedrijf/kandidaat
+• Security
+- Minimale beveiligingseisen:
+• X HTTPS (beveiligde verbinding)
+• X 2FA voor admins (extra stap bij inloggen)
+• ☐ Rate limiting (bescherming tegen misbruik)
+• X Audit logging (logboek van acties)
+• X Secrets management (wachtwoorden/keys veilig)
+- Dataminimalisatie en toegang per rol:
+• Antwoord: geen idee
+• Performance & toegankelijkheid
+- Performancebudget/targets (LCP/CLS/TTI) en CDN/caching:
+• Antwoord: huh?
+- Toegankelijkheidsniveau (WCAG 2.1 AA https://swink.nl/blog/wat-wcag-betekent-digitale-toegankelijkheid ):
+• ☐ Ja, vereist
+• ☐ Richtinggevend
+• Analytics & tracking (mogen jullie skippen doe ik zelf later.)
+- Statistieken-tooling:
+• ☐ Google Analytics 4 (GA4)
+• ☐ Matomo
+• ☐ Plausible
+• ☐ Anders, namelijk:
+- Antwoord:
+- Consentmode en eventtracking (donatie, signup, video play):
+• Antwoord:
+• Integraties (mogen jullie skippen doe ik zelf later.)
+- E-mailmarketing (Mailchimp/Sendinblue), CRM (HubSpot), webinar tooling, reCAPTCHA:
+• Antwoord:
+• Notificaties
+- Transactie-e-mails (registratie, reset, publicatie, donatiebewijs), afzender, SMTP/provider:
+• Antwoord:
+• CMS & contentflow (mogen jullie skippen doe ik zelf later.)
+- Voorkeur voor manier van content beheren:
+• ☐ Headless CMS (bijv. Contentful/Sanity/Strapi)
+• ☐ WordPress
+• ☐ Anders, namelijk:
+- Antwoord:
+- Rollen, workflow (concept → review → publicatie), scheduling:
+• Antwoord:
+
+9) Content per type (velden - invullijst)
+• Bedrijf
+- Naam, webadres-tekst (slug), korte slogan (tagline), beschrijving, sector, locatie, website, social kanalen, logo, link(s) naar video('s), fotogalerij, contact:
+• Antwoord:
+• Clip
+- Titel, duur, waar staat de video (YouTube/Vimeo/link), ondertitels, voorvertoning (thumbnail), beschrijving:
+• Antwoord:
+• Fund
+- Bedrijf, titel, verhaal, doelbedrag, deadline, updates, perks/tegenprestaties (indien), transparantie/stukken:
+• Antwoord:
+• Artikel
+- Titel, samenvatting, hoofdtekst, omslagafbeelding (cover), categorieën/onderwerpen (tags), auteur, vindbaarheid (SEO):
+• Antwoord:
+• Testimonial
+- Naam, bedrijfsnaam, citaat, portretfoto, toestemming voor gebruik:
+• Antwoord:
+
+10) Conversie & flows
+• Belangrijkste knoppen/links (CTA's) per pagina (Home, Communicatie, Over/Contact, Club, Fund):
+- Antwoord:
+• Formulieren (validaties, verplichte velden, microcopy, foutmeldingen):
+- Antwoord:
+• Bedankpagina's & e-mails (copy, vervolgstappen):
+- Antwoord:
+
+11) "Levend Portret Cadeau" - aanbieding
+• Inhoud bevestigen (coachgesprek, 3-5 min video, 30 sec clip, plaatsing op site, actieve marketing via Club, 3 jaar lidmaatschap, 3 webinars p/j, 1x p/j bijeenkomst tegen kostprijs)
+- Bevestiging/wijzigingen:
+• Antwoord: ok
+• Prijs € 2.450 ex. btw - tonen? X Ja [ ] Nee
+- Betaalwijze (online betalen of offerte/contact):
+• Antwoord: offerte/contact
+• Webshop/checkout nodig? [ ] Ja X Nee [ ] Later
+
+12) Operationeel & beheer (komt later)
+• Team en verantwoordelijkheden (content, support, finance, techniek):
+- Antwoord:
+• Rapportagebehoefte (wekelijkse/maandelijkse dashboards, exports):
+- Antwoord:
+• Supportprocessen (contact, SLA, veelgestelde vragen):
+- Antwoord:
+
+13) Taal, toegankelijkheid en internationalisatie
+• Talen
+- X Nederlands (NL)
+- ☐ Engels (EN)
+- ☐ Anders, namelijk:
+• Antwoord:
+• Toegankelijkheid: WCAG 2.1 AA als doel? (https://swink.nl/blog/wat-wcag-betekent-digitale-toegankelijkheid)
+- ☐ Ja
+- ☐ Richtinggevend
+• Schrijfwijzer (u/je, titelhoofdletters, cijfers & valuta):
+- Antwoord:je, Ja, Ja
+
+14) Technische voorkeuren (optioneel)
+• Stackvoorkeuren (statisch vs. headless, framework, hosting/CDN):
+- Antwoord: nog geen voorkeur
+• Domeinbeheer & DNS (wie beheert, toegang):
+- Antwoord: DNS gaat via cloudflare
+• Privacy & dataopslaglocatie (EU/EEA):
+- Antwoord: Data opslaglocatie word cloudflare r2
+
+15) Bijlagen & assets
+• Maplink(s) met assets (logo's, huisstijl, foto's, video's, ondertitels, cases):
+- Antwoord: Dat heb je zelfgemaakt dus dat zal er wel zijn nemen we dan maar aan
+• Voorbeeldcontent (de eerste 5 Levend Portretten - namen, clips, teksten):
+- Antwoord: er is 1 levend portret ( van je schoonvader) rest komt nog 
+
+16) Vrije notifies
+Mooie lijst hoor. Indrukwekkend.
