@@ -44,19 +44,28 @@ enum ResourceType {
   ARTICLE
 }
 
+enum AccountStatus {
+  PENDING_VERIFICATION
+  PENDING_APPROVAL
+  ACTIVE
+  REJECTED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
+  phone         String?
   emailVerified DateTime?
   image         String?
+  passwordHash  String?   @db.Text
   role          Role      @default(USER)
-
-  accounts Account[]
-  sessions Session[]
-  companies Company[] @relation("CompanyOwner")
-  moderations Moderation[] @relation("ModerationReviewer")
-  memberships Membership[]
+  status        AccountStatus @default(PENDING_VERIFICATION)
+  accounts      Account[]
+  sessions      Session[]
+  company       Company?     @relation("CompanyOwner")
+  moderations   Moderation[] @relation("ModerationReviewer")
+  memberships   Membership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,19 +108,28 @@ model VerificationToken {
 }
 
 model Company {
-  id          String   @id @default(cuid())
+  id              String    @id @default(cuid())
+  name            String
+  city            String
+  address         String
+  zipCode         String
+  houseNumber     String
+  workPhone       String?   
+  kvkNumber       String?   
+  website         String?   
+
+  // Relatie met de eigenaar
+  ownerId         String    @unique // Elke user kan maar 1 bedrijf bezitten
+  owner           User      @relation("CompanyOwner", fields: [ownerId], references: [id])
+
+  // Velden die al bestonden
   slug        String   @unique
-  name        String
   tagline     String?
   description String?
   sector      String?
-  location    String?
-  website     String?
+  location    String? // Kan nu worden afgeleid uit city/address
   socials     Json?
   logoUrl     String?
-
-  ownerId String
-  owner   User     @relation("CompanyOwner", fields: [ownerId], references: [id])
 
   clips       Clip[]
   memberships Membership[]

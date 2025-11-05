@@ -153,6 +153,24 @@ Let op:
   - Of: `dotenv -e .env.local -- pnpm -C apps/admin dev`.
   - Controleer `ADMIN_EMAILS` exact (geen spaties, juiste casing) en herstart.
   - Wis cookies voor `localhost` na env-wijzigingen.
+  
+  [next-auth][debug][adapter_getUserByEmail] { args: [ 'tomvaneijk031@gmail.com' ] }
+admin:dev: 
+admin:dev: ┌───────────────────────────────────────────
+admin:dev: │  Magic link geblokkeerd (ADMIN ONLY)
+admin:dev: │  Aan:  tomvaneijk031@gmail.com
+admin:dev: │  Reden: e-mailadres staat niet in ADMIN_EMAILS
+admin:dev: [next-auth][debug][adapter_createVerificationToken] {
+admin:dev:   args: [
+admin:dev:     {
+admin:dev: └───────────────────────────────────────────
+admin:dev:       identifier: 'tomvaneijk031@gmail.com',
+admin:dev:
+admin:dev:       token: '41edecd264797b07e5e76a939b85c320414507cbbf84270581fdf74051ad050e',
+admin:dev:       expires: 2025-11-06T03:33:13.604Z
+admin:dev:     }
+admin:dev:   ]
+admin:dev: }
 
 Na opschonen root (Next verwijderd uit package.json): voer `pnpm install` opnieuw uit.
 

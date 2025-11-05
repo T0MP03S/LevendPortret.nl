@@ -2,16 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: 255 255 255;
-  --fg: 24 24 27;
+/* Self-hosted font definitions */
+@font-face {
+  font-family: 'Bree';
+  src: url('/fonts/Bree Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-html, body {
-  height: 100%;
+@font-face {
+  font-family: 'Bree';
+  src: url('/fonts/Bree Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-body {
-  background-color: rgb(var(--bg));
-  color: rgb(var(--fg));
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/sourcesans3-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/sourcesans3-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  body {
+    font-family: 'Montserrat', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bree', 'Montserrat', sans-serif;
+    font-weight: 700;
+  }
 }
