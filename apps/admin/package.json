@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3003",
+    "dev": "dotenv -e .env.local -- next dev -p 3003",
     "build": "next build",
     "start": "next start -p 3003",
     "lint": "eslint ."
@@ -11,6 +11,7 @@
   "dependencies": {
     "@levendportret/auth": "workspace:*",
     "@levendportret/db": "workspace:*",
+    "bcryptjs": "^2.4.3",
     "next": "14.2.14",
     "react": "18.3.1",
     "react-dom": "18.3.1"
