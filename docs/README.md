@@ -49,7 +49,11 @@ Links ter referentie:
 - [ ] Web: Privacy & Voorwaarden
 - [ ] Club (club.levendportret.nl): Overzicht (grid + 30s modal), Detail (5 min embed), Login/Register/Reset, Mijn-bedrijf bewerken
 - [ ] Moderatie: status “Ingediend/Goedgekeurd/Gepubliceerd” zichtbaar en beheerbaar (admin)
-- [ ] Admin (admin.levendportret.nl): Login, Dashboard, Bedrijven/Clips/Funds/Donaties, Moderatie-flow
+- Admin (admin.levendportret.nl):
+  - [x] Login (magic link → registratie → credentials)
+  - [x] Dashboard (skeleton)
+  - [ ] Bedrijven/Clips/Funds/Donaties
+  - [ ] Moderatie-flow
 - [ ] Fund (fund.levendportret.nl): Overzicht + detail skeleton; betalingen v2
 
 ## 4) Content & integraties
@@ -117,6 +121,12 @@ Per app: `pnpm -C apps/web dev` (of club/fund/admin)
   - fund: `$env:NEXTAUTH_URL="http://localhost:3002"; pnpm -C apps/fund dev`
   - admin: `$env:NEXTAUTH_URL="http://localhost:3003"; pnpm -C apps/admin dev`
 
+Belangrijk:
+- Plaats de root `.env.local` in de map `LevendPortret.nl/` (dezelfde map als deze README en het root `package.json`).
+- De admin dev-script laadt deze via `dotenv -e ../../.env.local` (vanuit `apps/admin`).
+- Minimale vereiste variabelen:
+  - `DATABASE_URL`, `NEXTAUTH_SECRET`, `ADMIN_EMAILS`, (optioneel) `EMAIL_FROM`.
+
 Let op:
 - Per-app `dev` scripts laden nu automatisch de root `.env.local` via `dotenv-cli`. Je hebt dus géén per-app `.env.local` nodig.
 - Op localhost is `NEXTAUTH_URL` optioneel; NextAuth gebruikt de request-origin (http://localhost:3000, etc.). Alleen zetten als je expliciet wilt forceren.
@@ -138,41 +148,25 @@ Let op:
 
 ### Admin inloggen (policy)
 - Admin-app (localhost:3003):
-  - Alleen e-mails in `ADMIN_EMAILS` ontvangen een magic link.
-  - Eerste keer inloggen via magic link → redirect naar `/wachtwoord-instellen` om een wachtwoord te zetten.
-  - Daarna: alleen nog inloggen met Credentials (e-mail + wachtwoord). Google is uitgeschakeld in admin.
-  - Middleware dwingt `/wachtwoord-instellen` af zolang er geen wachtwoord is (`needsPassword`).
+  1. **Eerste keer**: Ga naar http://localhost:3003 → zie welkomstpagina met "Inloggen" knop.
+  2. Klik "Inloggen" → `/inloggen` → vul je e-mailadres in (moet in `ADMIN_EMAILS` staan).
+  3. Client-side pre-check: als e-mailadres niet in `ADMIN_EMAILS` staat, wordt géén magic link verzonden (en geen token aangemaakt). Je krijgt een melding.
+  4. Als het e-mailadres wél is toegestaan: je krijgt een magic link via e-mail (dev: link wordt gelogd in terminal). Je gaat naar `/admin-verificatie?email=<jouw-mail>` waar je mailadres zichtbaar is en tips staan (check spam/terminal).
+  5. Klik de magic link → redirect naar `/dashboard` (callback). Middleware stuurt je indien nodig door naar `/admin-registratie` om eerst een wachtwoord te zetten.
+  6. Stel je wachtwoord in (min 8 tekens) → je wordt automatisch ingelogd en doorgestuurd naar `/dashboard`.
+  7. Vanaf nu: alleen inloggen met e-mail + wachtwoord. Google is uitgeschakeld in admin.
+- Middleware:
+  - Publieke routes (`/inloggen`, `/admin-verificatie`, `/admin-registratie`) zijn altijd toegankelijk.
+  - Beschermde routes (zoals `/dashboard`) dwingen je eerst naar `/admin-registratie` als je nog geen wachtwoord hebt.
 - API:
   - `POST /api/admin/set-password` met `{ password }` (min 8 tekens).
 
-#### Bekend probleem (lokaal)
-- Symptoom: in admin staat in de terminal “Magic link geblokkeerd (ADMIN ONLY)… e-mailadres staat niet in ADMIN_EMAILS”, terwijl het mailadres wel in `.env.local` staat.
-- Oorzaak: admin-app draait zonder de root `.env.local` (env niet geladen), of e-mailadres wijkt af (spatie/case).
-- Fix:
-  - Start met per-app dev script (laadt automatisch root env): `pnpm -C apps/admin dev`.
-  - Of: `dotenv -e .env.local -- pnpm -C apps/admin dev`.
-  - Controleer `ADMIN_EMAILS` exact (geen spaties, juiste casing) en herstart.
-  - Wis cookies voor `localhost` na env-wijzigingen.
-  
-  [next-auth][debug][adapter_getUserByEmail] { args: [ 'tomvaneijk031@gmail.com' ] }
-admin:dev: 
-admin:dev: ┌───────────────────────────────────────────
-admin:dev: │  Magic link geblokkeerd (ADMIN ONLY)
-admin:dev: │  Aan:  tomvaneijk031@gmail.com
-admin:dev: │  Reden: e-mailadres staat niet in ADMIN_EMAILS
-admin:dev: [next-auth][debug][adapter_createVerificationToken] {
-admin:dev:   args: [
-admin:dev:     {
-admin:dev: └───────────────────────────────────────────
-admin:dev:       identifier: 'tomvaneijk031@gmail.com',
-admin:dev:
-admin:dev:       token: '41edecd264797b07e5e76a939b85c320414507cbbf84270581fdf74051ad050e',
-admin:dev:       expires: 2025-11-06T03:33:13.604Z
-admin:dev:     }
-admin:dev:   ]
-admin:dev: }
-
-Na opschonen root (Next verwijderd uit package.json): voer `pnpm install` opnieuw uit.
+#### Admin UI
+- Header is "floating" (navy, afgeronde hoeken, schaduw) en toont, zodra ingelogd:
+  - Gebruikersnaam (of e-mail) en een Uitloggen-knop.
+  - Link naar Dashboard.
+- Fonts: admin gebruikt zelf-gehoste Bree voor headings en Montserrat voor body.
+- Registratie: we vragen ook om Naam bij het instellen van het wachtwoord; deze wordt in de header getoond.
 
 ### Env-beheer (unified)
 - Gebruik alleen root `.env.local` (development) en `.env.production` (productie).
@@ -181,37 +175,6 @@ Na opschonen root (Next verwijderd uit package.json): voer `pnpm install` opnieu
   - `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
   - Optioneel nu: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 
-### Voorbeeld .env.local
-```
-# Database
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/levendportret?schema=public"
-
-# NextAuth (zelfde secret voor alle apps voor SSO)
-NEXTAUTH_SECRET="vervang-door-een-sterke-random-string"
-
-# Shared cookie domein voor lokale subdomeinen (SSO)
-AUTH_COOKIE_DOMAIN=.levendportret.local
-
-# Admin bootstrap (e-mails worden ADMIN bij eerste sign-in)
-ADMIN_EMAILS="jij@example.com"
-
-# Google OAuth (optioneel)
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-
-# E-mail (magic link) — optioneel in dev; zonder SMTP wordt de link in de terminal gelogd
-EMAIL_SERVER_HOST=""
-EMAIL_SERVER_PORT=""
-EMAIL_SERVER_USER=""
-EMAIL_SERVER_PASSWORD=""
-EMAIL_FROM="no-reply@levendportret.local"
-```
-
-Opmerking: zet `NEXTAUTH_URL` per app in de shell wanneer je meerdere apps tegelijk draait (bijv. PowerShell):
-- web: `$env:NEXTAUTH_URL="http://web.levendportret.local:3000"; pnpm -C apps/web dev`
-- club: `$env:NEXTAUTH_URL="http://club.levendportret.local:3001"; pnpm -C apps/club dev`
-- fund: `$env:NEXTAUTH_URL="http://fund.levendportret.local:3002"; pnpm -C apps/fund dev`
-- admin: `$env:NEXTAUTH_URL="http://admin.levendportret.local:3003"; pnpm -C apps/admin dev`
 
 ### Inloggen met Credentials (e-mail/wachtwoord)
 - Prisma schema heeft `User.passwordHash` (bcrypt) voor credentials-login.
@@ -274,9 +237,8 @@ Dit plan vervangt de standaard registratie met een professionele, meertraps aanm
 - [x] Redirects na login/verificatie via serverpagina `/post-auth`: `ACTIVE` → `/`, anders → `/in-behandeling`.
 - [x] Middleware toegevoegd: ingelogde gebruikers kunnen `/inloggen` niet bezoeken; niet-ACTIVE gebruikers worden beperkt tot openbare pagina's, `/in-behandeling`, `/post-auth` en `/onboarding/bedrijf`.
 - [ ] Middleware uitbreiden voor app-sectie `/club` zodra beschikbaar.
-- [ ] Middleware uitbreiden voor app-sectie `/admin` zodra beschikbaar.
+- [x] Middleware uitbreiden voor app-sectie `/admin` (gerealiseerd in admin-app).
 - [ ] Middleware uitbreiden voor app-sectie `/fund` zodra beschikbaar.
-
 
 **Fase 6: Admin Goedkeuringsflow (`apps/admin`)**
 - [ ] Overzichtspagina bouwen in de admin-app met alle `PENDING_APPROVAL` gebruikers.

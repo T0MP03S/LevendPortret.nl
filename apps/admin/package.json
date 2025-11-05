@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "dotenv -e .env.local -- next dev -p 3003",
+    "dev": "cross-env NEXTAUTH_URL=http://localhost:3003 dotenv -e ../../.env.local -- next dev -p 3003",
     "build": "next build",
     "start": "next start -p 3003",
     "lint": "eslint ."

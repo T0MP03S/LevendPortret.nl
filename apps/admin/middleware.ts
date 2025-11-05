@@ -5,7 +5,7 @@ import { getToken } from 'next-auth/jwt';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // allow static assets and Next runtime
+  // Allow static assets and Next runtime
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
@@ -14,23 +14,35 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // always allow auth routes and inloggen page
+  // Always allow auth routes and admin public pages (no token checks)
   if (
     pathname.startsWith('/api/auth') ||
+    pathname === '/' ||
     pathname === '/inloggen' ||
-    pathname === '/wachtwoord-instellen' ||
-    pathname.startsWith('/api/admin/set-password')
+    pathname === '/admin-verificatie' ||
+    pathname === '/admin-registratie' ||
+    pathname.startsWith('/api/admin/set-password') ||
+    pathname.startsWith('/api/admin/is-allowed-email')
   ) {
     return NextResponse.next();
   }
 
+  // For all other routes (protected), check authentication
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token || (token as any).role !== 'ADMIN') {
+  
+  // Not authenticated → send to /inloggen
+  if (!token) {
     return NextResponse.redirect(new URL('/inloggen', req.url));
   }
 
-  if ((token as any).needsPassword && pathname !== '/wachtwoord-instellen') {
-    return NextResponse.redirect(new URL('/wachtwoord-instellen', req.url));
+  // If user needs to set a password, send to /admin-registratie first
+  if ((token as any).needsPassword) {
+    return NextResponse.redirect(new URL('/admin-registratie', req.url));
+  }
+
+  // Enforce ADMIN role on protected routes
+  if ((token as any).role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/inloggen', req.url));
   }
 
   return NextResponse.next();

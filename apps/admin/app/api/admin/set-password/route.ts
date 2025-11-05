@@ -6,6 +6,7 @@ import { hash } from 'bcryptjs';
 import { z } from 'zod';
 
 const BodySchema = z.object({
+  name: z.string().min(1),
   password: z.string().min(8)
 });
 
@@ -27,11 +28,13 @@ export async function POST(req: Request) {
     await prisma.user.update({
       where: { email: session.user.email },
       data: {
+        name: parsed.data.name,
         passwordHash: pwdHash,
         emailVerified: new Date()
       }
     });
 
+    // Return success; client will sign in with credentials to refresh session
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

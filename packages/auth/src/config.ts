@@ -158,11 +158,14 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: ADMIN_MODE
     ? {
-        verifyRequest: '/verificatie'
+        signIn: '/inloggen',
+        verifyRequest: '/admin-verificatie',
+        error: '/auth/error'
       }
     : {
         signIn: '/inloggen',
-        verifyRequest: '/verificatie'
+        verifyRequest: '/verificatie',
+        error: '/auth/error'
       },
   callbacks: {
     async signIn({ user, account }) {
@@ -184,20 +187,11 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         (token as any).id = (user as any).id;
         token.email = user.email;
-        if ((user as any).role) {
-          (token as any).role = (user as any).role;
-        } else if (user.email) {
-          const u = await prisma.user.findUnique({ where: { email: user.email }, select: { role: true } });
-          (token as any).role = u?.role;
-        }
-        if ((user as any).status) {
-          (token as any).status = (user as any).status;
-        } else if (user.email) {
-          const u = await prisma.user.findUnique({ where: { email: user.email }, select: { status: true } });
-          (token as any).status = u?.status;
-        }
+        // Always fetch latest role and status from DB to reflect promotions done during signIn
         if (user.email) {
-          const u = await prisma.user.findUnique({ where: { email: user.email }, select: { passwordHash: true } });
+          const u = await prisma.user.findUnique({ where: { email: user.email }, select: { role: true, status: true, passwordHash: true } });
+          (token as any).role = u?.role;
+          (token as any).status = u?.status;
           (token as any).needsPassword = !u?.passwordHash;
         }
       }
@@ -212,6 +206,17 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).needsPassword = (token as any).needsPassword;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allow relative redirects like '/dashboard'
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      try {
+        const u = new URL(url);
+        if (u.origin === baseUrl) return url;
+      } catch {
+        // ignore
+      }
+      return baseUrl;
     }
   },
   events: {
@@ -231,7 +236,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
       // Promote to ADMIN if email is included in ADMIN_EMAILS env (comma-separated)
-      if (user?.email && process.env.ADMIN_EMAILS) {
+      if (user?.email && process.env.ADMIN_EMAILS && ADMIN_MODE) {
         const list = process.env.ADMIN_EMAILS.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
         if (list.includes(user.email.toLowerCase())) {
           await prisma.user.update({ where: { email: user.email }, data: { role: 'ADMIN' } });
