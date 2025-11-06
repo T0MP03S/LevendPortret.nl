@@ -4,7 +4,7 @@ import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
 
 export default async function PostAuthRouter() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions as any)) as any;
   if (!session?.user?.email) {
     redirect('/inloggen');
   }

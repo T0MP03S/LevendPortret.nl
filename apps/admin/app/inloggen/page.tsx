@@ -77,11 +77,11 @@ export default function AdminLoginPage() {
 
   return (
     <div className="max-w-md mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-6 text-center">Admin Inloggen</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Registreren of Inloggen</h1>
       <div className="bg-white p-6 rounded-2xl shadow-sm space-y-6">
         <div>
-          <h2 className="text-lg font-semibold mb-2">Stap 1: Magic link aanvragen</h2>
-          <p className="text-zinc-700 mb-3 text-sm">Vul je e-mailadres in om een magic link te ontvangen voor je admin-registratie.</p>
+          <h2 className="text-lg font-semibold mb-2">Stap 1: Registreren</h2>
+          <p className="text-zinc-700 mb-3 text-sm">Vul je e-mailadres in om een registratie-link te ontvangen. Klik op de link in je mail om je account te bevestigen.</p>
           <form onSubmit={requestMagicLink} className="space-y-3">
             <input
               type="email"
@@ -96,13 +96,13 @@ export default function AdminLoginPage() {
               className="w-full px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61] disabled:opacity-60"
               disabled={loadingEmail}
             >
-              {loadingEmail ? "Versturen..." : "Stuur magic link"}
+              {loadingEmail ? "Versturen..." : "Verstuur registratie-link"}
             </button>
           </form>
         </div>
 
         <div className="border-t border-zinc-200 pt-4">
-          <h2 className="text-lg font-semibold mb-2">Stap 2: Inloggen met wachtwoord</h2>
+          <h2 className="text-lg font-semibold mb-2">Stap 2: Inloggen</h2>
           <form onSubmit={loginWithCredentials} className="space-y-3">
             <input
               type="email"

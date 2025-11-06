@@ -29,6 +29,7 @@ export default function AanmeldenPage() {
   });
   const [passwordError, setPasswordError] = useState('');
   const [status, setStatus] = useState({ type: '', message: '' });
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -42,6 +43,12 @@ export default function AanmeldenPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const { [name]: _removed, ...rest } = prev;
+        return rest;
+      });
+    }
 
     if (name === 'password' || name === 'confirmPassword') {
       const newPassword = name === 'password' ? value : formData.password;
@@ -71,16 +78,28 @@ export default function AanmeldenPage() {
       return;
     }
     try {
+      const payload = {
+        ...formData,
+        phone: formData.phone || null,
+        companyWorkPhone: formData.companyWorkPhone || null,
+        companyKvk: formData.companyKvk || null,
+        companyWebsite: formData.companyWebsite || null,
+      };
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 400 && data?.issues?.fieldErrors) {
+          setErrors(data.issues.fieldErrors as Record<string, string[]>);
+          setStatus({ type: 'error', message: data.error || 'Ongeldige invoer' });
+          return;
+        }
         throw new Error(data.error || 'Er is iets misgegaan.');
       }
 
@@ -120,10 +139,10 @@ export default function AanmeldenPage() {
         
         {/* Personal Info */}
         <div className="md:col-span-2 font-bold text-lg text-navy">Jouw Gegevens</div>
-        <InputField label="Voornaam" name="firstName" value={formData.firstName} onChange={handleChange} required />
-        <InputField label="Achternaam" name="lastName" value={formData.lastName} onChange={handleChange} required />
-        <InputField label="E-mailadres" name="email" type="email" value={formData.email} onChange={handleChange} required />
-        <InputField label="Telefoonnummer" name="phone" type="tel" value={formData.phone} onChange={handleChange} required />
+        <InputField label="Voornaam" name="firstName" value={formData.firstName} onChange={handleChange} required error={errors.firstName?.[0]} />
+        <InputField label="Achternaam" name="lastName" value={formData.lastName} onChange={handleChange} required error={errors.lastName?.[0]} />
+        <InputField label="E-mailadres" name="email" type="email" value={formData.email} onChange={handleChange} required error={errors.email?.[0]} />
+        <InputField label="Telefoonnummer" name="phone" type="tel" value={formData.phone} onChange={handleChange} required error={errors.phone?.[0]} />
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">Wachtwoord</label>
           <div className="relative mt-1">
@@ -172,14 +191,14 @@ export default function AanmeldenPage() {
 
         {/* Company Info */}
         <div className="md:col-span-2 font-bold text-lg text-navy mt-4">Bedrijfsgegevens</div>
-        <InputField label="Bedrijfsnaam" name="companyName" value={formData.companyName} onChange={handleChange} required />
-        <InputField label="Bedrijfsadres" name="companyAddress" value={formData.companyAddress} onChange={handleChange} required />
-        <InputField label="Huisnummer" name="companyHouseNumber" value={formData.companyHouseNumber} onChange={handleChange} required />
-        <InputField label="Postcode" name="companyZip" value={formData.companyZip} onChange={handleChange} required />
-        <InputField label="Plaats" name="companyCity" value={formData.companyCity} onChange={handleChange} required />
-        <InputField label="Werktelefoon (optioneel)" name="companyWorkPhone" type="tel" value={formData.companyWorkPhone} onChange={handleChange} />
-        <InputField label="KVK-nummer (optioneel)" name="companyKvk" value={formData.companyKvk} onChange={handleChange} />
-        <InputField label="Website (optioneel)" name="companyWebsite" type="url" value={formData.companyWebsite} onChange={handleChange} />
+        <InputField label="Bedrijfsnaam" name="companyName" value={formData.companyName} onChange={handleChange} required error={errors.companyName?.[0]} />
+        <InputField label="Bedrijfsadres" name="companyAddress" value={formData.companyAddress} onChange={handleChange} required error={errors.companyAddress?.[0]} />
+        <InputField label="Huisnummer" name="companyHouseNumber" value={formData.companyHouseNumber} onChange={handleChange} required error={errors.companyHouseNumber?.[0]} />
+        <InputField label="Postcode" name="companyZip" value={formData.companyZip} onChange={handleChange} required error={errors.companyZip?.[0]} />
+        <InputField label="Plaats" name="companyCity" value={formData.companyCity} onChange={handleChange} required error={errors.companyCity?.[0]} />
+        <InputField label="Werktelefoon (optioneel)" name="companyWorkPhone" type="tel" value={formData.companyWorkPhone} onChange={handleChange} error={errors.companyWorkPhone?.[0]} />
+        <InputField label="KVK-nummer (optioneel)" name="companyKvk" value={formData.companyKvk} onChange={handleChange} error={errors.companyKvk?.[0]} />
+        <InputField label="Website (optioneel)" name="companyWebsite" type="url" value={formData.companyWebsite} onChange={handleChange} error={errors.companyWebsite?.[0]} />
 
         {/* Agreements & Submit */}
         <div className="md:col-span-2 mt-4 space-y-4">
@@ -199,10 +218,11 @@ export default function AanmeldenPage() {
 }
 
 // Helper components for cleaner form structure
-const InputField = ({ label, name, type = 'text', value, onChange, required = false }: { label: string; name: string; type?: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean }) => (
+const InputField = ({ label, name, type = 'text', value, onChange, required = false, error }: { label: string; name: string; type?: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean; error?: string }) => (
   <div>
     <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
     <input type={type} name={name} id={name} required={required} value={value} onChange={onChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-coral focus:border-coral" />
+    {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
   </div>
 );
 

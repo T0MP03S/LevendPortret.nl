@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminRegistrationPage() {
   const { data: session } = useSession();
@@ -11,6 +12,8 @@ export default function AdminRegistrationPage() {
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -78,25 +81,45 @@ export default function AdminRegistrationPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Nieuw wachtwoord</label>
-            <input
-              type="password"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral/60"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-            />
+            <div className="relative">
+              <input
+                type={showPwd ? "text" : "password"}
+                className="mt-1 block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral/60"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? "Verberg wachtwoord" : "Toon wachtwoord"}
+                className="absolute inset-y-0 right-2 flex items-center text-zinc-500 hover:text-zinc-700"
+              >
+                {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Bevestig wachtwoord</label>
-            <input
-              type="password"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral/60"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              minLength={8}
-            />
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                className="mt-1 block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral/60"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+                minLength={8}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                aria-label={showConfirm ? "Verberg wachtwoord" : "Toon wachtwoord"}
+                className="absolute inset-y-0 right-2 flex items-center text-zinc-500 hover:text-zinc-700"
+              >
+                {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
           {message && (
             <div className="p-3 rounded text-sm bg-zinc-100 text-zinc-800">{message}</div>
@@ -113,3 +136,4 @@ export default function AdminRegistrationPage() {
     </div>
   );
 }
+

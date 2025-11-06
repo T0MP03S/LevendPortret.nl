@@ -51,6 +51,11 @@ enum AccountStatus {
   REJECTED
 }
 
+enum AccountPlan {
+  FREE
+  PAID
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -61,6 +66,8 @@ model User {
   passwordHash  String?   @db.Text
   role          Role      @default(USER)
   status        AccountStatus @default(PENDING_VERIFICATION)
+  plan          AccountPlan   @default(FREE)
+  planUpdatedAt DateTime?
   accounts      Account[]
   sessions      Session[]
   company       Company?     @relation("CompanyOwner")

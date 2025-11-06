@@ -221,25 +221,34 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn({ user, account }) {
-      // After successful email verification, move user to PENDING_APPROVAL
-      if (account?.provider === 'email' && user?.email) {
-        const current = await prisma.user.findUnique({ where: { email: user.email } });
+      if (!user?.email) return;
+      const email = user.email.toLowerCase();
+      const isAdminEmail = (process.env.ADMIN_EMAILS || '')
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+        .includes(email);
+
+      // Email provider verification result
+      if (account?.provider === 'email') {
+        const current = await prisma.user.findUnique({ where: { email: user.email }, select: { status: true, role: true } });
         if (current && (current as any).status === 'PENDING_VERIFICATION') {
-          await prisma.user.update({ where: { email: user.email }, data: { status: 'PENDING_APPROVAL' } });
+          if (isAdminEmail) {
+            // Admins worden direct ACTIVE en krijgen ADMIN rol
+            await prisma.user.update({ where: { email: user.email }, data: { status: 'ACTIVE', role: 'ADMIN' } });
+          } else {
+            await prisma.user.update({ where: { email: user.email }, data: { status: 'PENDING_APPROVAL' } });
+          }
         }
       }
-      // On first Google login, ensure status moves to PENDING_APPROVAL if not ACTIVE yet
-      if (account?.provider === 'google' && user?.email) {
+
+      // On Google login outside admin, only transition from PENDING_VERIFICATION -> PENDING_APPROVAL.
+      // Do NOT override REJECTED or other statuses.
+      if (account?.provider === 'google') {
         const current = await prisma.user.findUnique({ where: { email: user.email }, select: { status: true } });
-        if (current && (current as any).status !== 'ACTIVE') {
+        if (!current) return;
+        if ((current as any).status === 'PENDING_VERIFICATION') {
           await prisma.user.update({ where: { email: user.email }, data: { status: 'PENDING_APPROVAL' } });
-        }
-      }
-      // Promote to ADMIN if email is included in ADMIN_EMAILS env (comma-separated)
-      if (user?.email && process.env.ADMIN_EMAILS && ADMIN_MODE) {
-        const list = process.env.ADMIN_EMAILS.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-        if (list.includes(user.email.toLowerCase())) {
-          await prisma.user.update({ where: { email: user.email }, data: { role: 'ADMIN' } });
         }
       }
     }

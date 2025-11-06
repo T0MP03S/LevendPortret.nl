@@ -46,6 +46,7 @@ Links ter referentie:
 - [x] Web: Even voorstellen pagina
 - [x] Web: Aanmelden formulier
 - [ ] Web: Communicatie (placeholder)
+- [ ] Web: Settings pagina waar je je account en bedrijf kunt beheren
 - [ ] Web: Privacy & Voorwaarden
 - [ ] Club (club.levendportret.nl): Overzicht (grid + 30s modal), Detail (5 min embed), Login/Register/Reset, Mijn-bedrijf bewerken
 - [ ] Moderatie: status “Ingediend/Goedgekeurd/Gepubliceerd” zichtbaar en beheerbaar (admin)
@@ -54,7 +55,9 @@ Links ter referentie:
   - [x] Dashboard (skeleton)
   - [ ] Bedrijven/Clips/Funds/Donaties
   - [ ] Moderatie-flow
-- [ ] Fund (fund.levendportret.nl): Overzicht + detail skeleton; betalingen v2
+- [ ] Fund (fund.levendportret.nl): Overzicht (hier kun je een progressbalk zien per bedrijf en klikken op hun bedrijfs fund pagina) + detail skeleton; betalingen v2
+  - [ ] Fund (fund.levendportret.nl/beheer): een pagina waar je je fund pagina kunt aanpassen.
+  - [ ] Fund (fund.levendportret.nl/[bedrijfsnaam]): hier zie je de fund pagina van een bedrijf en kun je funden/doneren voor in hun bedrijfs pot.
 
 ## 4) Content & integraties
 - [ ] Vimeo integratie (embeds): 30s + 5 min IDs per bedrijf
@@ -155,6 +158,7 @@ Let op:
   5. Klik de magic link → redirect naar `/dashboard` (callback). Middleware stuurt je indien nodig door naar `/admin-registratie` om eerst een wachtwoord te zetten.
   6. Stel je wachtwoord in (min 8 tekens) → je wordt automatisch ingelogd en doorgestuurd naar `/dashboard`.
   7. Vanaf nu: alleen inloggen met e-mail + wachtwoord. Google is uitgeschakeld in admin.
+  8. Admin-e-mails (opgenomen in `ADMIN_EMAILS`) worden na verificatie automatisch als `ADMIN` gemarkeerd en krijgen status `ACTIVE`. Zij komen nooit in de lijst "In behandeling" terecht.
 - Middleware:
   - Publieke routes (`/inloggen`, `/admin-verificatie`, `/admin-registratie`) zijn altijd toegankelijk.
   - Beschermde routes (zoals `/dashboard`) dwingen je eerst naar `/admin-registratie` als je nog geen wachtwoord hebt.
@@ -241,9 +245,9 @@ Dit plan vervangt de standaard registratie met een professionele, meertraps aanm
 - [ ] Middleware uitbreiden voor app-sectie `/fund` zodra beschikbaar.
 
 **Fase 6: Admin Goedkeuringsflow (`apps/admin`)**
-- [ ] Overzichtspagina bouwen in de admin-app met alle `PENDING_APPROVAL` gebruikers.
-- [ ] Detailweergave met alle bedrijfsgegevens.
-- [ ] Actieknoppen ("Goedkeuren" / "Afwijzen") om de gebruikersstatus aan te passen.
+- [x] Overzichtspagina met alle `PENDING_APPROVAL` gebruikers (incl. snelle Goedkeuren/Afwijzen knoppen).
+- [x] Detailweergave met alle bedrijfsgegevens.
+- [x] Actieknoppen ("Goedkeuren" / "Afwijzen") om de gebruikersstatus aan te passen (zowel in lijst als detail).
 
 ## Recente voortgang & Volgende stappen
 
@@ -264,3 +268,19 @@ Dit plan vervangt de standaard registratie met een professionele, meertraps aanm
 2.  **Start Fase C (Club):**
     - Bouwen van het overzicht van bedrijven (`/club`).
     - Detailpagina per bedrijf met video-embeds.
+
+### UX updates (06-11-2025)
+- Admin-registratie (localhost:3003/admin-registratie): toon/verberg-icoon bij beide wachtwoordvelden.
+- Web header (localhost:3000): als gebruiker `ADMIN` is, verschijnt een Dashboard-knop naar `http://localhost:3003/dashboard`.
+- Onboarding bedrijf (localhost:3000/onboarding/bedrijf): veldspecifieke validatiefouten worden nu onder de inputs getoond; optionele velden worden juist als `null` verzonden.
+- Web in-behandeling (localhost:3000/in-behandeling): toont nu actuele status (in behandeling of afgewezen) en heeft een Terug-knop.
+- Registratie (localhost:3000/aanmelden): validatie aangescherpt voor NL-postcode (bv. 1234 AB) en telefoonnummer; foutmeldingen per veld zichtbaar.
+- Admin gebruikersbeheer: API toegevoegd voor lijst (GET /api/admin/users?status=ACTIVE), update (PUT /api/admin/users/[id]) en verwijderen (DELETE /api/admin/users/[id]); eerste lijstpagina op `/dashboard/gebruikers` toegevoegd. Detail-bewerken pagina volgt.
+- Admin afkeur-tab: nieuwe pagina `/dashboard/afgekeurd` met overzicht van REJECTED gebruikers en een knop om alsnog te goedkeuren.
+- Onboarding flow guards: middleware stuurt ingelogde niet-ACTIVE gebruikers die `/` openen eerst naar `/post-auth` (hervat onboarding of toont in-behandeling). `/onboarding/bedrijf` is alleen toegankelijk voor ingelogde niet-ACTIVE gebruikers.
+- Admin gebruikersbeheer: dashboard heeft nu tegels naar `/dashboard/gebruikers` en `/dashboard/afgekeurd`.
+- Gebruikersbeheer lijst: header bevat een knoplink naar `/dashboard/afgekeurd`.
+- Gebruiker detail: actieknoppen toegevoegd om te Goedkeuren, Afkeuren of opnieuw op "In behandeling" (SET_PENDING) te zetten.
+- Admin styling: secundaire knop-stijl toegepast voor navigatielinks (Terug naar dashboard, Naar Afgekeurd, etc.) op alle dashboardpagina's.
+- Web post-auth: loop opgelost door middleware-aanpassing (geen automatische redirect van `/` naar `/post-auth`). `post-auth` route stuurt nu correct door: ACTIVE → `/`, non-ACTIVE zonder bedrijf → `/onboarding/bedrijf`, anders → `/in-behandeling`.
+- Web in-behandeling: als gebruiker `ACTIVE` is, wordt een acceptatiebericht getoond met knoppen naar Home/Club/Fund.

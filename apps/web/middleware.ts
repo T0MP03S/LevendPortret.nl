@@ -11,7 +11,6 @@ const PUBLIC_PATHS = new Set([
   '/verificatie',
   '/in-behandeling',
   '/post-auth',
-  '/onboarding/bedrijf',
 ]);
 
 export async function middleware(req: NextRequest) {
@@ -38,6 +37,22 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  // Onboarding page access rules
+  if (pathname.startsWith('/onboarding/bedrijf')) {
+    // Not logged in -> to login
+    if (!token) {
+      return NextResponse.redirect(new URL('/inloggen', req.url));
+    }
+    // Already ACTIVE -> home
+    if ((token as any).status === 'ACTIVE') {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+    // Non-active logged-in users may proceed to onboarding
+    return NextResponse.next();
+  }
+
+  // Note: do not redirect '/' automatically to '/post-auth' to avoid loops and allow ACTIVE users to land on home.
 
   // If already authenticated and visiting /inloggen -> send to home
   if (token && pathname === '/inloggen') {

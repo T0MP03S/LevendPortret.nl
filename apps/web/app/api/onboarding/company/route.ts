@@ -10,16 +10,33 @@ function getIp(req: Request) {
   return header || '127.0.0.1';
 }
 
+const dutchPostcode = /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/;
+const dutchPhone = /^(?:\+31|0)(?:6\d{8}|[1-9]\d{8})$/;
+const houseNumberRegex = /^\d+[A-Za-z]?$/;
+const cityRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]+$/;
+
+const cleanPhone = (v: unknown) => {
+  if (typeof v !== 'string') return v as any;
+  const s = v.replace(/[\s\-()]/g, '');
+  return s === '' ? null : s;
+};
+
+const nullIfEmpty = (v: unknown) => {
+  if (typeof v !== 'string') return v as any;
+  const s = v.trim();
+  return s === '' ? null : s;
+};
+
 const OnboardingSchema = z.object({
-  phone: z.string().min(6),
+  phone: z.preprocess(cleanPhone, z.string().regex(dutchPhone, 'Ongeldig telefoonnummer')), 
   name: z.string().min(2),
-  city: z.string().min(1),
+  city: z.string().regex(cityRegex, 'Plaats mag geen cijfers bevatten').min(2),
   address: z.string().min(1),
-  zipCode: z.string().min(4),
-  houseNumber: z.string().min(1),
-  workPhone: z.string().optional().nullable(),
-  kvkNumber: z.string().optional().nullable(),
-  website: z.string().url().optional().nullable(),
+  zipCode: z.string().regex(dutchPostcode, 'Ongeldige postcode (bv. 1234 AB)'),
+  houseNumber: z.string().regex(houseNumberRegex, 'Huisnummer: alleen cijfers of cijfers + 1 letter'),
+  workPhone: z.preprocess(cleanPhone, z.string().regex(dutchPhone, 'Ongeldig telefoonnummer').optional().nullable()).optional().nullable(),
+  kvkNumber: z.preprocess(nullIfEmpty, z.string().optional().nullable()),
+  website: z.preprocess(nullIfEmpty, z.string().url().optional().nullable()),
 });
 
 function slugify(input: string) {
@@ -45,7 +62,7 @@ async function uniqueCompanySlug(base: string) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions as any);
+    const session = (await getServerSession(authOptions as any)) as any;
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 401 });
     }

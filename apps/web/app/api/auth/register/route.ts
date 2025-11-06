@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma as db } from '@levendportret/db';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
-import { checkRateLimit } from '../../../lib/rate-limit';
+import { checkRateLimit } from '../../../../lib/rate-limit';
 
 function getIp(req: Request) {
   // Works locally; behind proxy use x-forwarded-for
@@ -10,18 +10,29 @@ function getIp(req: Request) {
   return header || '127.0.0.1';
 }
 
+const dutchPostcode = /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/;
+const dutchPhone = /^(?:\+31|0)(?:6\d{8}|[1-9]\d{8})$/;
+const houseNumberRegex = /^\d+[A-Za-z]?$/;
+const cityRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]+$/;
+
+const cleanPhone = (v: unknown) => {
+  if (typeof v !== 'string') return v as any;
+  const s = v.replace(/[\s\-()]/g, '');
+  return s === '' ? null : s;
+};
+
 const RegisterSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(8),
-  phone: z.string().min(6).optional().nullable(),
+  phone: z.preprocess(cleanPhone, z.string().regex(dutchPhone, 'Ongeldig telefoonnummer').optional().nullable()).optional().nullable(),
   companyName: z.string().min(2),
-  companyCity: z.string().min(1),
+  companyCity: z.string().regex(cityRegex, 'Plaats mag geen cijfers bevatten').min(2),
   companyAddress: z.string().min(1),
-  companyZip: z.string().min(4),
-  companyHouseNumber: z.string().min(1),
-  companyWorkPhone: z.string().optional().nullable(),
+  companyZip: z.string().regex(dutchPostcode, 'Ongeldige postcode (bv. 1234 AB)'),
+  companyHouseNumber: z.string().regex(houseNumberRegex, 'Huisnummer: alleen cijfers of cijfers + 1 letter'),
+  companyWorkPhone: z.preprocess(cleanPhone, z.string().regex(dutchPhone, 'Ongeldig telefoonnummer').optional().nullable()).optional().nullable(),
   companyKvk: z.string().optional().nullable(),
   companyWebsite: z.string().url().optional().nullable(),
 });
