@@ -283,4 +283,93 @@ Dit plan vervangt de standaard registratie met een professionele, meertraps aanm
 - Gebruiker detail: actieknoppen toegevoegd om te Goedkeuren, Afkeuren of opnieuw op "In behandeling" (SET_PENDING) te zetten.
 - Admin styling: secundaire knop-stijl toegepast voor navigatielinks (Terug naar dashboard, Naar Afgekeurd, etc.) op alle dashboardpagina's.
 - Web post-auth: loop opgelost door middleware-aanpassing (geen automatische redirect van `/` naar `/post-auth`). `post-auth` route stuurt nu correct door: ACTIVE → `/`, non-ACTIVE zonder bedrijf → `/onboarding/bedrijf`, anders → `/in-behandeling`.
-- Web in-behandeling: als gebruiker `ACTIVE` is, wordt een acceptatiebericht getoond met knoppen naar Home/Club/Fund.
+  - Web in-behandeling: als gebruiker `ACTIVE` is, wordt een acceptatiebericht getoond met knoppen naar Home/Club/Fund.
+
+#### Admin updates (07-11-2025)
+- Gebruikerslijst: filters gelokaliseerd (Status: Alle/Actief/In behandeling/Afgekeurd/Verificatie; Product: Alle/CLUB-COACH/FUND). Status=ALL is ondersteund in API.
+- Membershipbeheer: van FUND naar CLUB+COACH is een “schakelaar”. Bij toekennen van CLUB/COACH wordt een actieve FUND automatisch `EXPIRED`. Als CLUB/COACH actief is, kun je geen FUND toekennen.
+- Dashboard: badge met aantal `PENDING_APPROVAL` gebruikers naast “Gebruikersbeheer” (1 = “!”, >1 = het aantal, 0 = geen badge).
+- Pagina’s gedeactiveerd: `/dashboard/in-behandeling` en `/dashboard/afgekeurd` redirecten nu naar `/dashboard/gebruikers` met de juiste filter.
+- Prisma Client regenereren (Windows PowerShell):
+  ```powershell
+  pnpm --filter @levendportret/db run prisma:generate
+  pnpm dev
+  ```
+- Statuswijzigingen: wanneer een gebruiker wordt afgekeurd (REJECTED) of teruggezet naar in behandeling (PENDING_APPROVAL), worden alle actieve memberships automatisch `EXPIRED`.
+- Bevestigingen: bij “FUND toekennen” en “CLUB + COACH toekennen” verschijnt een bevestigingsdialoog.
+- `startDate`: bij het aanmaken van `CLUB/COACH` memberships wordt de startdatum gezet (voor 3 jaar-logica). Voor `FUND` wordt de startdatum later ingesteld via de Fund aanmaken/bewerken pagina (niet via admin).
+- Extra actie: `SWITCH_TO_FUND` verwijdert alle `CLUB/COACH` memberships (ook verlopen) en activeert `FUND` opnieuw.
+
+### Admin gebruikersbeheer (unified)
+
+- **Gebruikerslijst** `/dashboard/gebruikers`:
+  - Filters: `status` (ACTIVE/PENDING_APPROVAL/REJECTED/PENDING_VERIFICATION) en `product` (CLUB/COACH/FUND of Alle).
+  - Lijst toont membership-badges per gebruiker (product + status), naast bedrijfsnaam/plaats.
+  - Inline acties: Goedkeuren, Afkeuren, Op in behandeling.
+  - Link naar detail: `/dashboard/gebruiker/[id]`.
+- **Gebruiker detail** `/dashboard/gebruiker/[id]`:
+  - Sectie “Memberships”: voor CLUB/COACH/FUND per kaart de actuele status met knoppen “Toekennen” (GRANT_MEMBERSHIP) of “Beëindigen” (EXPIRE_MEMBERSHIP).
+  - Bestaande bewerk- en statusacties blijven.
+
+Opmerking: rechten/entitlements komen uit `Membership`. `User.plan` is slechts een billing-indicator en wordt uitgefaseerd (zie hieronder).
+
+### Plan (FREE/PAID) verwijderd
+
+- Betaalstatus wordt nu afgeleid van memberships:
+  - Betaald: ten minste één `ACTIVE` membership voor `CLUB` of `COACH`.
+  - Crowdfunding: alleen `FUND` actief → nog niet betaald.
+- Uitgevoerd:
+  - Prisma: `AccountPlan` enum en `User.plan`/`User.planUpdatedAt` verwijderd (migratie: `remove-plan`).
+  - API: `plan`-filter uit `/api/admin/users` verwijderd; `SET_PLAN` uit PATCH verwijderd.
+  - UI: planvelden niet meer gebruikt; beheer verloopt via Memberships.
+  - Business logica: bij toekennen `CLUB` of `COACH` wordt een actieve `FUND` automatisch op `EXPIRED` gezet. Bij `APPROVE` → `ACTIVE` en géén betaalde memberships, wordt `FUND` (indien afwezig of niet-actief) op `ACTIVE` gezet.
+
+## Database & migraties
+
+- Membership-entitlements: `MembershipProduct` enum (CLUB/COACH/FUND) toegevoegd + `Membership.product` en unieke sleutel op `(userId, companyId, product)`.
+- Plan kolommen zijn verwijderd in migratie `remove-plan` (plan was alleen billing-indicator; rechten komen nu volledig uit memberships).
+- Voer na pull/push lokaal de migraties en generate uit (gebruik workspace filter, niet `-C`):
+
+  ```bash
+  pnpm --filter @levendportret/db run prisma:migrate:dev
+  pnpm --filter @levendportret/db run prisma:generate
+  ```
+
+- Zorg dat Postgres draait (zie `docker-compose.yml`):
+
+  ```bash
+  docker compose up -d postgres
+  
+ 
+ Als `DATABASE_URL` niet wordt opgepikt: plaats een `.env` in `packages/db` met dezelfde `DATABASE_URL` als in je root `.env.local`, of gebruik `dotenv` om met die file te runnen.
+
+  ### Membership-entitlements & klantflows: FUND vs Direct Pay
+ 
+ Deze sectie definieert hoe product-rechten (entitlements) via `Membership` werken voor twee klantpaden.
+  - **Producten (MembershipProduct):** `FUND`, `CLUB`, `COACH`.
+  - **Unieke sleutel:** per gebruiker/bedrijf/product bestaat maximaal één membership (`@@unique([userId, companyId, product])`). Deze migratie kan waarschuwen als er bestaande duplicaten zijn — dit is normaal. Los duplicaten op voor je de migratie draait.
+  - **Opmerking:** `User.plan` is verwijderd; rechten/toegang komen volledig uit `Membership`. Zie ook: “Plan (FREE/PAID) verwijderd”.
+ 
+ #### 1) FUND-route (crowdfunding)
+ 
+ - **Start:** Klant kiest crowdfunding en maakt een fund aan op `fund.levendportret.nl/fund-aanmaken`.
+ - **Entitlement bij start:** geef `Membership` met `product=FUND` (status `ACTIVE`).
+ - **Doel & termijn:** binnen 3 maanden via donaties € 2.450 ophalen.
+ - **Niet gehaald:** geld wordt teruggestort aan donateurs. Klant kan kiezen:
+   - A) Bijbetalen tot € 2.450 → krijgt alsnog het Levend Portret Cadeau → entitlements `CLUB` + `COACH` actief, `FUND` beëindigen.
+   - B) Alles terugstorten → geen `CLUB`/`COACH` entitlements, `FUND` beëindigen.
+ - **Gelukt (doel gehaald):** stuur alle donateurs een bevestigingsmail. Verwijder/beëindig `FUND` en activeer `CLUB` + `COACH` entitlements voor de klant.
+ 
+ Technisch (richting implementatie):
+ - Bij aanmaken fund: creëer `Membership(FUND)` voor `(userId, companyId)`.
+ - Bij succes: zet `FUND` op `EXPIRED` en creëer/activeer `CLUB` en `COACH` memberships.
+ - Bij falen: op basis van klantkeuze ofwel `CLUB`/`COACH` activeren met bijbetaling, of alles terugstorten en `FUND` beëindigen.
+ - Donateursnotificaties: bij succes een e-mailupdate sturen.
+ 
+ #### 2) Directe betaling (in één keer)
+ 
+ - **Start:** Klant betaalt het volledige bedrag in één keer.
+ - **Entitlements:** direct `CLUB` + `COACH` actief. `FUND` wordt hier nooit verleend.
+ - **Plan:** je kunt `User.plan` op `PAID` zetten als signaal voor betaalde klant; rechten blijven via `Membership` bepaald.
+ 
+ Opmerking: deze sectie beschrijft de gewenste werking voor de launch; implementatie en automatisering (jobs/webhooks) volgen in een latere fase.

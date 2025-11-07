@@ -38,8 +38,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       email: true,
       role: true,
       status: true,
-      plan: true,
-      planUpdatedAt: true,
       createdAt: true,
       company: {
         select: {
@@ -60,6 +58,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           logoUrl: true,
         },
       },
+      memberships: {
+        select: {
+          product: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+        },
+      },
     },
   });
   if (!user || user.role === 'ADMIN') return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -72,19 +78,108 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const body = await req.json().catch(() => ({}));
-  const action = body?.action as 'APPROVE' | 'REJECT' | 'SET_PENDING' | 'SET_PLAN';
+  const action = body?.action as 'APPROVE' | 'REJECT' | 'SET_PENDING' | 'GRANT_MEMBERSHIP' | 'EXPIRE_MEMBERSHIP' | 'SWITCH_TO_FUND';
   if (!action) return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   try {
-    const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true } });
+    const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true, id: true, status: true } });
     if (!target || target.role === 'ADMIN') return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (action === 'SET_PLAN') {
-      const plan = (body?.plan as 'FREE' | 'PAID') || null;
-      if (!plan || (plan !== 'FREE' && plan !== 'PAID')) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
-      const updated = await prisma.user.update({ where: { id: params.id }, data: { plan, planUpdatedAt: new Date() } });
-      return NextResponse.json({ ok: true, plan: updated.plan, planUpdatedAt: updated.planUpdatedAt });
+    if (action === 'GRANT_MEMBERSHIP' || action === 'EXPIRE_MEMBERSHIP') {
+      if ((target as any).status !== 'ACTIVE') {
+        return NextResponse.json({ error: 'Memberships kunnen alleen worden gewijzigd voor ACTIVE gebruikers' }, { status: 400 });
+      }
+      const product = (body?.product || '').toUpperCase();
+      if (product !== 'CLUB' && product !== 'COACH' && product !== 'FUND') {
+        return NextResponse.json({ error: 'Invalid product' }, { status: 400 });
+      }
+      const company = await prisma.company.findUnique({ where: { ownerId: target.id }, select: { id: true } });
+      if (!company) {
+        return NextResponse.json({ error: 'Gebruiker heeft geen bedrijf' }, { status: 400 });
+      }
+      if (action === 'GRANT_MEMBERSHIP') {
+        if (product === 'FUND') {
+          const hasPaid = await prisma.membership.count({ where: { userId: target.id, companyId: company.id, product: { in: ['CLUB','COACH'] as any }, status: 'ACTIVE' } });
+          if (hasPaid > 0) {
+            return NextResponse.json({ error: 'Kan FUND niet toekennen: gebruiker heeft al een betaald membership (CLUB/COACH)' }, { status: 400 });
+          }
+        }
+        const existing = await prisma.membership.findUnique({
+          where: { userId_companyId_product: { userId: target.id, companyId: company.id, product } as any },
+        });
+        if (existing) {
+          const updated = await prisma.membership.update({
+            where: { id: existing.id },
+            data: { status: 'ACTIVE', endDate: null },
+          });
+          if (product === 'CLUB' || product === 'COACH') {
+            await prisma.membership.updateMany({
+              where: { userId: target.id, companyId: company.id, product: 'FUND', status: 'ACTIVE' },
+              data: { status: 'EXPIRED', endDate: new Date() },
+            });
+          }
+          return NextResponse.json({ ok: true, membership: { product: updated.product, status: updated.status, startDate: updated.startDate, endDate: updated.endDate } });
+        } else {
+          const created = await prisma.membership.create({
+            data: (product === 'FUND')
+              ? { userId: target.id, companyId: company.id, product: product as any, status: 'ACTIVE' }
+              : { userId: target.id, companyId: company.id, product: product as any, status: 'ACTIVE', startDate: new Date() },
+          });
+          if (product === 'CLUB' || product === 'COACH') {
+            await prisma.membership.updateMany({
+              where: { userId: target.id, companyId: company.id, product: 'FUND', status: 'ACTIVE' },
+              data: { status: 'EXPIRED', endDate: new Date() },
+            });
+          }
+          return NextResponse.json({ ok: true, membership: { product: created.product, status: created.status, startDate: created.startDate, endDate: created.endDate } });
+        }
+      } else {
+        const existing = await prisma.membership.findUnique({
+          where: { userId_companyId_product: { userId: target.id, companyId: company.id, product } as any },
+        });
+        if (!existing) return NextResponse.json({ error: 'Membership niet gevonden' }, { status: 404 });
+        const updated = await prisma.membership.update({
+          where: { id: existing.id },
+          data: { status: 'EXPIRED', endDate: new Date() },
+        });
+        return NextResponse.json({ ok: true, membership: { product: updated.product, status: updated.status, startDate: updated.startDate, endDate: updated.endDate } });
+      }
+    }
+    if (action === 'SWITCH_TO_FUND') {
+      if ((target as any).status !== 'ACTIVE') {
+        return NextResponse.json({ error: 'Memberships kunnen alleen worden gewijzigd voor ACTIVE gebruikers' }, { status: 400 });
+      }
+      const company = await prisma.company.findUnique({ where: { ownerId: target.id }, select: { id: true } });
+      if (!company) return NextResponse.json({ error: 'Gebruiker heeft geen bedrijf' }, { status: 400 });
+      await prisma.membership.deleteMany({ where: { userId: target.id, companyId: company.id, product: { in: ['CLUB','COACH'] as any } } });
+      const fund = await prisma.membership.findUnique({ where: { userId_companyId_product: { userId: target.id, companyId: company.id, product: 'FUND' } as any } });
+      if (!fund) {
+        await prisma.membership.create({ data: { userId: target.id, companyId: company.id, product: 'FUND' as any, status: 'ACTIVE' } });
+      } else if (fund.status !== 'ACTIVE') {
+        await prisma.membership.update({ where: { id: fund.id }, data: { status: 'ACTIVE', endDate: null } });
+      }
+      return NextResponse.json({ ok: true });
     }
     const status = action === 'APPROVE' ? 'ACTIVE' : action === 'REJECT' ? 'REJECTED' : 'PENDING_APPROVAL';
     const updated = await prisma.user.update({ where: { id: params.id }, data: { status } });
+    if (status === 'ACTIVE') {
+      // Ensure FUND exists if no CLUB/COACH active yet
+      const company = await prisma.company.findUnique({ where: { ownerId: params.id }, select: { id: true } });
+      if (company) {
+        const hasPaid = await prisma.membership.count({ where: { userId: params.id, companyId: company.id, product: { in: ['CLUB','COACH'] as any }, status: 'ACTIVE' } });
+        if (hasPaid === 0) {
+          const fund = await prisma.membership.findUnique({ where: { userId_companyId_product: { userId: params.id, companyId: company.id, product: 'FUND' } as any } });
+          if (!fund) {
+            await prisma.membership.create({ data: { userId: params.id, companyId: company.id, product: 'FUND' as any, status: 'ACTIVE' } });
+          } else if (fund.status !== 'ACTIVE') {
+            await prisma.membership.update({ where: { id: fund.id }, data: { status: 'ACTIVE', endDate: null } });
+          }
+        }
+      }
+    } else {
+      const company = await prisma.company.findUnique({ where: { ownerId: params.id }, select: { id: true } });
+      if (company) {
+        await prisma.membership.updateMany({ where: { userId: params.id, companyId: company.id, status: 'ACTIVE' }, data: { status: 'EXPIRED', endDate: new Date() } });
+      }
+    }
     return NextResponse.json({ ok: true, status: updated.status });
   } catch {
     return NextResponse.json({ error: 'Update failed' }, { status: 500 });

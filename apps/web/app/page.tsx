@@ -104,7 +104,7 @@ export default function Page() {
 
           <div className="text-center">
             <Link href="/register">
-              <Button variant="outline" size="lg">
+              <Button variant="coral" size="lg">
                 Meld je aan
               </Button>
             </Link>

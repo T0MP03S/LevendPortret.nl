@@ -25,6 +25,7 @@ type Item = {
   status: string;
   createdAt: string;
   company?: Company | null;
+  memberships?: { product: string; status: string; startDate: string; endDate: string | null }[];
 };
 
 export default function GebruikerDetailPage({ params }: { params: { id: string } }) {
@@ -35,6 +36,8 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
   const [error, setError] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMembershipConfirm, setShowMembershipConfirm] = useState(false);
+  const [membershipConfirmTarget, setMembershipConfirmTarget] = useState<'FUND' | 'CLUB_COACH' | 'SWITCH_TO_FUND' | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -78,6 +81,102 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
       setError(e?.message || "Er ging iets mis");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onConfirmMembershipAction = async () => {
+    const target = membershipConfirmTarget;
+    setShowMembershipConfirm(false);
+    if (target === 'FUND') {
+      await grantMembership('FUND');
+    } else if (target === 'CLUB_COACH') {
+      await grantClubCoach();
+    } else if (target === 'SWITCH_TO_FUND') {
+      await switchToFund();
+    }
+    setMembershipConfirmTarget(null);
+  };
+
+  const grantClubCoach = async () => {
+    await grantMembership('CLUB');
+    await grantMembership('COACH');
+    await load();
+  };
+
+  const grantMembership = async (product: 'CLUB' | 'COACH' | 'FUND') => {
+    setSaving(true);
+    setError("");
+    setStatus("");
+    try {
+      const res = await fetch(`/api/admin/users/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'GRANT_MEMBERSHIP', product })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Membership toekennen mislukt");
+      setItem((prev) => {
+        if (!prev) return prev;
+        const list = [...(prev.memberships || [])];
+        const idx = list.findIndex((m) => m.product === product);
+        const updated = { product, status: 'ACTIVE', startDate: (data.membership?.startDate || new Date().toISOString()), endDate: null } as any;
+        if (idx >= 0) list[idx] = updated; else list.push(updated);
+        return { ...prev, memberships: list } as any;
+      });
+      setStatus("Membership toegekend");
+    } catch (e: any) {
+      setError(e?.message || "Membership toekennen mislukt");
+    } finally {
+      setSaving(false);
+      await load();
+    }
+  };
+
+  const switchToFund = async () => {
+    setSaving(true);
+    setError("");
+    setStatus("");
+    try {
+      const res = await fetch(`/api/admin/users/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'SWITCH_TO_FUND' })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Terug naar FUND mislukt");
+      setStatus("Overgezet naar FUND");
+      await load();
+    } catch (e: any) {
+      setError(e?.message || "Terug naar FUND mislukt");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const expireMembership = async (product: 'CLUB' | 'COACH' | 'FUND') => {
+    setSaving(true);
+    setError("");
+    setStatus("");
+    try {
+      const res = await fetch(`/api/admin/users/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'EXPIRE_MEMBERSHIP', product })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Membership beëindigen mislukt");
+      setItem((prev) => {
+        if (!prev) return prev;
+        const list = [...(prev.memberships || [])];
+        const idx = list.findIndex((m) => m.product === product);
+        if (idx >= 0) list[idx] = { ...list[idx], status: 'EXPIRED', endDate: (data.membership?.endDate || new Date().toISOString()) } as any;
+        return { ...prev, memberships: list } as any;
+      });
+      setStatus("Membership beëindigd");
+    } catch (e: any) {
+      setError(e?.message || "Membership beëindigen mislukt");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -164,6 +263,7 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Status wijzigen mislukt");
       setItem((prev) => (prev ? { ...prev, status: data.status || prev.status } : prev));
+      await load();
       setStatus("Status gewijzigd");
     } catch (e: any) {
       setError(e?.message || "Status wijzigen mislukt");
@@ -178,7 +278,6 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
         <h1 className="text-3xl md:text-4xl font-bold">Gebruiker bewerken</h1>
         <div className="mt-3 flex items-center gap-3">
           <Link href="/dashboard/gebruikers" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Terug naar gebruikers</Link>
-          <Link href="/dashboard/afgekeurd" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Naar Afgekeurd</Link>
         </div>
       </div>
 
@@ -207,6 +306,43 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
               <div>
                 <label className="block text-sm font-medium text-gray-700">Status</label>
                 <input value={item.status} readOnly className="mt-1 block w-full px-3 py-2 border border-gray-200 bg-zinc-50 rounded-md" />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <h2 className="text-lg font-semibold">Memberships</h2>
+              <div className="mt-2 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  {(item?.memberships || []).map((m, idx) => (
+                    <span key={idx} className={`text-[11px] px-1.5 py-0.5 rounded-full ${m.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'}`}>{m.product}:{m.status}</span>
+                  ))}
+                </div>
+                {(() => {
+                  const activePaid = (item?.memberships || []).filter((m:any) => (m.product==='CLUB' || m.product==='COACH') && m.status==='ACTIVE');
+                  const paidDate = activePaid.length ? new Date(Math.min(...activePaid.map((m:any)=> new Date(m.startDate).getTime()))) : null;
+                  return paidDate ? (<div className="text-sm text-zinc-700">Betaald op: {paidDate.toLocaleDateString()}</div>) : null;
+                })()}
+                <div className="flex flex-wrap items-center gap-2">
+                  {(() => {
+                    const hasPaidActive = (item?.memberships || []).some((m:any) => (m.product==='CLUB' || m.product==='COACH') && m.status==='ACTIVE');
+                    const hasFundActive = (item?.memberships || []).some((m:any) => m.product==='FUND' && m.status==='ACTIVE');
+                    const fundClasses = hasFundActive
+                      ? "px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-sm"
+                      : "px-3 py-1.5 rounded-md border border-zinc-300 text-zinc-700 hover:bg-zinc-50 text-sm disabled:opacity-50";
+                    const ccClasses = hasPaidActive
+                      ? "px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-sm"
+                      : "px-3 py-1.5 rounded-md border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-sm disabled:opacity-50";
+                    return (
+                      <>
+                        <button onClick={() => { setMembershipConfirmTarget('FUND'); setShowMembershipConfirm(true); }} disabled={saving || item?.status !== 'ACTIVE' || hasPaidActive} className={fundClasses}>FUND toekennen</button>
+                        <button onClick={() => { setMembershipConfirmTarget('CLUB_COACH'); setShowMembershipConfirm(true); }} disabled={saving || item?.status !== 'ACTIVE'} className={ccClasses}>CLUB + COACH toekennen</button>
+                        {hasPaidActive && (
+                          <button onClick={() => { setMembershipConfirmTarget('SWITCH_TO_FUND'); setShowMembershipConfirm(true); }} disabled={saving || item?.status !== 'ACTIVE'} className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm">Terug naar FUND</button>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
 
@@ -271,6 +407,23 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
                   <div className="mt-4 flex items-center justify-end gap-2">
                     <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1.5 rounded-md border border-zinc-300 text-zinc-700 hover:bg-zinc-50">Annuleren</button>
                     <button onClick={onDelete} className="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">Verwijderen</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showMembershipConfirm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
+                  <h3 className="text-lg font-semibold mb-2">Bevestig actie</h3>
+                  <p className="text-sm text-zinc-600">
+                    {membershipConfirmTarget === 'FUND' && 'Weet je zeker dat je FUND wilt toekennen?'}
+                    {membershipConfirmTarget === 'CLUB_COACH' && 'Weet je zeker dat je CLUB + COACH wilt toekennen?'}
+                    {membershipConfirmTarget === 'SWITCH_TO_FUND' && 'Weet je zeker dat je terug wilt naar FUND? Alle CLUB/COACH memberships worden verwijderd.'}
+                  </p>
+                  <div className="mt-4 flex items-center justify-end gap-2">
+                    <button onClick={() => { setShowMembershipConfirm(false); setMembershipConfirmTarget(null); }} className="px-3 py-1.5 rounded-md border border-zinc-300 text-zinc-700 hover:bg-zinc-50">Annuleren</button>
+                    <button onClick={onConfirmMembershipAction} className="px-3 py-1.5 rounded-md bg-coral text-white hover:bg-[#e14c61]">Bevestigen</button>
                   </div>
                 </div>
               </div>

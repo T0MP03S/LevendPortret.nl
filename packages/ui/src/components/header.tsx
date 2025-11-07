@@ -37,9 +37,6 @@ export function Header({ user, onSignOut }: HeaderProps) {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center space-x-8 font-heading">
-          <Link href="/" className="text-white hover:text-coral transition-colors">
-            Home
-          </Link>
           <Link href="http://localhost:3001" className="text-white hover:text-coral transition-colors">
             Club
           </Link>
@@ -56,7 +53,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
           {user ? (
             <>
               <div className="relative" ref={ref}>
-                <button onClick={() => setOpen((v) => !v)} className="hidden md:inline-flex items-center space-x-2 text-white font-heading hover:text-coral">
+                <button onClick={() => setOpen((v) => !v)} className="hidden md:inline-flex items-center gap-2 h-9 px-2 text-white font-heading hover:text-coral align-middle">
                   <User className="w-5 h-5" />
                   <span className="text-sm">{user.name || user.email}</span>
                 </button>

@@ -24,6 +24,12 @@ enum MembershipStatus {
   EXPIRED
 }
 
+enum MembershipProduct {
+  CLUB
+  COACH
+  FUND
+}
+
 enum DonationStatus {
   PENDING
   PAID
@@ -51,11 +57,6 @@ enum AccountStatus {
   REJECTED
 }
 
-enum AccountPlan {
-  FREE
-  PAID
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -66,8 +67,6 @@ model User {
   passwordHash  String?   @db.Text
   role          Role      @default(USER)
   status        AccountStatus @default(PENDING_VERIFICATION)
-  plan          AccountPlan   @default(FREE)
-  planUpdatedAt DateTime?
   accounts      Account[]
   sessions      Session[]
   company       Company?     @relation("CompanyOwner")
@@ -170,11 +169,12 @@ model Membership {
   startDate  DateTime @default(now())
   endDate    DateTime?
   status     MembershipStatus @default(ACTIVE)
+  product    MembershipProduct @default(CLUB)
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, companyId])
+  @@unique([userId, companyId, product])
 }
 
 model Fund {

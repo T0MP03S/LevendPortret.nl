@@ -20,7 +20,6 @@ export async function middleware(req: NextRequest) {
     pathname === '/' ||
     pathname === '/inloggen' ||
     pathname === '/admin-verificatie' ||
-    pathname === '/admin-registratie' ||
     pathname.startsWith('/api/admin/set-password') ||
     pathname.startsWith('/api/admin/is-allowed-email')
   ) {
@@ -35,14 +34,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/inloggen', req.url));
   }
 
-  // If user needs to set a password, send to /admin-registratie first
-  if ((token as any).needsPassword) {
-    return NextResponse.redirect(new URL('/admin-registratie', req.url));
-  }
-
   // Enforce ADMIN role on protected routes
   if ((token as any).role !== 'ADMIN') {
     return NextResponse.redirect(new URL('/inloggen', req.url));
+  }
+
+  // If ADMIN needs to set a password, send to /admin-registratie first
+  if ((token as any).needsPassword) {
+    // Only allow access to /admin-registratie itself
+    if (pathname !== '/admin-registratie') {
+      return NextResponse.redirect(new URL('/admin-registratie', req.url));
+    }
+  } else {
+    // If already set password, block direct access to /admin-registratie
+    if (pathname === '/admin-registratie') {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
   }
 
   return NextResponse.next();
