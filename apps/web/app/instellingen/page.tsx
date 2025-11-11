@@ -1,0 +1,264 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+type Company = {
+  id: string;
+  name: string | null;
+  address: string | null;
+  houseNumber: string | null;
+  zipCode: string | null;
+  city: string | null;
+  workPhone: string | null;
+  kvkNumber: string | null;
+  website: string | null;
+  description: string | null;
+  logoUrl: string | null;
+};
+
+type Current = {
+  user: { id: string; name: string | null; email: string; status: string; phone?: string | null };
+  company: Company | null;
+};
+
+export default function InstellingenPage() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
+  const [data, setData] = useState<Current | null>(null);
+
+  const [personal, setPersonal] = useState({ name: "", phone: "" });
+  const [password, setPassword] = useState({ oldPassword: "", newPassword: "", confirm: "" });
+  const [company, setCompany] = useState({
+    name: "",
+    address: "",
+    houseNumber: "",
+    zipCode: "",
+    city: "",
+    workPhone: "",
+    kvkNumber: "",
+    website: "",
+    description: "",
+    logoUrl: "",
+  });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [logoFileName, setLogoFileName] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    setOk("");
+    try {
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Kon instellingen niet laden");
+      setData(json as Current);
+      setPersonal({ name: json.user?.name || "", phone: (json.user?.phone || "") });
+      setCompany({
+        name: json.company?.name || "",
+        address: json.company?.address || "",
+        houseNumber: json.company?.houseNumber || "",
+        zipCode: json.company?.zipCode || "",
+        city: json.company?.city || "",
+        workPhone: json.company?.workPhone || "",
+        kvkNumber: json.company?.kvkNumber || "",
+        website: json.company?.website || "",
+        description: json.company?.description || "",
+        logoUrl: json.company?.logoUrl || "",
+      });
+    } catch (e: any) {
+      setError(e?.message || "Er ging iets mis");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const onSavePersonal = async () => {
+    setError(""); setOk("");
+    const res = await fetch("/api/settings/user", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: personal.name, phone: personal.phone || null }) });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) { setError(json?.error || "Opslaan mislukt"); return; }
+    setOk("Persoonlijke gegevens opgeslagen");
+    await load();
+  };
+
+  const onChangePassword = async () => {
+    setError(""); setOk("");
+    if (!password.oldPassword || !password.newPassword || password.newPassword !== password.confirm) {
+      setError("Wachtwoord ongeldig of bevestiging komt niet overeen");
+      return;
+    }
+    const res = await fetch("/api/settings/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ oldPassword: password.oldPassword, newPassword: password.newPassword }) });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) { setError(json?.error || "Wachtwoord wijzigen mislukt"); return; }
+    setOk("Wachtwoord gewijzigd");
+    setPassword({ oldPassword: "", newPassword: "", confirm: "" });
+  };
+
+  const onSaveCompany = async () => {
+    setError(""); setOk("");
+    const res = await fetch("/api/settings/company", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      name: company.name,
+      address: company.address,
+      houseNumber: company.houseNumber,
+      zipCode: company.zipCode,
+      city: company.city,
+      workPhone: company.workPhone || null,
+      kvkNumber: company.kvkNumber || null,
+      website: company.website || null,
+      description: company.description || null,
+      logoUrl: company.logoUrl || null,
+    }) });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) { setError(json?.error || "Opslaan mislukt"); return; }
+    setOk("Bedrijfsgegevens opgeslagen");
+    await load();
+  };
+
+  const onSelectLogo = async (file: File | undefined | null) => {
+    if (!file) return;
+    setError(""); setOk(""); setUploadingLogo(true);
+    try {
+      const allowed = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+      if (!allowed.includes(file.type)) throw new Error("Alleen svg, png, jpg/jpeg of webp zijn toegestaan");
+      const maxBytes = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxBytes) throw new Error("Bestand is te groot (max 2MB)");
+      setLogoFileName(file.name);
+      const localUrl = URL.createObjectURL(file);
+      setLogoPreview(localUrl);
+      const metaRes = await fetch("/api/settings/logo-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, contentType: file.type }) });
+      const meta = await metaRes.json();
+      if (!metaRes.ok) throw new Error(meta?.error || "Kon upload-URL niet ophalen");
+      const putRes = await fetch(meta.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+      if (!putRes.ok) throw new Error("Upload naar opslag mislukt");
+
+      // Save the logo URL immediately via the new dedicated endpoint
+      const saveRes = await fetch('/api/settings/logo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logoUrl: meta.publicUrl }) });
+      if (!saveRes.ok) {
+        const errJson = await saveRes.json().catch(() => ({}));
+        throw new Error(errJson?.error || 'Logo kon niet worden opgeslagen');
+      }
+
+      setCompany(v => ({ ...v, logoUrl: meta.publicUrl }));
+      setOk("Logo succesvol opgeslagen");
+      setLogoFileName(""); // Reset filename
+    } catch (e: any) {
+      setError(e?.message || "Upload mislukt");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 space-y-8">
+      <h1 className="text-3xl md:text-4xl font-bold">Instellingen</h1>
+      {loading ? <div>Laden…</div> : (
+        <>
+          {error && <div className="text-red-600">{error}</div>}
+          {ok && <div className="text-emerald-700">{ok}</div>}
+
+          <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Persoonlijk</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-zinc-700">Naam</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={personal.name} onChange={e=>setPersonal(v=>({...v,name:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Telefoon</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={personal.phone} onChange={e=>setPersonal(v=>({...v,phone:e.target.value}))} />
+              </div>
+            </div>
+            <button onClick={onSavePersonal} className="px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Opslaan</button>
+          </section>
+
+          <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Wachtwoord wijzigen</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm text-zinc-700">Oud wachtwoord</label>
+                <input type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.oldPassword} onChange={e=>setPassword(v=>({...v,oldPassword:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Nieuw wachtwoord</label>
+                <input type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.newPassword} onChange={e=>setPassword(v=>({...v,newPassword:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Bevestig wachtwoord</label>
+                <input type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.confirm} onChange={e=>setPassword(v=>({...v,confirm:e.target.value}))} />
+              </div>
+            </div>
+            <button onClick={onChangePassword} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Wachtwoord wijzigen</button>
+            <div className="text-xs text-zinc-500">Niet beschikbaar voor Google-only accounts.</div>
+          </section>
+
+          <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Bedrijf</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-zinc-700">Bedrijfsnaam</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.name} onChange={e=>setCompany(v=>({...v,name:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Bedrijfsadres</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.address} onChange={e=>setCompany(v=>({...v,address:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Huisnummer</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.houseNumber} onChange={e=>setCompany(v=>({...v,houseNumber:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Postcode</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.zipCode} onChange={e=>setCompany(v=>({...v,zipCode:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Plaats</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.city} onChange={e=>setCompany(v=>({...v,city:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Website (optioneel)</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.website} onChange={e=>setCompany(v=>({...v,website:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Werktelefoon (optioneel)</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.workPhone} onChange={e=>setCompany(v=>({...v,workPhone:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">KVK-nummer (optioneel)</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.kvkNumber} onChange={e=>setCompany(v=>({...v,kvkNumber:e.target.value}))} />
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-700">Logo upload</label>
+                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={e=>onSelectLogo(e.target.files?.[0])} />
+                <div className="mt-1 flex items-center gap-3">
+                  <button type="button" onClick={()=>fileInputRef.current?.click()} className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">
+                    Kies logo…
+                  </button>
+                  {logoFileName ? <span className="text-sm text-zinc-700 truncate max-w-[12rem]" title={logoFileName}>{logoFileName}</span> : <span className="text-sm text-zinc-500">Nog geen bestand gekozen</span>}
+                </div>
+                <div className="mt-2 flex items-center gap-3">
+                  {(logoPreview || company.logoUrl) ? (
+                    <img src={logoPreview || company.logoUrl} alt="Logo" className="h-10 w-10 object-contain border border-zinc-200 rounded bg-white" />
+                  ) : null}
+                  {company.logoUrl ? (
+                    <span className="text-sm text-zinc-700">{(company.logoUrl.split('?')[0].split('/').pop())}</span>
+                  ) : null}
+                </div>
+                <div className="text-xs text-zinc-500 mt-1">Toegestaan: svg, png, jpg/jpeg, webp. Max 2MB.</div>
+                {uploadingLogo && <div className="text-xs text-zinc-500 mt-1">Uploaden…</div>}
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm text-zinc-700">Korte beschrijving (max 250 tekens)</label>
+                <textarea className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" maxLength={250} rows={3} value={company.description} onChange={e=>setCompany(v=>({...v,description:e.target.value}))} />
+              </div>
+            </div>
+            <button onClick={onSaveCompany} className="px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Opslaan</button>
+          </section>
+        </>
+      )}
+    </div>
+  );
+}

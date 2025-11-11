@@ -38,6 +38,17 @@ export async function middleware(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
+  // Settings page requires authenticated ACTIVE users
+  if (pathname.startsWith('/instellingen')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/inloggen', req.url));
+    }
+    if ((token as any).status !== 'ACTIVE') {
+      return NextResponse.redirect(new URL('/in-behandeling', req.url));
+    }
+    return NextResponse.next();
+  }
+
   // Onboarding page access rules
   if (pathname.startsWith('/onboarding/bedrijf')) {
     // Not logged in -> to login

@@ -62,6 +62,54 @@ Links ter referentie:
 ## 4) Content & integraties
 - [ ] Vimeo integratie (embeds): 30s + 5 min IDs per bedrijf
 - [ ] Thumbnails/foto’s upload naar R2, signed URL’s in UI
+ - [ ] Clips: zie de vragenlijst voor scope en UX → [docs/clips/QUESTIONNAIRE.md](./clips/QUESTIONNAIRE.md)
+
+### Cloudflare R2 voor logo uploads (web)
+
+- **Wat we gebruiken**
+  - Presigned PUT URL vanaf server: `POST /api/settings/logo-upload` retourneert `uploadUrl` + `publicUrl`.
+  - Client uploadt direct naar R2 via S3 API. Resultaat-URL wordt opgeslagen in `Company.logoUrl` via `POST /api/settings/logo` (dedicated endpoint).
+
+- **Benodigdheden in Cloudflare**
+  - Maak een R2 bucket, bv. `levendportret`.
+  - Maak een API Token met R2 `Edit` rechten op deze bucket (Account → R2 → API Tokens → Create API Token → Permissions: Object Read & Write voor de bucket).
+  - Noteer jouw Account ID (te zien in R2 dashboard).
+  - Optioneel/public: stel een Public Domain in voor de bucket (R2 → jouw bucket → Public Access → Custom domain of R2 public URL).
+
+- **Endpoint (S3 API)**
+  - Endpoint: `https://<accountid>.r2.cloudflarestorage.com` (S3-compatible). Region: `auto`.
+  - We gebruiken path-style (`forcePathStyle: true`).
+
+- **CORS instellen (bucket)**
+  - Sta uploads vanaf localhost toe. Voorbeeld CORS (conceptueel):
+    - Allowed Origins: `http://localhost:3000`
+    - Allowed Methods: `PUT, GET, HEAD`
+    - Allowed Headers: `Content-Type, Authorization`
+    - Max Age: `3600`
+  - Zet dit in de R2 bucket CORS-instellingen.
+
+- **Env variabelen (.env.local, root)**
+  - R2_ENDPOINT=`https://<accountid>.r2.cloudflarestorage.com`
+  - R2_ACCESS_KEY_ID=`<api token access key>`
+  - R2_SECRET_ACCESS_KEY=`<api token secret>`
+  - R2_BUCKET=`levendportret`
+  - R2_PUBLIC_BASE_URL=`https://<public-domain-of-bucket-or-r2-public-url>`
+
+- **Welke sleutel waar (mapping)**
+  - Cloudflare “Token value” (voor de Cloudflare Management API) → NIET gebruikt voor S3 uploads.
+  - R2/S3 “Access key id” → zet in `R2_ACCESS_KEY_ID`.
+  - R2/S3 “Secret access key” → zet in `R2_SECRET_ACCESS_KEY`.
+  - Jurisdiction/Region endpoint (S3) → zet in `R2_ENDPOINT`, b.v. `https://<accountid>.r2.cloudflarestorage.com` (of EU-variant indien van toepassing).
+  - Publieke URL van je bucket/domein → zet in `R2_PUBLIC_BASE_URL` (b.v. `https://pub-xxxxx.r2.dev/<bucket>` of je eigen domein).
+
+- **Installeren dependencies (eenmalig)**
+  - `pnpm -C apps/web add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner`
+
+- **Testen**
+  - Start dev (`pnpm dev`).
+  - Ga naar `http://localhost:3000/instellingen` → sectie Bedrijf → upload een logo.
+  - Controleer dat na upload de `logoUrl` zichtbaar is en `PUT /api/settings/company` dit bewaart.
+
 - [ ] Eerste 1–5 bedrijven/clips ingeven (seed of via admin)
 
 ## Security
@@ -268,6 +316,50 @@ Dit plan vervangt de standaard registratie met een professionele, meertraps aanm
 2.  **Start Fase C (Club):**
     - Bouwen van het overzicht van bedrijven (`/club`).
     - Detailpagina per bedrijf met video-embeds.
+
+### Stappenplan: Instellingen → Fund (per questionnaire)
+
+Fase 1 — Web `/instellingen` (profiel bewerken)
+- Route: `apps/web/app/instellingen/page.tsx` (client) + API endpoints.
+- Toegang: alleen `ACTIVE` gebruikers (middleware + server checks).
+- Header: in user-dropdown een link “Instellingen” (alleen voor ACTIVE).
+- Secties en velden:
+  - Persoonlijk: naam, telefoon.
+  - Wachtwoord wijzigen: oud wachtwoord + nieuw + bevestiging. Niet toegestaan voor Google-only accounts (behalve naam/telefoon).
+  - Bedrijf: naam, plaats, logo-upload, korte beschrijving (max 250 tekens), optioneel adres/website. Publieke toggles: toon naam/logo/locatie.
+- Validaties: NL-telefoon, logo-bestandsformaten, max-lengtes.
+- Opslaan: aparte API’s voor user en company updates. Toon in-site bevestigingsmodals bij gevoelige acties (wachtwoord).
+
+#### Web Instellingen (gerealiseerd)
+- Route: `/instellingen` (alleen `ACTIVE` via middleware).
+- Header: link “Instellingen” in user dropdown als je `ACTIVE` bent.
+- Secties:
+  - Persoonlijk: naam, telefoon → `PUT /api/settings/user`.
+  - Wachtwoord wijzigen: oud + nieuw + bevestiging (min 8). Niet voor Google-only accounts → `POST /api/settings/password`.
+  - Bedrijf: naam, bedrijfsadres, huisnummer, postcode, plaats, werktelefoon (optioneel), KVK-nummer (optioneel), website (optioneel), logo upload (R2), korte beschrijving (max 250) → `PUT /api/settings/company`.
+- Laden: `GET /api/settings` (geeft user + company terug).
+
+Fase 2 — Fund (fund.levendportret.nl)
+- Guards & middleware:
+  - Beheer-routes alleen voor gebruikers met `FUND` membership (en bij voorkeur `ACTIVE`).
+  - Fund starten is geblokkeerd wanneer profiel incompleet → CTA naar `/instellingen`.
+- Dashboard routes:
+  - `/dashboard` overzicht: statuskaarten (Profielstatus, Fund-status), CTA’s “Fund aanmaken” of “Beheer Fund/Stoppen”.
+  - `/dashboard/fund-aanmaken`: formulier met `startDate` (klant kan instellen vóór start; na start alleen admin wijzigbaar) + basiscontent (titel, pitch, cover).
+  - `/dashboard/fund-beheren`: status, voortgangsbalk, resterende tijd (dagen), stoppen-knop (in-site confirm).
+- API (fund-app):
+  - GET `/api/fund`: huidige fund + company.
+  - POST `/api/fund/start`: maakt/activeert FUND met `startDate` en content; status eerst “in review/pending publish”.
+  - POST `/api/fund/stop`: zet FUND op `EXPIRED` (met confirm).
+- Admin review/publish (admin-app):
+  - Nieuwe kaarten voor Fund-aanvragen: publish/afkeur/verlengen (90 dagen), melding naar klant bij publish, bij behalen doel: automatische publish-flow naar CLUB/COACH en FUND beëindigen (v1: knoppen; v2: jobs/webhooks).
+- Publieke pagina’s (fund-app):
+  - `/[bedrijfsnaam]`: titel, pitch, cover, progress-bar, “nu nog X nodig”, deadline (23:59:59 NL), bedrijfsinfo (naam/logo/locatie aan/uit), social share, doneren (Mollie v1 gewenst).
+  - `/` overzicht: lijst van lopende funds met progress.
+
+Fase 3 — Betaal- en notificatieflow (kort na v1)
+- Mollie integratie: doneren, transactiekostenregel (< €50 door donateur), refunds bij falen, mailnotificaties (succes/falen/keuze A/B/C), admin-inzage en handmatige bijbetaling (factuur) voor optie A.
+- Scheduler jobs: auto-succes bij behalen doel, 90-dagen deadline en 1-week keuzevenster, auto-archivering, e-mail triggers.
 
 ### UX updates (06-11-2025)
 - Admin-registratie (localhost:3003/admin-registratie): toon/verberg-icoon bij beide wachtwoordvelden.

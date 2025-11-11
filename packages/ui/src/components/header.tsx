@@ -63,7 +63,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
                       {user.status !== 'ACTIVE' ? (
                         <Link href="/in-behandeling" className="block px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(false)}>In behandeling</Link>
                       ) : (
-                        <Link href="/profiel/bewerken" className="block px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(false)}>Profiel/bedrijf bewerken</Link>
+                        <Link href="/instellingen" className="block px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(false)}>Instellingen</Link>
                       )}
                       <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-3 py-2 hover:bg-zinc-50 text-left">
                         <LogOut className="w-4 h-4" /> Uitloggen
