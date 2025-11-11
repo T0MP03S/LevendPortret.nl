@@ -55,9 +55,7 @@ Links ter referentie:
   - [x] Dashboard (skeleton)
   - [ ] Bedrijven/Clips/Funds/Donaties
   - [ ] Moderatie-flow
-- [ ] Fund (fund.levendportret.nl): Overzicht (hier kun je een progressbalk zien per bedrijf en klikken op hun bedrijfs fund pagina) + detail skeleton; betalingen v2
-  - [ ] Fund (fund.levendportret.nl/beheer): een pagina waar je je fund pagina kunt aanpassen.
-  - [ ] Fund (fund.levendportret.nl/[bedrijfsnaam]): hier zie je de fund pagina van een bedrijf en kun je funden/doneren voor in hun bedrijfs pot.
+
 
 ## 4) Content & integraties
 - [ ] Vimeo integratie (embeds): 30s + 5 min IDs per bedrijf
