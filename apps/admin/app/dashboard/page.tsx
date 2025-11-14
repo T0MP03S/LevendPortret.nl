@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [pendingCount, setPendingCount] = useState<number>(0);
+  const [aanvragenCount, setAanvragenCount] = useState<number>(0);
   useEffect(() => {
     const load = async () => {
       try {
@@ -15,6 +16,19 @@ export default function DashboardPage() {
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    const loadClips = async () => {
+      try {
+        const res = await fetch("/api/admin/clips/overview", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        setAanvragenCount(Array.isArray(data.aanvragen) ? data.aanvragen.length : 0);
+      } catch {
+        setAanvragenCount(0);
+      }
+    };
+    loadClips();
   }, []);
 
   const badge = pendingCount === 0 ? null : (
@@ -35,6 +49,18 @@ export default function DashboardPage() {
           <p className="text-zinc-600 mb-4">Beheer gebruikers. Filter op status en product.</p>
           <a href="/dashboard/gebruikers" className="inline-flex px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">
             Open gebruikers
+          </a>
+        </div>
+        <div className="relative rounded-2xl border border-zinc-200 p-6">
+          {aanvragenCount > 0 && (
+            <span className="absolute top-3 right-3 inline-flex items-center justify-center rounded-full bg-coral text-white text-xs w-5 h-5">
+              {aanvragenCount > 9 ? '9+' : aanvragenCount}
+            </span>
+          )}
+          <h2 className="text-xl font-semibold mb-2">Clipsbeheer</h2>
+          <p className="text-zinc-600 mb-4">Overzicht van bedrijven met externe website en aanvragen.</p>
+          <a href="/dashboard/clips" className="inline-flex px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">
+            Open clipsbeheer
           </a>
         </div>
       </div>

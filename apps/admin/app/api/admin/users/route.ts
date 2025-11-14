@@ -11,12 +11,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const statusParam = (searchParams.get('status') || 'ACTIVE').toUpperCase();
   const productParam = (searchParams.get('product') || '').toUpperCase();
-  const product = productParam === 'CLUB' || productParam === 'COACH' || productParam === 'FUND' ? (productParam as 'CLUB' | 'COACH' | 'FUND') : undefined;
+  const product = productParam === 'CLUB' || productParam === 'COACH' || productParam === 'FUND' || productParam === 'CLIPS' ? (productParam as any) : undefined;
 
   const where = {
     ...(statusParam !== 'ALL' ? { status: statusParam as any } : {}),
     ...((productParam === 'PAID')
-      ? { memberships: { some: { product: { in: ['CLUB','COACH'] as any }, status: 'ACTIVE' as const } } }
+      ? { memberships: { some: { product: { in: ['CLUB','COACH','CLIPS'] as any }, status: 'ACTIVE' as const } } }
       : (product ? { memberships: { some: { product, status: 'ACTIVE' as const } } } : {})),
     role: { not: 'ADMIN' as const },
   };

@@ -61,6 +61,7 @@ export default function GebruikersPage() {
   return (
     <div className="space-y-6">
       <div>
+        <div className="text-xs text-zinc-500">Dashboard &gt; Gebruikers</div>
         <h1 className="text-3xl md:text-4xl font-bold">Gebruikers</h1>
         <p className="mt-2 text-zinc-600">Beheer gebruikers. Filter op status en product.</p>
         <div className="mt-3 flex items-center gap-3">

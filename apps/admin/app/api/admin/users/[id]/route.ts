@@ -88,7 +88,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         return NextResponse.json({ error: 'Memberships kunnen alleen worden gewijzigd voor ACTIVE gebruikers' }, { status: 400 });
       }
       const product = (body?.product || '').toUpperCase();
-      if (product !== 'CLUB' && product !== 'COACH' && product !== 'FUND') {
+      if (product !== 'CLUB' && product !== 'COACH' && product !== 'FUND' && product !== 'CLIPS') {
         return NextResponse.json({ error: 'Invalid product' }, { status: 400 });
       }
       const company = await prisma.company.findUnique({ where: { ownerId: target.id }, select: { id: true } });
@@ -97,7 +97,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       }
       if (action === 'GRANT_MEMBERSHIP') {
         if (product === 'FUND') {
-          const hasPaid = await prisma.membership.count({ where: { userId: target.id, companyId: company.id, product: { in: ['CLUB','COACH'] as any }, status: 'ACTIVE' } });
+          const hasPaid = await prisma.membership.count({ where: { userId: target.id, companyId: company.id, product: { in: ['CLUB','COACH','CLIPS'] as any }, status: 'ACTIVE' } });
           if (hasPaid > 0) {
             return NextResponse.json({ error: 'Kan FUND niet toekennen: gebruiker heeft al een betaald membership (CLUB/COACH)' }, { status: 400 });
           }
@@ -110,7 +110,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             where: { id: existing.id },
             data: { status: 'ACTIVE', endDate: null },
           });
-          if (product === 'CLUB' || product === 'COACH') {
+          if (product === 'CLUB' || product === 'COACH' || product === 'CLIPS') {
             await prisma.membership.updateMany({
               where: { userId: target.id, companyId: company.id, product: 'FUND', status: 'ACTIVE' },
               data: { status: 'EXPIRED', endDate: new Date() },
@@ -123,7 +123,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
               ? { userId: target.id, companyId: company.id, product: product as any, status: 'ACTIVE' }
               : { userId: target.id, companyId: company.id, product: product as any, status: 'ACTIVE', startDate: new Date() },
           });
-          if (product === 'CLUB' || product === 'COACH') {
+          if (product === 'CLUB' || product === 'COACH' || product === 'CLIPS') {
             await prisma.membership.updateMany({
               where: { userId: target.id, companyId: company.id, product: 'FUND', status: 'ACTIVE' },
               data: { status: 'EXPIRED', endDate: new Date() },

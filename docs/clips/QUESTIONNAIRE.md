@@ -105,17 +105,17 @@ er komt een logo (rechts van het logo bedrijfsnaam dit kunnen ze aan of uit zett
   - Doel: ontdekken/scrollen, snel kijken, doorklik naar bedrijf.
   - Layout: grid met links een 9:16 thumbnail/preview; rechts bedrijfsnaam + korte beschrijving (max 250).
   - Klikgedrag: klik op thumbnail → lightbox met korte video. Klik op bedrijfsnaam/tekst → externe site (indien aanwezig) anders interne pagina.
-  - Sortering: recentste eerst. Geen filters. Paginering met vorige/volgende + nummers.
+  - Sortering: recentste eerst. Geen filters. Paginering met vorige/volgende + nummers. Aantallen: desktop 2, mobiel 8.
   - A11y: alt-tekst, toetsenbordnavigatie, focus states (invulling door ons).
 
 - **Lightbox Player (korte video)**
   - Gedrag: fullscreen overlay, sluitknop, Esc en klik-buiten sluit = JA.
-  - Autoplay: start na gebruikersklik (play), ontdempt (unmuted). Thumbnail met play-knop; na openen speelt de korte video automatisch met geluid.
+  - Autoplay: lightbox opent met poster + play-knop; na klik speelt de korte video automatisch met geluid (unmuted).
   - Controls: play/pause, scrub/tijdlijn, volume. Geen captions.
   - Performance: lazy-load player bij open; poster tonen vooraf (invulling door ons).
 
 - **Clip data**
-  - Bron: Vimeo (Vimeo ID of URL wordt aangeleverd).
+  - Bron: Vimeo (UI accepteert URL of ID; backend slaat altijd het Vimeo ID op).
   - Aspect ratio: verticaal 9:16.
   - Validatie: geen extra lengte/ID-validaties in MVP.
   - Moderatie: admin voert clip(s) in en publiceert.
@@ -123,12 +123,13 @@ er komt een logo (rechts van het logo bedrijfsnaam dit kunnen ze aan of uit zett
 - **Klik op bedrijfsnaam**
   - Met website: open in nieuw tabblad.
   - Zonder website: route = `clips.levendportret.nl/[bedrijfsnaam]` (interne pagina).
+  - Als er een externe website is opgegeven, komt er voor nu géén interne pagina.
   - Fallback: “in aanbouw” (admin publiceert pas wanneer pagina gereed is).
 
 - **Interne bedrijfspagina**
-  - Eigenaarschap: admin publiceert; klant levert content via “Webpagina instellingen”.
+  - Eigenaarschap: admin publiceert; klant levert content via “Webpagina instellingen”. Alleen voor bedrijven zonder externe website.
   - Inhoud: one-page site met header (logo; bedrijfsnaam optioneel), langere “over ons”, lange Vimeo video bovenin, 3–5 foto’s onderin, footer met “van Levend Portret”.
-  - Huisstijl: één accentkleur (keuze), titelfont + bodyfont (keuze uit lijst), optioneel afgeronde hoeken. Social iconen in header (alleen tonen als links zijn ingevuld).
+  - Huisstijl: accentkleur via color picker (HEX vrij), fonts keuze uit ±25 Google Fonts voor titel en body; optioneel afgeronde hoeken. Social iconen in header (alleen tonen als links zijn ingevuld).
   - Contact: sectie met kaart (Google), telefoon, e-mail, adres uit company data.
   - SEO: titel/description, OG, canonical = JA.
   - URL-structuur: `clips.levendportret.nl/[bedrijfsnaam]`.
@@ -137,43 +138,23 @@ er komt een logo (rechts van het logo bedrijfsnaam dit kunnen ze aan of uit zett
 - **Klantinstellingen (“Webpagina instellingen”)**
   - Zichtbaarheid: tab zichtbaar als klant geen eigen website opgeeft.
   - Velden: volgens interne pagina (hero/over-ons, galerij 3–5 foto’s, social links, CTA’s, …).
-  - Validatie: URL’s; afbeeldingen via R2-upload; volgorde elementen zoals bij 5 beschreven.
+  - Validatie: URL’s; afbeeldingen via R2-upload; galerij 3–5 items; bestandstypes jpg/png/webp; max 5 MB per foto; volgorde elementen zoals bij 5 beschreven.
   - Preview: indien eenvoudig, anders later.
-  - Workflow: concept opslaan en indienen voor review.
+  - Workflow: klant kan opslaan als concept (alleen zichtbaar voor klant) of “indienen voor review”.
 
 - **Admin dashboard**
-  - Clips: nieuw menu. Korte en lange Vimeo link/ID invullen per bedrijf; publiceren/depubliceren; status Draft/In review/Published; geen bulk.
+  - Clips: nieuw menu. Korte (overzicht) en lange (bedrijfs­pagina) Vimeo link/ID invullen per bedrijf; publiceren/depubliceren; status In review/Published/Archived (geen klant-draft voor clips); geen bulk.
   - Bedrijfspagina’s: aanmaken/activeren bij geen website; content reviewen/aanpassen; zichtbaarheid toggle; thema-keuzes vanuit klant.
 
 - **Security/Performance/Analytics**
   - Toegang: admins zien admin-secties; klant ziet alleen eigen Webpagina-instellingen.
   - Rate limiting: niet nodig voor clips; optioneel voor pagina-aanlevering.
   - Audit log: ja (wie/wat/wanneer).
-  - CDN/posters: via Vimeo; caching door ons ingericht.
+  - Thumbnails/posters: via Vimeo oEmbed (zonder key) en gecachet; géén opslag in R2 voor posters in MVP.
   - Lighthouse/Player params: toepassen.
   - Analytics: events vastleggen (toekomstbestendig).
   - i18n: NL-only.
   - Mobile: 1 kolom mobiel; 2+ desktop; fullscreen player mobiel.
+  - Maps: indien gratis mogelijk Maps API gebruiken; anders eenvoudige embed.
 
-## Open vragen (graag bevestigen)
 
-1) Vimeo identifiers
-   - Willen we uitsluitend Vimeo IDs opslaan (aanbevolen) of volledige URLs toestaan? Voorstel: intern altijd ID opslaan; UI accepteert URL en extraheert ID.
-2) Thumbnails/posters
-   - Gebruiken we Vimeo’s oEmbed/thumbnail-API (zonder key) of slaan we een poster-URL op bij het invoeren? Voorstel: thumbnail via Vimeo oEmbed op build/runtime, met caching.
-3) Autoplay met geluid
-   - Browsers blokkeren autoplay met geluid zonder user gesture. Voorstel: lightbox opent met poster en play-knop; na klik: speel met geluid. Akkoord?
-4) Slug en URL-structuur
-   - `clips.levendportret.nl/[bedrijfsnaam]`: hoe omgaan met spaties/diacritics en dubbele namen? Voorstel: slugify op basis van bedrijfsnaam + unieke suffix bij conflict.
-5) Fonts en kleuren
-   - Lijst van toegestane titelfonts/bodyfonts en accentkleuren? Voorstel: 4–6 fonts (Google-fonts lokaal gehost) en 10–12 veilige accentkleuren (inclusief merk-kleuren).
-6) Afbeeldingen (3–5 foto’s)
-   - Bestandsformaten en max-grootte (MB)? Voorstel: jpg/png/webp, max 2–4 MB per foto, upload naar R2 met presigned URLs.
-7) Google Maps
-   - Beschikken we over een Maps API key? Of gebruiken we eenvoudige embed op adres (zonder interactieve API)? Voorstel: eenvoudige embed in MVP.
-8) Lange video bij eigen website
-   - Voor bedrijven met eigen site: willen we nog steeds de lange video opslaan (alleen voor overzicht/promo), of alleen korte video op overzicht? Voorstel: beide velden aanwezig, lange video wordt niet gebruikt op interne pagina als externe site bestaat.
-9) Moderatie
-   - Status-flow voor clips en pagina’s zijn gelijk? Draft → In review → Published; archiveren als status ‘Archived’? Voorstel: ja, en eenvoudige history (auteur + timestamp + actie).
-10) Paginering
-   - Aantal items per pagina (12/24/36)? Voorstel: 12 op desktop, 8 op mobiel.

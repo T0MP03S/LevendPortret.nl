@@ -90,20 +90,21 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
     if (target === 'FUND') {
       await grantMembership('FUND');
     } else if (target === 'CLUB_COACH') {
-      await grantClubCoach();
+      await grantClubCoachClips();
     } else if (target === 'SWITCH_TO_FUND') {
       await switchToFund();
     }
     setMembershipConfirmTarget(null);
   };
 
-  const grantClubCoach = async () => {
+  const grantClubCoachClips = async () => {
     await grantMembership('CLUB');
     await grantMembership('COACH');
+    await grantMembership('CLIPS');
     await load();
   };
 
-  const grantMembership = async (product: 'CLUB' | 'COACH' | 'FUND') => {
+  const grantMembership = async (product: 'CLUB' | 'COACH' | 'FUND' | 'CLIPS') => {
     setSaving(true);
     setError("");
     setStatus("");
@@ -153,7 +154,7 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
     }
   };
 
-  const expireMembership = async (product: 'CLUB' | 'COACH' | 'FUND') => {
+  const expireMembership = async (product: 'CLUB' | 'COACH' | 'FUND' | 'CLIPS') => {
     setSaving(true);
     setError("");
     setStatus("");
@@ -275,6 +276,7 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
   return (
     <div className="space-y-6">
       <div>
+        <div className="text-xs text-zinc-500">Dashboard &gt; Gebruikers &gt; {item?.name || item?.email || 'Gebruiker'}</div>
         <h1 className="text-3xl md:text-4xl font-bold">Gebruiker bewerken</h1>
         <div className="mt-3 flex items-center gap-3">
           <Link href="/dashboard/gebruikers" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Terug naar gebruikers</Link>
@@ -318,31 +320,43 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
                   ))}
                 </div>
                 {(() => {
+                  const hasClub = (item?.memberships || []).some((m:any)=> m.product==='CLUB' && m.status==='ACTIVE');
+                  const hasCoach = (item?.memberships || []).some((m:any)=> m.product==='COACH' && m.status==='ACTIVE');
+                  const hasClips = (item?.memberships || []).some((m:any)=> m.product==='CLIPS' && m.status==='ACTIVE');
+                  const hasFund = (item?.memberships || []).some((m:any)=> m.product==='FUND' && m.status==='ACTIVE');
+                  const fullAccess = hasClub && hasCoach && hasClips;
+                  return (
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm text-zinc-700">Volledige toegang</label>
+                      <button
+                        onClick={async ()=>{
+                          if (saving) return; setSaving(true);
+                          try {
+                            if (fullAccess) {
+                              // Toggle OFF => FUND aan; CLUB/COACH/CLIPS uit
+                              await expireMembership('CLUB');
+                              await expireMembership('COACH');
+                              await expireMembership('CLIPS');
+                              if (!hasFund) { await grantMembership('FUND'); }
+                            } else {
+                              // Toggle ON => CLUB+COACH+CLIPS aan; FUND uit
+                              await grantClubCoachClips();
+                              if (hasFund) { await expireMembership('FUND'); }
+                            }
+                          } finally { setSaving(false); await load(); }
+                        }}
+                        className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm border ${fullAccess ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-zinc-300 text-zinc-700 hover:bg-zinc-50'}`}
+                      >{fullAccess ? 'Aan' : 'Uit'}</button>
+                      <span className="text-xs text-zinc-500">Aan = CLUB+COACH+CLIPS; Uit = FUND</span>
+                    </div>
+                  );
+                })()}
+                {(() => {
                   const activePaid = (item?.memberships || []).filter((m:any) => (m.product==='CLUB' || m.product==='COACH') && m.status==='ACTIVE');
                   const paidDate = activePaid.length ? new Date(Math.min(...activePaid.map((m:any)=> new Date(m.startDate).getTime()))) : null;
                   return paidDate ? (<div className="text-sm text-zinc-700">Betaald op: {paidDate.toLocaleDateString()}</div>) : null;
                 })()}
-                <div className="flex flex-wrap items-center gap-2">
-                  {(() => {
-                    const hasPaidActive = (item?.memberships || []).some((m:any) => (m.product==='CLUB' || m.product==='COACH') && m.status==='ACTIVE');
-                    const hasFundActive = (item?.memberships || []).some((m:any) => m.product==='FUND' && m.status==='ACTIVE');
-                    const fundClasses = hasFundActive
-                      ? "px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-sm"
-                      : "px-3 py-1.5 rounded-md border border-zinc-300 text-zinc-700 hover:bg-zinc-50 text-sm disabled:opacity-50";
-                    const ccClasses = hasPaidActive
-                      ? "px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-sm"
-                      : "px-3 py-1.5 rounded-md border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-sm disabled:opacity-50";
-                    return (
-                      <>
-                        <button onClick={() => { setMembershipConfirmTarget('FUND'); setShowMembershipConfirm(true); }} disabled={saving || item?.status !== 'ACTIVE' || hasPaidActive} className={fundClasses}>FUND toekennen</button>
-                        <button onClick={() => { setMembershipConfirmTarget('CLUB_COACH'); setShowMembershipConfirm(true); }} disabled={saving || item?.status !== 'ACTIVE'} className={ccClasses}>CLUB + COACH toekennen</button>
-                        {hasPaidActive && (
-                          <button onClick={() => { setMembershipConfirmTarget('SWITCH_TO_FUND'); setShowMembershipConfirm(true); }} disabled={saving || item?.status !== 'ACTIVE'} className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm">Terug naar FUND</button>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
+                {/* Extra losse actieknoppen verwijderd ten gunste van de Volledige toegang schakelaar */}
               </div>
             </div>
 

@@ -61,6 +61,7 @@ Links ter referentie:
 - [ ] Vimeo integratie (embeds): 30s + 5 min IDs per bedrijf
 - [ ] Thumbnails/foto’s upload naar R2, signed URL’s in UI
  - [ ] Clips: zie de vragenlijst voor scope en UX → [docs/clips/QUESTIONNAIRE.md](./clips/QUESTIONNAIRE.md)
+  - [ ] Clips implementatiechecklist → [docs/clips/IMPLEMENTATION-CHECKLIST.md](./clips/IMPLEMENTATION-CHECKLIST.md)
 
 ### Cloudflare R2 voor logo uploads (web)
 
@@ -135,22 +136,22 @@ Links ter referentie:
 ## Lokale URLs en run
 - web: http://localhost:3000
 - club: http://localhost:3001
-- fund: http://localhost:3002
+- clips (voorheen fund): http://localhost:3002
 - admin: http://localhost:3003
 
 Start alles: `pnpm dev`
-Per app: `pnpm -C apps/web dev` (of club/fund/admin)
+Per app: `pnpm -C apps/web dev` (of club/clips/admin)
 
 ### Lokale subdomeinen & SSO (aanbevolen)
 - Voeg aan je hosts file toe (Windows: `C:\\Windows\\System32\\drivers\\etc\\hosts`):
   - `127.0.0.1 web.levendportret.local`
   - `127.0.0.1 club.levendportret.local`
-  - `127.0.0.1 fund.levendportret.local`
+  - `127.0.0.1 clips.levendportret.local` (gebruikt de huidige fund-app als Clips-frontend)
   - `127.0.0.1 admin.levendportret.local`
 - Start elke app met eigen URL/poort en zet per app `NEXTAUTH_URL`:
   - web: `http://web.levendportret.local:3000`
   - club: `http://club.levendportret.local:3001`
-  - fund: `http://fund.levendportret.local:3002`
+  - clips: `http://clips.levendportret.local:3002` (app: `apps/fund`)
   - admin: `http://admin.levendportret.local:3003`
 - SSO over subdomeinen inschakelen (zelfde login op alle apps):
   - Zet in `.env.local` (root) dezelfde `NEXTAUTH_SECRET` voor alle apps.
@@ -160,14 +161,14 @@ Per app: `pnpm -C apps/web dev` (of club/fund/admin)
 - Gebruik alleen:
   - http://localhost:3000 (web)
   - http://localhost:3001 (club)
-  - http://localhost:3002 (fund)
+  - http://localhost:3002 (clips)
   - http://localhost:3003 (admin)
 - Laat `AUTH_COOKIE_DOMAIN` LEGE of verwijder deze variabele in `.env.local` (niet geldig op localhost).
 - Hou dezelfde `NEXTAUTH_SECRET` voor alle apps.
 - Start elke app met zijn eigen `NEXTAUTH_URL` (PowerShell):
   - web: `$env:NEXTAUTH_URL="http://localhost:3000"; pnpm -C apps/web dev`
   - club: `$env:NEXTAUTH_URL="http://localhost:3001"; pnpm -C apps/club dev`
-  - fund: `$env:NEXTAUTH_URL="http://localhost:3002"; pnpm -C apps/fund dev`
+  - clips: `$env:NEXTAUTH_URL="http://localhost:3002"; pnpm -C apps/fund dev`
   - admin: `$env:NEXTAUTH_URL="http://localhost:3003"; pnpm -C apps/admin dev`
 
 Belangrijk:
@@ -185,7 +186,7 @@ Let op:
   - admin: `dotenv -e .env.local -- pnpm -C apps/admin dev`
   - web: `dotenv -e .env.local -- pnpm -C apps/web dev`
   - club: `dotenv -e .env.local -- pnpm -C apps/club dev`
-  - fund: `dotenv -e .env.local -- pnpm -C apps/fund dev`
+  - clips: `dotenv -e .env.local -- pnpm -C apps/fund dev`
 
 #### Troubleshooting: JWT_SESSION_ERROR (JWEDecryptionFailed)
 - Oorzaak: cookie is versleuteld met een andere `NEXTAUTH_SECRET` of cookie werd gezet met een ongeldig domein.
@@ -240,11 +241,11 @@ Let op:
 ### Sessies verifiëren per app
 - web: `http://localhost:3000/api/auth/session`
 - club: `http://localhost:3001/api/auth/session`
-- fund: `http://localhost:3002/api/auth/session`
+- clips: `http://localhost:3002/api/auth/session`
 - admin: `http://localhost:3003/api/auth/session`
 - Tip voor lokale loginflow per app: start elke app met z’n eigen `NEXTAUTH_URL`:
   - club: `$env:NEXTAUTH_URL="http://localhost:3001"; pnpm -C apps/club dev`
-  - fund: `$env:NEXTAUTH_URL="http://localhost:3002"; pnpm -C apps/fund dev`
+  - clips: `$env:NEXTAUTH_URL="http://localhost:3002"; pnpm -C apps/fund dev`
   - admin: `$env:NEXTAUTH_URL="http://localhost:3003"; pnpm -C apps/admin dev`
 
 ### Fonts (Self-hosted)
@@ -375,6 +376,15 @@ Fase 3 — Betaal- en notificatieflow (kort na v1)
 - Web post-auth: loop opgelost door middleware-aanpassing (geen automatische redirect van `/` naar `/post-auth`). `post-auth` route stuurt nu correct door: ACTIVE → `/`, non-ACTIVE zonder bedrijf → `/onboarding/bedrijf`, anders → `/in-behandeling`.
   - Web in-behandeling: als gebruiker `ACTIVE` is, wordt een acceptatiebericht getoond met knoppen naar Home/Club/Fund.
 
+#### UX updates (12-11-2025)
+- 404 pagina’s voor alle apps (`web`, `club`, `fund`, `admin`) met NL-teksten, icoon en knop terug naar home/dashboard.
+- Instellingen Bedrijf: `website` wordt automatisch als URL genormaliseerd (prefix `https://` indien ontbreekt).
+- Webpagina-instellingen: checkboxes visueel gestyled, bestand-kiezer vervangen door knop en upload-spinner toegevoegd, socials placeholders verbeterd, tip voor eenvoudige Markdown bij “Over ons”.
+- Webpagina-instellingen: in-site bevestigingsmodal bij terugnavigatie met niet-opgeslagen wijzigingen (geen browser popups).
+  - Modal toegankelijkheid: focus trap binnen de modal en sluiting via ESC.
+  - Modal animaties: fade voor backdrop, scale+translate voor inhoud.
+  - Autosave: wijzigingen worden automatisch als concept opgeslagen (debounce ~1.5s) zolang er geen upload of handmatige save bezig is.
+
 #### Admin updates (07-11-2025)
 - Gebruikerslijst: filters gelokaliseerd (Status: Alle/Actief/In behandeling/Afgekeurd/Verificatie; Product: Alle/CLUB-COACH/FUND). Status=ALL is ondersteund in API.
 - Membershipbeheer: van FUND naar CLUB+COACH is een “schakelaar”. Bij toekennen van CLUB/COACH wordt een actieve FUND automatisch `EXPIRED`. Als CLUB/COACH actief is, kun je geen FUND toekennen.
@@ -390,13 +400,44 @@ Fase 3 — Betaal- en notificatieflow (kort na v1)
 - `startDate`: bij het aanmaken van `CLUB/COACH` memberships wordt de startdatum gezet (voor 3 jaar-logica). Voor `FUND` wordt de startdatum later ingesteld via de Fund aanmaken/bewerken pagina (niet via admin).
 - Extra actie: `SWITCH_TO_FUND` verwijdert alle `CLUB/COACH` memberships (ook verlopen) en activeert `FUND` opnieuw.
 
-### Admin gebruikersbeheer (unified)
+#### Admin updates (12-11-2025)
+- Dashboard: nieuwe kaart “Clipsbeheer” die linkt naar `/dashboard/clips`.
+- Clipsbeheer pagina met 2 tabbladen:
+  - Websites: bedrijven met een externe `website` (alfabetisch op naam).
+  - Aanvragen: alleen wanneer er géén externe website is, de eigenaar `ACTIVE` is, en `CompanyPage.status = IN_REVIEW`.
+    - Niet ACTIVE + verstuurd → niet zichtbaar.
+    - Wel ACTIVE + concept (niet verstuurd) → niet zichtbaar.
+    - Wel ACTIVE + verstuurd → zichtbaar als aanvraag.
+    - Wanneer status van eigenaar later `ACTIVE` wordt, verschijnt de aanvraag automatisch.
+- Extra: zoekbalk voor filteren op naam/plaats, badge met aantal aanvragen op de Clipsbeheer-kaart.
+- Nieuw tabblad: Gepubliceerd (alle `PUBLISHED` interne pagina’s, zonder externe website). Vanuit detail kun je altijd terugzetten naar `IN_REVIEW` en content aanpassen.
+- Review detail: `/dashboard/clips/[id]`
+  - Vereist 2 geldige Vimeo IDs om te publiceren (anders disabled/400).
+  - Admin kan inhoud deels aanpassen (tekst, etc.) en publiceren of afwijzen met reden.
+  - Afwijzen zet de status terug naar `DRAFT` en slaat een reden op (Moderation-notitie) die de klant ziet.
+  - Publiceren zet de status op `PUBLISHED` en de 2 clips op `PUBLISHED`; overige clips worden gearchiveerd.
+  - Extra: galerij beheren (verwijderen + toevoegen via URL), breadcrumb en Terug-knop, labels voor Short (9x16) en Lang (16x9).
+  - Bedrijfsinfo tonen en bijwerken (naam, adres, postcode, plaats, telefoon, kvk, website) en link naar gebruiker in gebruikersbeheer.
+  - Huisstijl: accentkleur is color picker; galerij heeft Lucide pijl-links/pijl-rechts en verwijderknop (verwijderen pas bij 4+).
+  - Contactsectie-toggle wordt correct getoond (server levert `showContactPage`).
+- Slug-regel voor CompanyPage: nette slug op basis van bedrijfsnaam, bij conflict `-2`, `-3`, ... (bijv. `CaityB`, `CaityB-2`).
+- Publieke route: `/p/[slug]` toont alleen gepubliceerde pagina’s (middleware staat publiek toe).
+- Web instellingen: als `CompanyPage.status = IN_REVIEW` wordt op `/instellingen` bovenaan een gele infobanner getoond (“in review, aanpassen kan weer na review of na terugzetten naar concept”). Als `status = PUBLISHED` is, verschijnt een groene banner met knop “Update aanvragen” die een in-site modal met tekstveld opent; de tekst wordt opgeslagen als Moderation-notitie voor de admins.
+- Webpagina instellingen: indienen vraagt om bevestiging via in-site modal, velden zijn vergrendeld tijdens `IN_REVIEW`, autosave elke 30 seconden zolang er wijzigingen zijn. Bij `IN_REVIEW` is er een knop “Terug naar concept” die de status terugzet naar `DRAFT`. Bij `PUBLISHED` wordt alleen een tekst getoond dat je via de instellingenpagina een update kunt aanvragen (geen directe wijzigingen meer).
+  - Alleen beschikbaar met “Volledige toegang” (CLUB + COACH + CLIPS alle drie `ACTIVE`). APIs `/api/settings/webpage` en `/api/settings/webpage/submit` controleren dit.
+- Statuswijzigingen: wanneer een gebruiker wordt afgekeurd (REJECTED) of teruggezet naar in behandeling (PENDING_APPROVAL), worden alle actieve memberships automatisch `EXPIRED`.
+- Bevestigingen: bij “FUND toekennen” en “CLUB + COACH toekennen” verschijnt een bevestigingsdialoog.
+- `startDate`: bij het aanmaken van `CLUB/COACH` memberships wordt de startdatum gezet (voor 3 jaar-logica). Voor `FUND` wordt de startdatum later ingesteld via de Fund aanmaken/bewerken pagina (niet via admin).
+- Extra actie: `SWITCH_TO_FUND` verwijdert alle `CLUB/COACH` memberships (ook verlopen) en activeert `FUND` opnieuw.
 
 - **Gebruikerslijst** `/dashboard/gebruikers`:
   - Filters: `status` (ACTIVE/PENDING_APPROVAL/REJECTED/PENDING_VERIFICATION) en `product` (CLUB/COACH/FUND of Alle).
   - Lijst toont membership-badges per gebruiker (product + status), naast bedrijfsnaam/plaats.
   - Inline acties: Goedkeuren, Afkeuren, Op in behandeling.
   - Link naar detail: `/dashboard/gebruiker/[id]`.
+  - Detail: breadcrumb toegevoegd. “Volledige toegang” schakelaar:
+    - Aan: CLUB + COACH ACTIVE, FUND EXPIRED
+    - Uit: FUND ACTIVE, CLUB + COACH EXPIRED
 - **Gebruiker detail** `/dashboard/gebruiker/[id]`:
   - Sectie “Memberships”: voor CLUB/COACH/FUND per kaart de actuele status met knoppen “Toekennen” (GRANT_MEMBERSHIP) of “Beëindigen” (EXPIRE_MEMBERSHIP).
   - Bestaande bewerk- en statusacties blijven.
@@ -424,6 +465,30 @@ Opmerking: rechten/entitlements komen uit `Membership`. `User.plan` is slechts e
   pnpm --filter @levendportret/db run prisma:migrate:dev
   pnpm --filter @levendportret/db run prisma:generate
   ```
+  
+  ### Clips — Webpagina instellingen (UI + schema update)
+  
+  - UI wijzigingen:
+    - Lange video veld verwijderd uit klant-UI (waarde in DB blijft bestaan; API wist het niet tenzij expliciet meegestuurd).
+    - Galerij: previews staan boven het bestand-veld, teller “geselecteerd X/5”, volgorde-knoppen blijven.
+    - Socials: placeholders toegevoegd (bijv. `https://instagram.com/bedrijfsnaam`).
+    - Huisstijl: live font-preview (titel vet, body normaal) met dynamische Google Fonts loading.
+    - Contact: nieuwe toggle “Toon contactsectie (gebaseerd op je bedrijfsinformatie)”.
+    - Validatie/UX: live character count voor “Over ons” (max 5000), HEX-validatie voor accentkleur, bestandscontrole (type/5MB).
+  
+  - Schema wijziging:
+    - `CompanyPage.showContactPage Boolean @default(true)` toegevoegd.
+  
+  - Na aanpassing lokaal migreren en Prisma Client regenereren:
+  
+    ```powershell
+    pnpm --filter @levendportret/db run prisma:migrate:dev
+    pnpm --filter @levendportret/db run prisma:generate
+    pnpm dev
+    ```
+  
+  - Troubleshooting TypeScript na schema-wijziging:
+    - Fout “Property 'companyPage' does not exist on PrismaClient” → Prisma Client types zijn verouderd. Los op met het bovenstaande `prisma:generate` en herstart dev server/TS Server.
 
 - Zorg dat Postgres draait (zie `docker-compose.yml`):
 

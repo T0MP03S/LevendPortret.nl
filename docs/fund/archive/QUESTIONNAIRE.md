@@ -137,8 +137,12 @@ Profiel editor komt niet op de fund pagina maar op de levendportret.nl/instellin
 ja
 - Velden (minimaal):
   - Company: naam, logo, plaats, korte beschrijving 250 tekens (met toggles voor weergave: naam/logo/locatie), optioneel adres/website.
-  - Persoonlijk: de zelfde opties als tijdens het aanmaken (behalve als je met google bent ingelogd dan word het niet mogelijk om je persoonlijke gegevens te wijzigen)
+  - Persoonlijk: de zelfde opties als tijdens het aanmaken ook wachtwoord door je oude wachtwoord eerst in te vullen en dan je nieuwe wachtwoord in te vullen. Met toggle knop en een wachtwoord bevestiging (behalve als je met google bent ingelogd dan word het niet mogelijk om je persoonlijke gegevens te wijzigen behalve naam en telefoonnummer)
 - Guard: Fund starten blokkeren totdat verplichte velden zijn ingevuld; duidelijke CTA “Profiel aanvullen”.
+Ja
 - Toekomst: volledige settings-pagina in Web-app; deze minimale editor kan later worden uitgefaseerd.
 
-Status: pending — wacht op bevestiging van opdrachtgever.
+Dus maak de profiel bewerken pagina maar op levendportret.nl/instellingen zodat we dit later kunnen uitbreiden.
+Maar voor nu is die instellingen pagina goed. dit mag altijd in de header als je op je naam klikt in de dropdown komen "alleen voor Active members"
+
+

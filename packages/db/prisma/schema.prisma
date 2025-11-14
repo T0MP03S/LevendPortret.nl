@@ -28,6 +28,7 @@ enum MembershipProduct {
   CLUB
   COACH
   FUND
+  CLIPS
 }
 
 enum DonationStatus {
@@ -55,6 +56,20 @@ enum AccountStatus {
   PENDING_APPROVAL
   ACTIVE
   REJECTED
+}
+
+// Nieuwe status-enums voor Clips en Interne Pagina's
+enum ClipStatus {
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PageStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
 }
 
 model User {
@@ -138,6 +153,7 @@ model Company {
   logoUrl     String?
 
   clips       Clip[]
+  companyPage CompanyPage?
   memberships Membership[]
   funds       Fund[]
 
@@ -146,15 +162,32 @@ model Company {
 }
 
 model Clip {
-  id            String   @id @default(cuid())
+  id            String     @id @default(cuid())
   companyId     String
-  type          ClipType
-  vimeoId       String
-  title         String
-  durationSeconds Int
-  thumbnailUrl  String?
-  description   String?
-  published     Boolean  @default(false)
+  vimeoShortId  String
+  status        ClipStatus @default(IN_REVIEW)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CompanyPage {
+  id                        String      @id @default(cuid())
+  companyId                 String      @unique
+  slug                      String      @unique
+  status                    PageStatus  @default(DRAFT)
+  longVideoVimeoId          String?
+  aboutLong                 String?
+  gallery                   Json?
+  accentColor               String?
+  titleFont                 String?
+  bodyFont                  String?
+  roundedCorners            Boolean     @default(false)
+  showCompanyNameNextToLogo Boolean     @default(true)
+  socials                   Json?
+  showContactPage            Boolean     @default(true)
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 

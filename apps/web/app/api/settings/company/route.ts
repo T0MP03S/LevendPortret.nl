@@ -25,8 +25,19 @@ export async function PUT(req: Request) {
   const session = (await getServerSession(authOptions as any)) as any;
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
+  // Normalize website: auto-prefix https:// if missing scheme
+  if (typeof body.website === 'string') {
+    const raw = body.website.trim();
+    if (raw && !/^https?:\/\//i.test(raw)) {
+      body.website = `https://${raw}`;
+    }
+  }
   const parsed = Schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Ongeldige invoer' }, { status: 400 });
+  // Extra regel: als er een externe website is ingevuld, is een korte beschrijving verplicht (max 250 tekens)
+  if (parsed.data.website && !((parsed.data.description || '').trim())) {
+    return NextResponse.json({ error: 'Korte beschrijving is verplicht wanneer een website is ingevuld (max 250 tekens).' }, { status: 400 });
+  }
   const ownerId = (session.user as any).id;
   const existing = await prisma.company.findUnique({ where: { ownerId } });
   if (existing) {

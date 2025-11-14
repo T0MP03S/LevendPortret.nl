@@ -1,10 +1,26 @@
 import type { Config } from 'tailwindcss'
 
-export default {
+const config: Config = {
   content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}'
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    '../../packages/ui/src/**/*.{js,ts,jsx,tsx}',
   ],
-  theme: { extend: {} },
-  plugins: []
-} satisfies Config
+  theme: {
+    extend: {
+      colors: {
+        navy: '#191970',
+        coral: '#ff546b',
+        turquoise: '#00ced1',
+      },
+      fontFamily: {
+        heading: ['"bree"', 'sans-serif'],
+        subheading: ['"Montserrat"', 'sans-serif'],
+        body: ['"Montserrat"', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

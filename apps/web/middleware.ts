@@ -11,6 +11,7 @@ const PUBLIC_PATHS = new Set([
   '/verificatie',
   '/in-behandeling',
   '/post-auth',
+  '/clips',
 ]);
 
 export async function middleware(req: NextRequest) {
@@ -72,7 +73,8 @@ export async function middleware(req: NextRequest) {
 
   // If user is authenticated but not ACTIVE, gate to allowed pages only
   if (token && (token as any).status && (token as any).status !== 'ACTIVE') {
-    if (!PUBLIC_PATHS.has(pathname)) {
+    const isPublicDynamic = pathname.startsWith('/p/');
+    if (!PUBLIC_PATHS.has(pathname) && !isPublicDynamic) {
       // Only allow the limited set; redirect to pending page
       return NextResponse.redirect(new URL('/in-behandeling', req.url));
     }

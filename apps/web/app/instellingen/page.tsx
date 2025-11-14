@@ -25,6 +25,12 @@ export default function InstellingenPage() {
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [data, setData] = useState<Current | null>(null);
+  const [pageStatus, setPageStatus] = useState<string>("");
+  const [fullAccess, setFullAccess] = useState<boolean>(false);
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [updateNotes, setUpdateNotes] = useState("");
+  const [pageRejectionMessage, setPageRejectionMessage] = useState("");
 
   const [personal, setPersonal] = useState({ name: "", phone: "" });
   const [password, setPassword] = useState({ oldPassword: "", newPassword: "", confirm: "" });
@@ -45,15 +51,23 @@ export default function InstellingenPage() {
   const [logoFileName, setLogoFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const hasExternalWebsite = !!(data?.company?.website);
+
   const load = async () => {
     setLoading(true);
     setError("");
     setOk("");
     try {
       const res = await fetch("/api/settings", { cache: "no-store" });
-      const json = await res.json();
+      let json: any = {};
+      try {
+        json = await res.json();
+      } catch {
+        json = {};
+      }
       if (!res.ok) throw new Error(json?.error || "Kon instellingen niet laden");
       setData(json as Current);
+      setFullAccess(!!(json as any).fullAccess);
       setPersonal({ name: json.user?.name || "", phone: (json.user?.phone || "") });
       setCompany({
         name: json.company?.name || "",
@@ -67,6 +81,18 @@ export default function InstellingenPage() {
         description: json.company?.description || "",
         logoUrl: json.company?.logoUrl || "",
       });
+      // Load company page status + eventuele afwijsreden voor banners
+      try {
+        const r2 = await fetch('/api/settings/webpage', { cache: 'no-store' });
+        const j2 = await r2.json().catch(()=>({}));
+        if (r2.ok && j2?.page?.status) {
+          setPageStatus(j2.page.status);
+          setPageRejectionMessage(j2.lastRejectionMessage || "");
+        } else {
+          setPageStatus("");
+          setPageRejectionMessage("");
+        }
+      } catch {}
     } catch (e: any) {
       setError(e?.message || "Er ging iets mis");
     } finally {
@@ -155,10 +181,44 @@ export default function InstellingenPage() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">
       <h1 className="text-3xl md:text-4xl font-bold">Instellingen</h1>
+      {!hasExternalWebsite && pageStatus === 'DRAFT' && pageRejectionMessage && (
+        <div className="p-4 rounded-xl border border-yellow-300 bg-yellow-50 text-yellow-900">
+          <p className="text-sm font-semibold">Je vorige aanvraag is afgewezen.</p>
+          <p className="mt-1 text-sm">{pageRejectionMessage}</p>
+          <p className="mt-1 text-sm">Pas je webpagina aan via Webpagina instellingen en dien vervolgens opnieuw in.</p>
+        </div>
+      )}
+      {!hasExternalWebsite && pageStatus === 'IN_REVIEW' && (
+        <div className="p-4 rounded-xl border border-yellow-300 bg-yellow-50 text-yellow-900">
+          <p className="text-sm">Je webpagina staat in review. Aanpassen kan weer zodra de review is afgerond of je de pagina terugzet naar concept.</p>
+        </div>
+      )}
+      {!hasExternalWebsite && pageStatus === 'PUBLISHED' && (
+        <div className="p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm">Je webpagina staat live op Levend Portret. Wil je iets laten aanpassen? Vraag een update aan bij de admins.</p>
+            <button onClick={()=>{ setUpdateModalOpen(true); requestAnimationFrame(()=>setUpdateModalVisible(true)); }} className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Update aanvragen</button>
+          </div>
+        </div>
+      )}
+      {data?.company && !data.company.website && fullAccess && pageStatus !== 'PUBLISHED' ? (
+        <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm text-zinc-800">
+              {pageStatus === 'IN_REVIEW'
+                ? 'Je hebt een interne bedrijfspagina in review. Je kunt deze bekijken en eventueel terugzetten naar concept via Webpagina instellingen.'
+                : 'Geen externe website opgegeven. Stel je interne bedrijfspagina in via Webpagina instellingen.'}
+            </p>
+            <a href="/instellingen/webpagina" className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Webpagina instellingen</a>
+          </div>
+        </div>
+      ) : null}
       {loading ? <div>Laden…</div> : (
         <>
           {error && <div className="text-red-600">{error}</div>}
-          {ok && <div className="text-emerald-700">{ok}</div>}
+          {ok && (
+            <div className="p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-sm">{ok}</div>
+          )}
 
           <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
             <h2 className="text-xl font-semibold">Persoonlijk</h2>
@@ -258,6 +318,53 @@ export default function InstellingenPage() {
             <button onClick={onSaveCompany} className="px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Opslaan</button>
           </section>
         </>
+      )}
+
+      {updateModalOpen && (
+        <div className={`fixed inset-0 z-50 grid place-items-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-150 ${updateModalVisible ? 'opacity-100' : 'opacity-0'}`} role="dialog" aria-modal="true" onClick={()=>{ setUpdateModalVisible(false); setTimeout(()=>setUpdateModalOpen(false),150); }}>
+          <div className={`w-full max-w-sm bg-white rounded-xl border border-zinc-200 shadow-xl p-5 transform transition-all duration-150 ${updateModalVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-1'}`} onClick={(e)=>e.stopPropagation()}>
+            <h3 className="text-lg font-semibold">Update voor je webpagina aanvragen</h3>
+            <p className="mt-2 text-sm text-zinc-600">Beschrijf zo concreet mogelijk wat je wilt laten wijzigen op je gepubliceerde webpagina. Dit bericht komt direct bij de admins terecht.</p>
+            <div className="mt-4">
+              <label className="block text-sm text-zinc-700">Wat wil je aanpassen?</label>
+              <textarea
+                className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+                rows={4}
+                placeholder="Bijvoorbeeld: 'Logo updaten naar nieuwe versie' of 'Tekst in de intro aanpassen'."
+                value={updateNotes}
+                onChange={e=>setUpdateNotes(e.target.value)}
+              />
+            </div>
+            <div className="mt-5 flex flex-col sm:flex-row gap-2 sm:justify-end">
+              <button className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50" onClick={()=>{ setUpdateModalVisible(false); setTimeout(()=>setUpdateModalOpen(false),150); }}>Annuleren</button>
+              <button
+                className="px-4 py-2 rounded-md bg-coral text-white hover:opacity-90 disabled:opacity-50"
+                disabled={!updateNotes.trim()}
+                onClick={async ()=>{
+                  setError(""); setOk("");
+                  const notes = updateNotes.trim();
+                  if (!notes) { setError('Beschrijf wat je wilt aanpassen'); return; }
+                  const r = await fetch('/api/settings/webpage/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes }),
+                  });
+                  const j = await r.json().catch(()=>({}));
+                  if (!r.ok) {
+                    setError(j?.error || 'Aanvraag mislukt');
+                  } else {
+                    setOk('Update aangevraagd. Een admin bekijkt je verzoek en kan je pagina tijdelijk terugzetten naar concept zodat je zelf de tekst en beelden kunt aanpassen.');
+                    setUpdateNotes('');
+                  }
+                  setUpdateModalVisible(false);
+                  setTimeout(()=>setUpdateModalOpen(false),150);
+                }}
+              >
+                Aanvraag versturen
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
