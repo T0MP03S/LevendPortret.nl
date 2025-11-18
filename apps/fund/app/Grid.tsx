@@ -24,6 +24,20 @@ export default function Grid({
   currentPage: number;
   pageCount: number;
 }) {
+  const escapeHtml = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  const mdToHtml = (s: string) => {
+    const safe = escapeHtml(s || "");
+    return safe
+      .replace(/\*\*(.+?)\*\*/g, (_m, p1) => `<strong>${p1}</strong>`) // **bold**
+      .replace(/__(.+?)__/g, (_m, p1) => `<strong>${p1}</strong>`) // __bold__
+      .replace(/\n/g, "<br/>");
+  };
   const [openId, setOpenId] = useState<string | null>(null);
   const byId = useMemo(() => Object.fromEntries(items.map((i) => [i.id, i])), [items]);
   const openItem = openId ? byId[openId] : undefined;
@@ -90,21 +104,24 @@ export default function Grid({
                   </a>
                 )}
               </div>
-              <p className="mt-2 text-sm text-zinc-600 line-clamp-4">{it.companyDesc}</p>
+              <p
+                className="mt-2 text-sm text-zinc-600 line-clamp-4 whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: mdToHtml(it.companyDesc) }}
+              />
               <div className="pt-3 mt-auto flex justify-end">
                 {it.website ? (
                   <a
                     href={it.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full border border-coral text-coral hover:bg-coral hover:text-white transition-colors"
+                    className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-md bg-coral text-white shadow hover:brightness-105 transition-colors"
                   >
                     Bekijk webpagina
                   </a>
                 ) : it.slug ? (
                   <a
                     href={detailHref(it.slug)}
-                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full border border-coral text-coral hover:bg-coral hover:text-white transition-colors"
+                    className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-md bg-coral text-white shadow hover:brightness-105 transition-colors"
                   >
                     Bekijk webpagina
                   </a>

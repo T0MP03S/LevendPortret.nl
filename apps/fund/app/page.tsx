@@ -16,6 +16,14 @@ async function getOEmbedThumb(vimeoId: string): Promise<string | null> {
   }
 }
 
+function stripHtml(input: string): string {
+  try {
+    return input.replace(/<[^>]*>/g, '');
+  } catch {
+    return input;
+  }
+}
+
 export default async function ClipsPageFund({ searchParams }: { searchParams?: { page?: string } }) {
   const page = Number(searchParams?.page ?? '1');
   const ua = headers().get('user-agent') || '';
@@ -31,13 +39,8 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
     orderBy: { createdAt: 'desc' },
     include: {
       company: {
-        select: {
-          name: true,
-          description: true,
-          website: true,
-          slug: true,
-          logoUrl: true,
-          companyPage: { select: { aboutLong: true, gallery: true } },
+        include: {
+          companyPage: true,
         },
       },
     },
@@ -59,17 +62,19 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
     pageClips.map(async (c: any) => {
       const company = c.company || {};
       const shortRaw = (company.description || '') as string;
-      let companyDesc = shortRaw.trim();
+      let companyDesc = stripHtml(shortRaw).trim();
       if (!companyDesc) {
         const longRaw = (company.companyPage?.aboutLong || '') as string;
-        const text = longRaw.trim();
+        const text = stripHtml(longRaw).trim();
         if (text) {
           companyDesc = text.length > 250 ? `${text.slice(0, 247)}…` : text;
         }
       }
-      // Prefer admin-provided 1080x1920 (9:16) thumbnail from gallery if present
+      // Prefer explicit admin-provided 9:16 thumbnail; then Vimeo oEmbed; finally first gallery image
+      const explicitThumb = (company.companyPage?.clipsThumbnailUrl as string) || null;
       const gallery = Array.isArray(company.companyPage?.gallery) ? (company.companyPage!.gallery as any[]) : [];
       const galleryThumb = gallery.length > 0 && typeof gallery[0]?.url === 'string' ? (gallery[0].url as string) : null;
+      const vimeoThumb = await getOEmbedThumb((c as any).vimeoShortId ?? (c as any).vimeoId);
 
       return {
         id: c.id as string,
@@ -77,8 +82,8 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
         companyName: (company.name as string) ?? 'Onbekend bedrijf',
         companyDesc,
         website: (company.website as string) || null,
-        slug: (company.slug as string) || '',
-        thumb: galleryThumb || (await getOEmbedThumb((c as any).vimeoShortId ?? (c as any).vimeoId)),
+        slug: ((company.companyPage?.slug as string) || (company.slug as string) || ''),
+        thumb: explicitThumb || vimeoThumb || galleryThumb,
         logoUrl: (company.logoUrl as string) || null,
       } as Item;
     })

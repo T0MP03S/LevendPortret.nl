@@ -11,6 +11,8 @@
   "dependencies": {
     "@levendportret/auth": "workspace:*",
     "@levendportret/db": "workspace:*",
+    "@aws-sdk/client-s3": "^3.927.0",
+    "@aws-sdk/s3-request-presigner": "^3.927.0",
     "bcryptjs": "^2.4.3",
     "lucide-react": "^0.263.1",
     "zod": "^3.22.4",

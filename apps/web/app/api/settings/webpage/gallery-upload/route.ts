@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 export const runtime = 'nodejs';
 
@@ -23,14 +23,25 @@ export async function POST(req: Request) {
   if ((me as any).status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const companyId = me.company?.id || null;
   if (!companyId) return NextResponse.json({ error: 'Geen bedrijf gevonden' }, { status: 400 });
-  const { fileName, contentType } = await req.json().catch(() => ({}));
+  const { fileName, contentType, contentHash } = await req.json().catch(() => ({}));
   if (!fileName || !contentType) return NextResponse.json({ error: 'fileName en contentType zijn verplicht' }, { status: 400 });
   if (!String(contentType).startsWith('image/')) return NextResponse.json({ error: 'Alleen afbeeldingen zijn toegestaan' }, { status: 400 });
   const base = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
-  const key = `company-pages/${companyId}/gallery/${Date.now()}-${base}`;
+  const extFromName = (base.match(/\.([a-zA-Z0-9]{1,5})$/)?.[1] || '').toLowerCase();
+  const extFromType = contentType === 'image/png' ? 'png' : contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/webp' ? 'webp' : '';
+  const ext = extFromName || extFromType || 'bin';
   const s3 = new S3Client({ region: 'auto', endpoint: R2_ENDPOINT, credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY }, forcePathStyle: true });
+  const key = contentHash
+    ? `company-pages/${companyId}/gallery/sha256/${String(contentHash).toLowerCase()}.${ext}`
+    : `company-pages/${companyId}/gallery/${Date.now()}-${base}`;
+  // If exists, reuse
+  try {
+    await s3.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }));
+    const publicUrl = R2_PUBLIC_BASE_URL.endsWith('/') ? `${R2_PUBLIC_BASE_URL}${key}` : `${R2_PUBLIC_BASE_URL}/${key}`;
+    return NextResponse.json({ uploadUrl: null, publicUrl, key, existing: true });
+  } catch {}
   const put = new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, ContentType: contentType });
   const uploadUrl = await getSignedUrl(s3, put, { expiresIn: 60 * 5 });
   const publicUrl = R2_PUBLIC_BASE_URL.endsWith('/') ? `${R2_PUBLIC_BASE_URL}${key}` : `${R2_PUBLIC_BASE_URL}/${key}`;
-  return NextResponse.json({ uploadUrl, publicUrl, key });
+  return NextResponse.json({ uploadUrl, publicUrl, key, existing: false });
 }

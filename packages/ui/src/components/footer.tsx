@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Instagram, Linkedin } from "lucide-react";
+import { Button } from "./button";
 
 export function Footer() {
   return (
@@ -17,48 +17,36 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Navigatie</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/" className="text-white/70 hover:text-coral transition-colors">
-                  Home
-                </Link>
+                <Link href="http://localhost:3002" className="text-white/70 hover:text-coral transition-colors">Clips</Link>
               </li>
               <li>
-                <Link href="/even-voorstellen" className="text-white/70 hover:text-coral transition-colors">
-                  Even voorstellen
-                </Link>
+                <Link href="http://localhost:3001" className="text-white/70 hover:text-coral transition-colors">Club</Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-white/70 hover:text-coral transition-colors">
-                  Privacy
-                </Link>
+                <Link href="http://localhost:3000/coach" className="text-white/70 hover:text-coral transition-colors">Coach</Link>
               </li>
               <li>
-                <Link href="/voorwaarden" className="text-white/70 hover:text-coral transition-colors">
-                  Voorwaarden
-                </Link>
+                <Link href="http://localhost:3000/fund" className="text-white/70 hover:text-coral transition-colors">Fund</Link>
+              </li>
+              <li>
+                <Link href="http://localhost:3000/even-voorstellen" className="text-white/70 hover:text-coral transition-colors">Even voorstellen</Link>
+              </li>
+              <li>
+                <Link href="http://localhost:3000/privacy" className="text-white/70 hover:text-coral transition-colors">Privacy</Link>
+              </li>
+              <li>
+                <Link href="http://localhost:3000/voorwaarden" className="text-white/70 hover:text-coral transition-colors">Voorwaarden</Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact & Social */}
+          {/* Contact */}
           <div>
             <h4 className="font-semibold mb-4">Contact</h4>
             <p className="text-white/70 text-sm mb-4">info@levendportret.nl</p>
-            <div className="flex space-x-4">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/70 hover:text-coral transition-colors"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/70 hover:text-coral transition-colors"
-              >
-                <Linkedin className="w-5 h-5" />
+            <div className="mt-4">
+              <a href="mailto:info@levendportret.nl">
+                <Button variant="coral" size="sm">Mail ons</Button>
               </a>
             </div>
           </div>

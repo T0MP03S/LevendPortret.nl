@@ -11,6 +11,7 @@
   "dependencies": {
     "@levendportret/auth": "workspace:*",
     "@levendportret/db": "workspace:*",
+    "@levendportret/ui": "workspace:*",
     "next": "14.2.14",
     "react": "18.3.1",
     "react-dom": "18.3.1"

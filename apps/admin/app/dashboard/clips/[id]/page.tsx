@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft as IconLeft, ArrowRight as IconRight, Trash2 } from "lucide-react";
+import { ArrowLeft as IconLeft, ArrowRight as IconRight, Trash2, Loader2 } from "lucide-react";
 
 export default function ClipReviewDetail({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -20,6 +20,15 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
   const [saving, setSaving] = useState(false);
   const [company, setCompany] = useState<any>(null);
   const [newImageUrl, setNewImageUrl] = useState<string>("");
+  const [thumbUploading, setThumbUploading] = useState(false);
+  const [thumbPreview, setThumbPreview] = useState<string>("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [moderations, setModerations] = useState<any[]>([]);
+
+  const FONT_OPTIONS = [
+    "Montserrat","Roboto","Open Sans","Lato","Poppins","Inter","Source Sans 3","Nunito","Merriweather","Playfair Display","Oswald","Raleway","Work Sans","Rubik","PT Sans","PT Serif","Noto Sans","Noto Serif","Fira Sans","Karla","Cabin","Quicksand","Manrope","IBM Plex Sans","Archivo"
+  ];
 
   const load = async () => {
     setLoading(true); setError(""); setOk("");
@@ -30,6 +39,7 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
       setPage(data.page);
       setClips(data.clips || []);
       setCompany(data.page?.company || null);
+      setModerations(Array.isArray(data.moderations) ? data.moderations : []);
       const ids = (data.clips || []).filter((c: any) => c.status === 'PUBLISHED').map((c: any)=> c.vimeoShortId);
       setV1(ids[0] || "");
       setV2(ids[1] || "");
@@ -39,6 +49,24 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
       setLoading(false);
     }
   };
+
+  // Load Google Fonts dynamically for preview
+  useEffect(() => {
+    if (!page) return;
+    const makeGoogleFont = (name: string) => String(name || '').replace(/ /g, "+");
+    const title = page?.titleFont || FONT_OPTIONS[0];
+    const body = page?.bodyFont || FONT_OPTIONS[1];
+    const families = Array.from(new Set([title, body])).map((f: string) => `${makeGoogleFont(f)}:wght@400;700`).join("&family=");
+    const href = `https://fonts.googleapis.com/css2?family=${families}&display=swap`;
+    let link = document.getElementById("lp-fonts-link-admin") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "lp-fonts-link-admin";
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [page?.titleFont, page?.bodyFont]);
 
   const removeGalleryAt = (idx: number) => {
     setPage((p: any) => ({
@@ -77,6 +105,16 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
     if (!company?.ownerId) { setError('Geen eigenaar gevonden'); return; }
     setError(''); setOk(''); setSaving(true);
     try {
+      // Client-side validatie voor werkmail en telefoon
+      const phone = String(company.workPhone || '').trim();
+      const email = String(company.workEmail || '').trim();
+      const phoneRegex = /^[0-9+\s\-()]{6,20}$/;
+      if (phone && !phoneRegex.test(phone)) { throw new Error('Ongeldig werktelefoonnummer'); }
+      if (email) {
+        // eenvoudige e-mail validatie; server valideert strenger
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!emailOk) throw new Error('Ongeldig zakelijk e-mailadres');
+      }
       const body: any = { company: {
         name: company.name,
         city: company.city,
@@ -84,6 +122,7 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
         zipCode: company.zipCode,
         houseNumber: company.houseNumber,
         workPhone: company.workPhone || null,
+        workEmail: company.workEmail || null,
         kvkNumber: company.kvkNumber || null,
         website: company.website || null,
       } };
@@ -123,6 +162,26 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
   };
 
   const doSaveEdits = async () => {
+    // Validate socials for admins
+    const s = page?.socials || {};
+    const isValidUrl = (v: string) => { try { const u = new URL(v); return !!u; } catch { return false; } };
+    for (const [key, raw] of Object.entries(s)) {
+      const v = String(raw || '').trim();
+      if (!v) continue;
+      if (key === 'instagram' || key === 'tiktok') {
+        if (!(v.startsWith('@') || (isValidUrl(v) && /^(?:[^.]*\.)?(instagram|tiktok)\.com$/i.test(new URL(v).hostname)))) {
+          throw new Error(`Ongeldige ${key} link. Gebruik @handle of een geldige URL.`);
+        }
+      } else if (key === 'youtube') {
+        if (!(v.startsWith('@') || (isValidUrl(v) && /(youtube\.com|youtu\.be)/i.test(new URL(v).hostname)))) {
+          throw new Error('Ongeldige YouTube link. Gebruik @handle of een geldige kanaal/video URL.');
+        }
+      } else if (key === 'facebook') {
+        if (!(isValidUrl(v) && /facebook\.com/i.test(new URL(v).hostname))) { throw new Error('Ongeldige Facebook link. Gebruik een geldige facebook.com URL.'); }
+      } else if (key === 'linkedin') {
+        if (!(isValidUrl(v) && /linkedin\.com/i.test(new URL(v).hostname))) { throw new Error('Ongeldige LinkedIn link. Gebruik een geldige linkedin.com URL.'); }
+      }
+    }
     const payload: any = {
       action: 'UPDATE',
       aboutLong: page.aboutLong,
@@ -134,6 +193,8 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
       showCompanyNameNextToLogo: page.showCompanyNameNextToLogo,
       socials: page.socials,
       showContactPage: page.showContactPage,
+      clipsThumbnailUrl: page.clipsThumbnailUrl || null,
+      longVideoVimeoId: page.longVideoVimeoId || null,
     };
     const res = await fetch(`/api/admin/company-pages/${params.id}`, {
       method: 'PATCH',
@@ -197,6 +258,16 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
   }, [rejectOpen]);
 
   useEffect(() => {
+    if (!confirmOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setConfirmVisible(false); setTimeout(()=> setConfirmOpen(false), 150); } };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [confirmOpen]);
+
+  const openConfirm = () => { setConfirmOpen(true); requestAnimationFrame(()=> setConfirmVisible(true)); };
+  const closeConfirm = () => { setConfirmVisible(false); setTimeout(()=> setConfirmOpen(false), 150); };
+
+  useEffect(() => {
     if (!rejectOpen) return;
     const el = rejectRef.current;
     if (!el) return;
@@ -251,13 +322,108 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
           </div>
           <div>
             <label className="block text-sm text-zinc-700">Lang (16x9)</label>
-            <input value={v2} onChange={e=>setV2(e.target.value)} placeholder="Vimeo ID (lang)" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" />
+            <input
+              value={v2}
+              onChange={e=>{ const v = e.target.value; setV2(v); setPage((p:any)=>({ ...p, longVideoVimeoId: v })); }}
+              placeholder="Vimeo ID (lang)"
+              className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm text-zinc-700">Thumbnail (9x16) URL</label>
+            <input
+              value={page?.clipsThumbnailUrl || ''}
+              onChange={e=>setPage((p:any)=>({ ...p, clipsThumbnailUrl: e.target.value }))}
+              placeholder="https://... (aanbevolen 1080x1920, PNG/JPG/WEBP)"
+              className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2"
+            />
+            <div className="mt-2 flex items-center gap-3">
+              <button
+                type="button"
+                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md bg-navy text-white hover:brightness-110"
+                onClick={async ()=>{
+                  try {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/png,image/jpeg,image/webp';
+                    input.onchange = async () => {
+                      const file = input.files?.[0];
+                      if (!file) return;
+                      setSaving(true); setThumbUploading(true); setError(""); setOk("");
+                      try {
+                        const objectUrl = URL.createObjectURL(file);
+                        setThumbPreview(objectUrl);
+                        // compute SHA-256 hash of file
+                        const buf = await file.arrayBuffer();
+                        const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+                        const hashArr = Array.from(new Uint8Array(hashBuf));
+                        const contentHash = hashArr.map(b=>b.toString(16).padStart(2,'0')).join('');
+                        const metaRes = await fetch(`/api/admin/company-pages/${params.id}/thumbnail-upload`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ fileName: file.name, contentType: file.type, contentHash })
+                        });
+                        const meta = await metaRes.json();
+                        if (!metaRes.ok) throw new Error(meta?.error || 'Kon upload-URL niet ophalen');
+                        if (meta.uploadUrl) {
+                          const putRes = await fetch(meta.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+                          if (!putRes.ok) throw new Error('Upload naar opslag mislukt');
+                        }
+                        setPage((p:any)=>({ ...p, clipsThumbnailUrl: meta.publicUrl }));
+                        setThumbPreview(meta.publicUrl);
+                        // Automatisch opslaan
+                        await doSaveEdits();
+                        setOk('Thumbnail geüpload en opgeslagen');
+                        URL.revokeObjectURL(objectUrl);
+                      } catch(e:any) {
+                        setError(e?.message || 'Upload mislukt');
+                      } finally {
+                        setSaving(false);
+                        setThumbUploading(false);
+                      }
+                    };
+                    input.click();
+                  } catch (e:any) {
+                    setError(e?.message || 'Kon bestandskiezer niet openen');
+                  }
+                }}
+              >Upload thumbnail</button>
+              {thumbUploading ? (
+                <span className="inline-flex items-center gap-2 text-sm text-zinc-600">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Uploaden…
+                </span>
+              ) : null}
+              {(thumbPreview || page?.clipsThumbnailUrl) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={thumbPreview || page.clipsThumbnailUrl} alt="Preview" className="h-20 w-12 rounded border object-cover" />
+              ) : null}
+              {page?.clipsThumbnailUrl ? (
+                <a href={page.clipsThumbnailUrl} target="_blank" rel="noreferrer" className="text-sm text-coral hover:underline">Voorbeeld openen</a>
+              ) : null}
+            </div>
+            <p className="mt-1 text-xs text-zinc-600">Optioneel. Als leeg: gebruiken we automatisch de Vimeo thumbnail. Aanbevolen verhouding 9×16, 1080×1920.</p>
           </div>
         </div>
         <div className="text-xs text-zinc-600">Je moet 2 geldige Vimeo IDs invullen om te kunnen publiceren.</div>
       </section>
 
       <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-3">
+        <h2 className="text-xl font-semibold">Aanvragen / Notities</h2>
+        {moderations.length === 0 ? (
+          <div className="text-sm text-zinc-600">Geen notities gevonden.</div>
+        ) : (
+          <ul className="space-y-2">
+            {moderations.slice(0,10).map((m:any)=> (
+              <li key={m.id} className="border rounded-md p-3">
+                <div className="text-xs text-zinc-600">{new Date(m.createdAt).toLocaleString()} — {m.status}</div>
+                {m.notes ? <div className="text-sm mt-1 whitespace-pre-wrap">{m.notes}</div> : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-xl font-semibold">Inhoud</h2>
         <label className="text-sm text-zinc-700">Over ons</label>
         <textarea rows={6} className="w-full border border-zinc-300 rounded-md px-3 py-2" value={page?.aboutLong || ''} onChange={e=>setPage((p:any)=>({...p, aboutLong: e.target.value}))} />
@@ -290,6 +456,18 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
               <input className="flex-1 border border-zinc-300 rounded-md px-3 py-2" value={page?.accentColor || ''} onChange={e=>setPage((p:any)=>({ ...p, accentColor: e.target.value }))} />
             </div>
           </div>
+          <div>
+            <label className="block text-sm text-zinc-700">Titel font</label>
+            <select className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={page?.titleFont || FONT_OPTIONS[0]} onChange={e=>setPage((p:any)=>({ ...p, titleFont: e.target.value }))}>
+              {FONT_OPTIONS.map(f=> <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-zinc-700">Body font</label>
+            <select className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={page?.bodyFont || FONT_OPTIONS[1]} onChange={e=>setPage((p:any)=>({ ...p, bodyFont: e.target.value }))}>
+              {FONT_OPTIONS.map(f=> <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
           <div className="flex items-center gap-2 mt-6">
             <input id="rounded" type="checkbox" checked={!!page?.roundedCorners} onChange={e=>setPage((p:any)=>({ ...p, roundedCorners: e.target.checked }))} />
             <label htmlFor="rounded" className="text-sm text-zinc-700">Afgeronde hoeken</label>
@@ -303,6 +481,35 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
             <label htmlFor="contactpage" className="text-sm text-zinc-700">Toon contactsectie</label>
           </div>
         </div>
+        <div className="mt-2 border border-zinc-200 rounded-md p-4" style={{ background: '#fafafa' }}>
+          <div style={{ fontFamily: `'${page?.titleFont || FONT_OPTIONS[0]}', sans-serif`, fontWeight: 700 }} className="text-lg">Voorbeeld titel - {page?.titleFont || FONT_OPTIONS[0]}</div>
+          <div style={{ fontFamily: `'${page?.bodyFont || FONT_OPTIONS[1]}', sans-serif`, fontWeight: 400 }} className="text-sm text-zinc-700">Voorbeeld body - {page?.bodyFont || FONT_OPTIONS[1]}.</div>
+        </div>
+      </section>
+
+      <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-xl font-semibold">Socials</h2>
+        {['facebook','instagram','linkedin','youtube','tiktok'].map((key)=> {
+          const placeholders: Record<string,string> = {
+            facebook: 'https://facebook.com/bedrijfsnaam',
+            instagram: 'https://instagram.com/bedrijfsnaam of @bedrijfsnaam',
+            linkedin: 'https://www.linkedin.com/company/bedrijfsnaam',
+            youtube: 'https://www.youtube.com/@kanaal of https://www.youtube.com/channel/ID',
+            tiktok: 'https://www.tiktok.com/@gebruikersnaam',
+          };
+          return (
+            <div key={key}>
+              <label className="block text-sm text-zinc-700">{key}</label>
+              <input
+                placeholder={placeholders[key]}
+                className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2"
+                value={(page?.socials?.[key] as string) || ''}
+                onChange={e=>setPage((p:any)=>({ ...p, socials: { ...(p?.socials || {}), [key]: e.target.value } }))}
+              />
+            </div>
+          );
+        })}
+        <p className="text-xs text-zinc-500">Ondersteunt @handles en volledige URLs. Voor YouTube worden channel-/@-links ondersteund.</p>
       </section>
 
       <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
@@ -343,6 +550,10 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
               <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.workPhone || ''} onChange={e=>setCompany((c:any)=>({ ...c, workPhone: e.target.value }))} />
             </div>
             <div>
+              <label className="block text-sm text-zinc-700">Zakelijk e-mailadres</label>
+              <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" type="email" value={company.workEmail || ''} onChange={e=>setCompany((c:any)=>({ ...c, workEmail: e.target.value }))} />
+            </div>
+            <div>
               <label className="block text-sm text-zinc-700">KVK-nummer</label>
               <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.kvkNumber || ''} onChange={e=>setCompany((c:any)=>({ ...c, kvkNumber: e.target.value }))} />
             </div>
@@ -359,12 +570,11 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
       </section>
 
       <div className="flex flex-wrap items-center gap-2">
-        <button disabled={saving || !canPublish} onClick={publish} className="px-4 py-2 rounded-md bg-coral text-white disabled:opacity-50">Publiceren</button>
+        <button disabled={saving || !canPublish} onClick={openConfirm} className="px-4 py-2 rounded-md bg-coral text-white disabled:opacity-50">{page?.status === 'PUBLISHED' ? 'Opnieuw publiceren' : 'Publiceren'}</button>
         <button disabled={saving} onClick={openReject} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Afwijzen</button>
         {page?.status === 'PUBLISHED' && (
           <button disabled={saving} onClick={revertToReview} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Zet terug naar IN_REVIEW</button>
         )}
-        <button disabled={saving} onClick={saveEdits} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Wijzigingen opslaan</button>
         <button onClick={()=>router.push('/dashboard/clips')} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Terug</button>
       </div>
 
@@ -377,6 +587,19 @@ export default function ClipReviewDetail({ params }: { params: { id: string } })
             <div className="mt-4 flex gap-2 justify-end">
               <button onClick={closeReject} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Annuleren</button>
               <button disabled={!rejectNotes.trim()} onClick={reject} className="px-4 py-2 rounded-md bg-coral text-white disabled:opacity-50">Versturen</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmOpen && (
+        <div className={`fixed inset-0 z-50 grid place-items-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-150 ${confirmVisible ? 'opacity-100' : 'opacity-0'}`} role="dialog" aria-modal="true" onClick={closeConfirm}>
+          <div className={`w-full max-w-sm bg-white rounded-xl border border-zinc-200 shadow-xl p-5 transform transition-all duration-150 ${confirmVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-1'}`} onClick={(e)=>e.stopPropagation()}>
+            <h3 className="text-lg font-semibold">{page?.status === 'PUBLISHED' ? 'Opnieuw publiceren' : 'Publiceren'}</h3>
+            <p className="mt-2 text-sm text-zinc-600">Weet je zeker dat je dit wilt {page?.status === 'PUBLISHED' ? 'opnieuw publiceren' : 'publiceren'}? Je kunt dit annuleren.</p>
+            <div className="mt-4 flex gap-2 justify-end">
+              <button onClick={closeConfirm} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Annuleren</button>
+              <button disabled={saving || !canPublish} onClick={async()=>{ await publish(); closeConfirm(); }} className="px-4 py-2 rounded-md bg-coral text-white disabled:opacity-50">{page?.status === 'PUBLISHED' ? 'Opnieuw publiceren' : 'Publiceren'}</button>
             </div>
           </div>
         </div>

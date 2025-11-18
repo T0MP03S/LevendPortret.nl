@@ -14,9 +14,9 @@ const config: Config = {
         turquoise: '#00ced1',
       },
       fontFamily: {
-        heading: ['"bree"', 'sans-serif'],
+        heading: ['"Bree"', 'sans-serif'],
         subheading: ['"Montserrat"', 'sans-serif'],
-        body: ['"Montserrat"', 'sans-serif'],
+        body: ['"Bree"', 'sans-serif'],
       },
     },
   },

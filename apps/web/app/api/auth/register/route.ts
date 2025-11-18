@@ -64,11 +64,11 @@ export async function POST(req: Request) {
 
     // Rate limit per IP and per email
     const ip = getIp(req);
-    const rl1 = checkRateLimit({ key: `reg:ip:${ip}`, limit: 10, windowMs: 10 * 60 * 1000 });
+    const rl1 = await checkRateLimit({ key: `reg:ip:${ip}`, limit: 10, windowMs: 10 * 60 * 1000 });
     if (!rl1.allowed) {
       return NextResponse.json({ error: 'Te veel pogingen, probeer later opnieuw.' }, { status: 429 });
     }
-    const rl2 = checkRateLimit({ key: `reg:email:${emailNorm}`, limit: 5, windowMs: 60 * 60 * 1000 });
+    const rl2 = await checkRateLimit({ key: `reg:email:${emailNorm}`, limit: 5, windowMs: 60 * 60 * 1000 });
     if (!rl2.allowed) {
       return NextResponse.json({ error: 'Te veel pogingen voor dit e-mailadres, probeer later opnieuw.' }, { status: 429 });
     }
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Hash the password
-    const passwordHash = await hash(password, 10);
+    const passwordHash = await hash(password, 12);
 
     // 3. Create User and Company in a transaction
     const user = await db.user.create({

@@ -13,6 +13,8 @@ export const metadata = {
 
 const fontLinks = (
   <>
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Bree Regular.woff2" crossOrigin="anonymous" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Bree Bold.woff2" crossOrigin="anonymous" />
     <link rel="stylesheet" href="https://use.typekit.net/jkw7vng.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -25,7 +27,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   
   return (
     <html lang="nl">
-      <head />
+      <head>
+        {fontLinks}
+      </head>
       <body className="min-h-screen bg-gray-50 text-zinc-900 antialiased font-body">
         <Providers session={session}>
           <HeaderClient user={session?.user} />

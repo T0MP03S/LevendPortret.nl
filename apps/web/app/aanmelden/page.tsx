@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -32,6 +32,15 @@ export default function AanmeldenPage() {
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const focusFieldById = (id: string) => {
+    const el = document.getElementById(id) as HTMLElement | null;
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const validatePassword = (password: string) => {
     if (password.length < 8) return 'Wachtwoord moet minimaal 8 tekens lang zijn.';
@@ -71,13 +80,16 @@ export default function AanmeldenPage() {
     setStatus({ type: '', message: '' });
     if (passwordError) {
       setStatus({ type: 'error', message: 'Los de fouten in het wachtwoord op.' });
+      requestAnimationFrame(()=>focusFieldById('password'));
       return;
     }
     if (!formData.agreeTerms || !formData.agreePrivacy) {
       setStatus({ type: 'error', message: 'U moet akkoord gaan met de voorwaarden en het privacybeleid.' });
+      requestAnimationFrame(()=>focusFieldById(!formData.agreeTerms ? 'agreeTerms' : 'agreePrivacy'));
       return;
     }
     try {
+      setSubmitting(true);
       const payload = {
         ...formData,
         phone: formData.phone || null,
@@ -96,8 +108,12 @@ export default function AanmeldenPage() {
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         if (response.status === 400 && data?.issues?.fieldErrors) {
-          setErrors(data.issues.fieldErrors as Record<string, string[]>);
+          const fieldErrors = data.issues.fieldErrors as Record<string, string[]>;
+          setErrors(fieldErrors);
           setStatus({ type: 'error', message: data.error || 'Ongeldige invoer' });
+          const firstField = Object.keys(fieldErrors)[0];
+          if (firstField) requestAnimationFrame(()=>focusFieldById(firstField));
+          setSubmitting(false);
           return;
         }
         throw new Error(data.error || 'Er is iets misgegaan.');
@@ -115,6 +131,8 @@ export default function AanmeldenPage() {
     } catch (error) {
       console.error(error);
       setStatus({ type: 'error', message: (error as Error).message });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -122,6 +140,9 @@ export default function AanmeldenPage() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-navy mb-8 text-center">Meld je bedrijf aan</h1>
       <div className="bg-white p-8 rounded-2xl shadow-sm space-y-6">
+        <p className="text-sm text-gray-600">
+          Na het indienen ontvang je een verificatiemail. Klik op de link in die mail om je aanmelding te bevestigen.
+        </p>
         <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => signIn('google', { callbackUrl: '/post-auth' })}>
           <svg className="mr-2 -ml-1 w-4 h-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 136.5 28.7 184.4 75.4l-62.9 62.9C337 119.3 293.8 96 244 96c-88.8 0-160.1 71.1-160.1 158.8s71.3 158.8 160.1 158.8c98.2 0 135-70.4 140.8-106.9H244v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
           Aanmelden met Google
@@ -130,10 +151,20 @@ export default function AanmeldenPage() {
           <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
           <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-500">Of meld je aan met e-mail</span></div>
         </div>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6" aria-busy={submitting}>
           {status.message && (
-            <div className={`md:col-span-2 p-4 rounded-md text-sm ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <div role="alert" aria-live="polite" className={`md:col-span-2 p-4 rounded-md text-sm ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
               {status.message}
+            </div>
+          )}
+          {Object.keys(errors).length > 0 && (
+            <div className="md:col-span-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm">
+              <p className="font-semibold mb-1">Controleer de invoer in onderstaande velden:</p>
+              <ul className="list-disc ml-5">
+                {Object.keys(errors).map((k)=> (
+                  <li key={k}>{k} — {errors[k]?.[0]}</li>
+                ))}
+              </ul>
             </div>
           )}
         
@@ -207,7 +238,8 @@ export default function AanmeldenPage() {
         </div>
 
         <div className="md:col-span-2">
-          <Button type="submit" variant="coral" size="lg" className="w-full">
+          <Button type="submit" variant="coral" size="lg" className="w-full" disabled={submitting}>
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Aanmelding Voltooien
           </Button>
         </div>

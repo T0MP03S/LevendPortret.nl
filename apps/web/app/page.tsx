@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@levendportret/ui';
-import { Play, Users, Gift, UserCircle } from 'lucide-react';
+import { Play, Users, Gift, UserCircle, MessageSquare, Film, Video, Megaphone, Calendar } from 'lucide-react';
 
 export default function Page() {
   return (
@@ -18,45 +18,49 @@ export default function Page() {
               Start jouw verhaal
             </Button>
           </Link>
-          <Link href="/register">
-            <Button variant="default" size="lg">
-              <Gift className="w-5 h-5 mr-2" />
-              Geef een cadeau
-            </Button>
-          </Link>
         </div>
       </section>
 
       {/* Features */}
-      <section className="grid md:grid-cols-3 gap-8 py-16">
-        <div className="bg-white p-8 rounded-2xl shadow-sm">
-          <div className="w-12 h-12 bg-coral/10 rounded-lg flex items-center justify-center mb-4">
-            <UserCircle className="w-6 h-6 text-coral" />
+      <section className="py-16">
+        <div className="bg-navy/5 rounded-3xl p-8 md:p-12">
+          <div className="max-w-3xl mx-auto text-center space-y-3 mb-8">
+            <h2 className="text-2xl text-navy">Versnel uw start</h2>
+            <p className="text-gray-700 font-body">
+              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Onze coaching is speciaal ontworpen voor startende ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
+            </p>
           </div>
-          <h3 className="text-xl text-navy mb-3">Coach</h3>
-          <p className="text-gray-600 font-body">
-            Een ervaren ondernemer helpt je jouw bedrijfsidee pakkend te verwoorden in een sterke elevator pitch.
-          </p>
-        </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl shadow-sm">
+              <div className="w-12 h-12 bg-coral/10 rounded-lg flex items-center justify-center mb-4">
+                <UserCircle className="w-6 h-6 text-coral" />
+              </div>
+              <h3 className="text-xl text-navy mb-3">Coach</h3>
+              <p className="text-gray-600 font-body">
+                Een ervaren ondernemer helpt je jouw bedrijfsidee pakkend te verwoorden in een sterke elevator pitch.
+              </p>
+            </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm">
-          <div className="w-12 h-12 bg-turquoise/10 rounded-lg flex items-center justify-center mb-4">
-            <Play className="w-6 h-6 text-turquoise" />
-          </div>
-          <h3 className="text-xl text-navy mb-3">Clips</h3>
-          <p className="text-gray-600 font-body">
-            Professionele video's van 5 minuten en 30 seconden die jouw verhaal vertellen en je bedrijf laten zien.
-          </p>
-        </div>
+            <div className="bg-white p-8 rounded-2xl shadow-sm">
+              <div className="w-12 h-12 bg-turquoise/10 rounded-lg flex items-center justify-center mb-4">
+                <Play className="w-6 h-6 text-turquoise" />
+              </div>
+              <h3 className="text-xl text-navy mb-3">Clips</h3>
+              <p className="text-gray-600 font-body">
+                Professionele video's van 5 minuten en 30 seconden die jouw verhaal vertellen en je bedrijf laten zien.
+              </p>
+            </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm">
-          <div className="w-12 h-12 bg-navy/10 rounded-lg flex items-center justify-center mb-4">
-            <Users className="w-6 h-6 text-navy" />
+            <div className="bg-white p-8 rounded-2xl shadow-sm">
+              <div className="w-12 h-12 bg-navy/10 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-navy" />
+              </div>
+              <h3 className="text-xl text-navy mb-3">Club</h3>
+              <p className="text-gray-600 font-body">
+                3 jaar lidmaatschap van een actieve club ondernemers die elkaar opdrachten gunnen en samen groeien.
+              </p>
+            </div>
           </div>
-          <h3 className="text-xl text-navy mb-3">Club</h3>
-          <p className="text-gray-600 font-body">
-            3 jaar lidmaatschap van een actieve club ondernemers die elkaar opdrachten gunnen en samen groeien.
-          </p>
         </div>
       </section>
 
@@ -99,7 +103,7 @@ export default function Page() {
             <p className="text-white/90 font-body">✓ 30 sec social clip</p>
             <p className="text-white/90 font-body">✓ 3 jaar clublidmaatschap</p>
             <p className="text-white/90 font-body">✓ Eigen bedrijfspagina</p>
-            <p className="text-white/90 font-body">✓ 4x webinar per jaar</p>
+            <p className="text-white/90 font-body">✓ Webinars voor leden</p>
           </div>
 
           <div className="text-center">
@@ -110,6 +114,13 @@ export default function Page() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Extra CTA */}
+      <section className="py-8 text-center">
+        <h3 className="text-xl text-navy mb-2">Klaar om te starten?</h3>
+        <p className="text-gray-700 font-body mb-4">Plan een vrijblijvend kennismakingsgesprek en zet vandaag de eerste stap.</p>
+        <Link href="/register"><Button variant="default">Vrijblijvend kennismaken</Button></Link>
       </section>
     </div>
   );

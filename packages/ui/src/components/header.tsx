@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { LogOut, User, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -10,6 +11,13 @@ interface HeaderProps {
 }
 
 export function Header({ user, onSignOut }: HeaderProps) {
+  const pathname = usePathname();
+  const host = typeof window !== 'undefined' ? window.location.host : '';
+  const clipsActive = host.includes(':3002');
+  const clubActive = host.includes(':3001');
+  const coachActive = host.includes(':3000') && (pathname?.startsWith('/coach') ?? false);
+  const fundActive = host.includes(':3000') && (pathname?.startsWith('/fund') ?? false);
+  const evenActive = host.includes(':3000') && (pathname?.startsWith('/even-voorstellen') ?? false);
   const handleSignOut = () => {
     if (onSignOut) return onSignOut();
     if (typeof window !== 'undefined') {
@@ -38,21 +46,24 @@ export function Header({ user, onSignOut }: HeaderProps) {
         {/* Logo */}
         <Link href="http://localhost:3000/" className="flex items-center">
           {/* Logo iets kleiner op mobiel */}
-          <img src="/logo.svg" alt="Levend Portret" className="h-7 md:h-8" />
+          <img src="/logo.svg" alt="Levend Portret" className="h-7 md:h-8" width={112} height={32} />
         </Link>
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center space-x-8 font-heading">
-          <Link href="http://localhost:3001" className="text-white hover:text-coral transition-colors">
-            Club
-          </Link>
-          <Link href="http://localhost:3002" className="text-white hover:text-coral transition-colors">
-            Fund
-          </Link>
-          <Link href="http://localhost:3002" className="text-white hover:text-coral transition-colors">
+          <Link href="http://localhost:3002" aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
             Clips
           </Link>
-          <Link href="http://localhost:3000/even-voorstellen" className="text-white hover:text-coral transition-colors">
+          <Link href="http://localhost:3001" aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+            Club
+          </Link>
+          <Link href="http://localhost:3000/coach" aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+            Coach
+          </Link>
+          <Link href="http://localhost:3000/fund" aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+            Fund
+          </Link>
+          <Link href="http://localhost:3000/even-voorstellen" aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
             Even voorstellen
           </Link>
         </nav>
@@ -70,18 +81,11 @@ export function Header({ user, onSignOut }: HeaderProps) {
             {mobileNavOpen && (
               <div className="absolute left-4 right-4 mt-3 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-40 font-heading">
                 <nav className="flex flex-col divide-y divide-zinc-100 text-sm">
-                  <Link href="http://localhost:3001" className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>
-                    Club
-                  </Link>
-                  <Link href="http://localhost:3002" className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>
-                    Fund
-                  </Link>
-                  <Link href="http://localhost:3002" className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>
-                    Clips
-                  </Link>
-                  <Link href="/even-voorstellen" className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>
-                    Even voorstellen
-                  </Link>
+                  <Link href="http://localhost:3002" aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
+                  <Link href="http://localhost:3001" aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
+                  <Link href="/coach" aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
+                  <Link href="/fund" aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
+                  <Link href="/even-voorstellen" aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
                 </nav>
               </div>
             )}

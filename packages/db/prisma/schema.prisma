@@ -138,6 +138,7 @@ model Company {
   workPhone       String?   
   kvkNumber       String?   
   website         String?   
+  workEmail       String?
 
   // Relatie met de eigenaar
   ownerId         String    @unique // Elke user kan maar 1 bedrijf bezitten
@@ -181,6 +182,7 @@ model CompanyPage {
   longVideoVimeoId          String?
   aboutLong                 String?
   gallery                   Json?
+  clipsThumbnailUrl         String?
   accentColor               String?
   titleFont                 String?
   bodyFont                  String?

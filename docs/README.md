@@ -1,4 +1,32 @@
 ### Beleid credentials login
+## E-mail checklist (deliverability & UX)
+- **Domein-authenticatie**
+  - SPF: voeg je SMTP-provider toe in het SPF-record (bijv. `v=spf1 include:_spf.provider.nl ~all`).
+  - DKIM: public key TXT op `selector._domainkey.<domein>` (selector bij provider).
+  - DMARC: start mild (`p=none`), later `quarantine/reject`. Voorbeeld: `_dmarc.<domein>` → `v=DMARC1; p=none; rua=mailto:postmaster@<domein>`.
+  - Optioneel: BIMI (logo-imago) zodra DMARC op `quarantine/reject` staat.
+- **Headers**
+  - From: `EMAIL_FROM` op het geauthenticeerde domein.
+  - Reply-To: instellen op serviceadres (`EMAIL_REPLY_TO`, bv. `info@levendportret.nl`).
+  - List-Unsubscribe: alleen voor marketing/mailings (niet voor transactionele mails).
+- **Content**
+  - Preheader-tekst en plain-text fallback aanwezig (alle templates).
+  - Logo inline via CID; gebruik PNG (`apps/admin/public/logo-email.png`), fallback SVG.
+  - Alt-teksten voor afbeeldingen; knoppen zijn `<a>` met inline styles.
+  - Consistente huisstijl: Bree als heading, Montserrat als body (met systeemfallbacks).
+  - Korte, duidelijke onderwerpregel zonder spamtriggers; NL-teksten.
+- **Footer & compliance**
+  - Bedrijfsnaam, domeinlink en contact e-mail staan onderin.
+  - Voor marketing: voeg opt-out/unsubscribe link toe en (indien van toepassing) fysiek adres.
+- **Links & tracking**
+  - Gebruik HTTPS-links met herkenbaar domein; geen IP’s/localhost in productie.
+  - Voeg UTM-tags toe voor marketingcampagnes (niet voor auth-transacties).
+- **Testing**
+  - Testmatrix: Gmail (web/iOS/Android), Outlook (Win/Mac), Apple Mail (iOS/macOS).
+  - Controleer spam/“gevaarlijk” waarschuwingen na DNS-aanpassingen (duurt soms 30–60 min).
+- **Env**
+  - `EMAIL_FROM`, `EMAIL_SERVER_*`, `EMAIL_SEND_IN_DEV`, `EMAIL_REPLY_TO` (optioneel, standaard `info@levendportret.nl`).
+
 - Credentials login is toegestaan zodra het e-mailadres is geverifieerd (niet afhankelijk van `ACTIVE`).
 - Niet-ACTIVE gebruikers kunnen wel inloggen maar worden door middleware en `/post-auth` beperkt tot `/in-behandeling` (en onboarding indien nodig).
 
@@ -32,6 +60,11 @@ Links ter referentie:
 - [x] Env-unificatie: alleen root `.env.local` (dev) en `.env.production` (prod). Per-app `.env.local(.example)` en `packages/db/.env` vervallen.
 - [ ] (Later) Vercel projecten: web, club, fund, admin
 - [ ] (Later) Cloudflare DNS: CNAME records naar Vercel voor web/club/fund/admin
+
+### Productie VPS — OS image
+- Aanrader: **Debian 12 (Bookworm) 64‑bit** (OVH image) of alternatief **Ubuntu 22.04 LTS**.
+- Reden: beste compatibiliteit met Node 20 LTS, Next.js (SWC), en native modules (glibc).
+- Optioneel: Docker/Compose op Debian 12 met Node 20 base images (`node:20-bookworm-slim`).
 
 ## 2) Codebase opzetten
 - [x] Turborepo skeleton met apps: `web`, `club`, `fund`, `admin`
@@ -81,11 +114,14 @@ Links ter referentie:
 
 - **CORS instellen (bucket)**
   - Sta uploads vanaf localhost toe. Voorbeeld CORS (conceptueel):
-    - Allowed Origins: `http://localhost:3000`
+    - Allowed Origins: `http://localhost:3000`, `http://localhost:3002`, `http://localhost:3003`
     - Allowed Methods: `PUT, GET, HEAD`
-    - Allowed Headers: `Content-Type, Authorization`
+    - Allowed Headers: `Content-Type`
+    - Expose Headers: `ETag` (optioneel)
     - Max Age: `3600`
   - Zet dit in de R2 bucket CORS-instellingen.
+
+  Opmerking: dit is vereist voor de nieuwe admin thumbnail upload (presigned PUT vanaf `http://localhost:3003`).
 
 - **Env variabelen (.env.local, root)**
   - R2_ENDPOINT=`https://<accountid>.r2.cloudflarestorage.com`
@@ -109,7 +145,74 @@ Links ter referentie:
   - Ga naar `http://localhost:3000/instellingen` → sectie Bedrijf → upload een logo.
   - Controleer dat na upload de `logoUrl` zichtbaar is en `PUT /api/settings/company` dit bewaart.
 
+#### Duplicaten voorkomen (content-hash)
+- Alle uploads (logo, galerij, admin Clips-thumbnail) gebruiken nu client-side `SHA-256` hashing.
+- Server bouwt de sleutel als er een hash is: `.../sha256/<hash>.<ext>` en doet `HEAD` naar R2.
+  - Bestaat het object al: geen nieuwe upload; je krijgt direct de bestaande `publicUrl` terug.
+  - Bestaat het niet: je krijgt een presigned `uploadUrl` en uploadt éénmalig.
+- Hierdoor voorkom je dat exact dezelfde bestanden meerdere keren in de bucket komen.
+
+#### Duplicaten opruimen (scripts)
+Er is een script om bestaande duplicaten te vinden en de oudste te verwijderen (dry-run standaard):
+
+```powershell
+# Dry-run (zien wat er weg kan)
+dotenv -e .env.local -- pnpm -C apps/admin exec node scripts/r2-dedupe.js --prefix logos/ --prefix company-pages/ --prefix clips-thumbnails/
+
+# Effectief verwijderen
+dotenv -e .env.local -- pnpm -C apps/admin exec node scripts/r2-dedupe.js --prefix clips-thumbnails/ --delete
+```
+
+Het script groepeert op:
+- `sha256:<hash>` wanneer het pad `.../sha256/<hash>.<ext>` bevat
+- anders op `etag:<md5>` (let op: ETag is niet altijd MD5 bij grotere/multipart uploads)
+
 - [ ] Eerste 1–5 bedrijven/clips ingeven (seed of via admin)
+
+## E-mail (NextAuth Magic Link)
+
+- SMTP env (development):
+  - `NEXTAUTH_URL=http://localhost:3000`
+  - `EMAIL_FROM="Levend Portret <noreply@domein.nl>"`
+  - `EMAIL_SERVER_HOST`, `EMAIL_SERVER_PORT` (meestal 587), `EMAIL_SERVER_SECURE=false` (true bij 465)
+  - `EMAIL_SERVER_USER`, `EMAIL_SERVER_PASSWORD`
+  - `EMAIL_SEND_IN_DEV=true` om in dev echt te versturen (anders wordt de link alleen gelogd)
+- Testen:
+  1. Dev herstarten na env-wijzigingen.
+  2. Ga naar `/inloggen` (web, 3000) en kies e-mail.
+  3. Vul een testadres in en controleer de inbox (of spam). Klik de link om in te loggen.
+
+### Admin: E-mail templates testen (dev)
+- UI: `http://localhost:3003/dashboard/email-test`
+- API: `POST /api/dev/send-test { to, type }`
+- Templates: `magic-link`, `registration-received`, `approved`, `rejected`, `default`
+- Vereist dezelfde SMTP env-variabelen als hierboven. In development: `EMAIL_SEND_IN_DEV=true` om echt te versturen.
+
+**Logo in e-mails**
+- De admin e-mails proberen het logo inline mee te sturen (CID).
+- Plaats een PNG voor maximale compatibiliteit op: `apps/admin/public/logo-email.png` (aanbevolen ~280×70px, transparante achtergrond).
+- Als `logo-email.png` ontbreekt, valt het systeem terug op `apps/admin/public/logo.svg`. Let op: sommige clients (Gmail) tonen inline SVG niet; gebruik daarom bij voorkeur PNG.
+- In sommige clients moet je eerst “Afbeeldingen weergeven” toestaan voordat het logo verschijnt.
+
+**Dark mode (mobiel/clients)**
+- Template is gehard tegen automatische inversie: `color-scheme: light`, `supported-color-schemes: light`, `x-apple-disable-message-reformatting` en expliciete `bgcolor` op `<body>`, buitenste/inner tables en cellen.
+- Als een client toch dwingt tot dark-mode, overweeg een PNG-headerstrip met ingebrande kleur.
+
+#### Troubleshooting: e-mail versturen (development)
+- **Waar zie ik fouten?**
+  - Admin server terminal (`pnpm -C apps/admin dev`): fouten van `POST /api/dev/send-test` (bv. invalid login, connect ETIMEDOUT) komen hier binnen.
+  - Web server terminal (`pnpm -C apps/web dev`): NextAuth EmailProvider logt waarschuwingen in dev (rate limit, `EMAIL_SEND_IN_DEV` ontbreekt) en eventuele SMTP-fouten bij magic links.
+  - Browser DevTools → Network tab op `/dashboard/email-test`: open de request `POST /api/dev/send-test` en bekijk de JSON response `{ ok: false, error: "..." }`.
+- **Snelle checks**
+  - Herstart dev na `.env.local` wijzigingen.
+  - `EMAIL_SERVER_PORT=587` → `EMAIL_SERVER_SECURE=false`. Voor `465` → `EMAIL_SERVER_SECURE=true`.
+  - `EMAIL_FROM` domein en afzender moeten door jouw SMTP-provider zijn toegestaan (soms moet dit exact het inlogadres zijn).
+  - Controleer user/pass en of SMTP in jouw mailbox is ingeschakeld.
+  - Check spammap; nieuwe domeinen/afzenders komen vaak in spam terecht.
+- **Magic link specifiek**
+  - In dev zonder `EMAIL_SEND_IN_DEV=true` wordt de link alleen in de web-terminal gelogd (niet verstuurd). Zet `EMAIL_SEND_IN_DEV=true` om echt te mailen.
+  - Test via `http://localhost:3000/inloggen` en volg de logs in de web-terminal.
+
 
 ## Security
 - Rate limiting:
@@ -120,6 +223,12 @@ Links ter referentie:
   - NB: In-memory limiter in dev; in productie Upstash/Redis configureren.
 - Input validatie: Zod op `POST /api/auth/register` en `POST /api/onboarding/company`.
 - HTTP headers (via next.config.mjs -> headers()): CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy.
+  - CSP details (dev):
+    - font-src: allow self, data, and https://fonts.gstatic.com (voor Google Fonts)
+    - Clips-app (dev): font-src tijdelijk verbreed naar https: om Google Fonts issues te voorkomen; in productie bij voorkeur weer beperken naar specifieke hosts
+    - style-src: allow 'unsafe-inline' en https: (voor Google Fonts CSS)
+    - frame-src (clips/web): allow https://player.vimeo.com en https://www.google.com (voor Vimeo en Maps embeds)
+    - Let op: na wijzigen van headers: herstart de betreffende app dev-server.
 - NextAuth: e-mail normalisatie, credentials alleen na e-mailverificatie, status gating via middleware.
 - Aanbevelingen productie:
   - Zet `debug` en console logging uit
@@ -127,11 +236,159 @@ Links ter referentie:
   - Vervang in-memory rate limiter door Upstash/Redis
   - Verfijn CSP (alleen noodzakelijke origins) en forceer HTTPS (HSTS)
 
+### Security audit (quick pass) — 2025-11-17
+- **Top acties (hoogste prioriteit)**
+  - Cookies/SSO: in productie `AUTH_COOKIE_DOMAIN=.levendportret.nl` + `secure: true` + `__Secure-` prefix (NextAuth regelt dit bij HTTPS). Zorg voor consistente `NEXTAUTH_SECRET` en HSTS.
+  - CSP (prod): verwijder `unsafe-inline`/`unsafe-eval`; beperk `connect-src` tot eigen domeinen en vereiste APIs; `img-src` beperken tot eigen CDN/R2 en Vimeo (indien nodig); houd `frame-src` op alleen Vimeo/Maps indien gebruikt.
+  - Rate limiting: vervang in-memory limiter door Redis (Upstash) voor auth en register API.
+  - Uploads: voeg server-side size policies toe voor R2 (policy of post-HeadObject check) en mime sniffing (niet alleen `Content-Type`).
+  - Password hashing: verhoog cost naar 12 met native `bcrypt` (Node 20) in productie.
+  - SMTP deliverability: SPF/DKIM/DMARC voor `EMAIL_FROM` domein (zie E-mail checklist).
+- **Aanvullend**
+  - Logging: mask secrets in logs; zet verbose logs uit in prod.
+  - CSRF: SameSite=Lax dekt POST requests; houd API’s op JSON en check origin/referer in admin‑kanten.
+  - Dependencies: periodiek `pnpm audit` en update minor/patch (Turbo 2.6.1 e.d.).
+
+**CSP (productie) voorbeeld**
+```
+default-src 'self';
+img-src 'self' data: https://<jouw-cdn> https://i.vimeocdn.com;
+font-src 'self' data:;
+style-src 'self';
+script-src 'self';
+connect-src 'self' https://<benodigde-apis>; 
+frame-src 'self' https://player.vimeo.com;
+frame-ancestors 'none';
+base-uri 'self';
+```
+
+### Implementaties (Fase 1)
+- Web/Admin/Fund: productie-CSP en HSTS headers toegevoegd (dev blijft relaxed).
+- Rate limiting: Upstash Redis ondersteuning (REST) + async usage in API’s (register/onboarding). In dev fallback op in‑memory.
+- Wachtwoord hashing: cost 12.
+- Uploads (logo): server‑side HEAD validatie (type=image/*, max 2MB) voordat de URL wordt opgeslagen.
+- E-mail: NextAuth verificatie gebruikt nu dezelfde branded HTML als admin (CID‑logo, preheader, plain‑text, dark‑mode hardening, reply‑to).
+
+Upstash (optioneel, productie):
+```
+UPSTASH_REDIS_REST_URL= https://<region>-<id>.upstash.io
+UPSTASH_REDIS_REST_TOKEN= <token>
+```
+Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over naar Redis.
+
+### UX updates (Fase 2 — 2025-11-17)
+- Web: nieuwe pagina’s `/privacy` en `/voorwaarden` (placeholder-teksten) + links staan al in de Footer.
+- Modals toegankelijker (Even voorstellen + Instellingen): focus trap, ESC‑sluiten, aria‑labelledby/‑describedby en focus terug naar trigger.
+- Aanmelden/Inloggen: duidelijke begeleidende tekst, aria‑live op status en foutensamenvatting boven het formulier.
+- Inloggen: inline validatie voor e‑mail en wachtwoord (met aria‑attributen).
+- Afbeeldingen: teamgrid lazy‑loaded; modale teamfoto eager + priority voor snelle weergave.
+- Focus: duidelijke focus-visible outlines (coral) voor toetsenbordnavigatie.
+- Forms: knoppen tonen nu duidelijke loading states (disablen + spinner) bij Inloggen, Aanmelden en Update‑modal.
+- Autofill: consistente styling van browser‑autofill in inputs.
+
 ## 5) QA, SEO & Go-live
 - [ ] SEO/OG basics: meta titles/descriptions, OG-image(s), sitemap/robots per app
 - [ ] Toegankelijkheid quick pass; performance basics
 - [ ] Staging-deploys werkend; redirect www→apex, http→https
 - [ ] Go-live checklist doorlopen en akkoord
+
+## VPS Deploy (praktisch)
+Aanrader OS: Debian 12 (Bookworm) of Ubuntu 22.04 LTS. Zorg voor A-records naar je VPS voor alle domeinen/subdomeinen (bijv. levendportret.nl, admin.levendportret.nl, club.levendportret.nl, clips.levendportret.nl).
+
+Benodigd env’s (voorbeeld, zie ook eerdere hoofdstukken):
+- DATABASE_URL (Postgres)
+- NEXTAUTH_URL per app
+- SMTP (EMAIL_FROM, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_REPLY_TO)
+- R2 (R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY)
+- Upstash (optioneel): UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
+
+### Optie A — Docker Compose + Caddy (auto-HTTPS)
+1) Installeer Docker + Compose plugin
+- Debian/Ubuntu: volg docs.docker.com (apt-get installatie).
+2) Maak map op VPS, bv. `/srv/levend-portret` en zet hier:
+- `compose.yml` (services: web, admin, club, fund, caddy)
+- `.env` per service (of 1 globale .env) met secrets en URLs
+- `Caddyfile` met domein→service reverse proxy
+3) Build & run
+- `docker compose up -d --build`
+4) Updaten na lokale wijzigingen
+- Git push naar remote; op VPS: `git pull` (als je compose.yml in repo houdt)
+- `docker compose pull && docker compose up -d` (bij image registry)
+- of `docker compose up -d --build` (builden op VPS)
+
+Tip: kies Caddy voor automatische TLS (Let’s Encrypt). Voorbeeld Caddyfile snippet:
+```
+levendportret.nl {
+  reverse_proxy web:3000
+}
+admin.levendportret.nl {
+  reverse_proxy admin:3003
+}
+club.levendportret.nl {
+  reverse_proxy club:3001
+}
+clips.levendportret.nl {
+  reverse_proxy fund:3002
+}
+```
+
+### Optie B — PM2 + Nginx/Caddy (zonder containers)
+1) Installeer Node LTS (≥18) en pnpm
+2) Clone repo op VPS, zet `.env` bestanden per app in `apps/*/.env`
+3) Build
+- `pnpm i`
+- `pnpm --filter web build`
+- `pnpm --filter admin build`
+- `pnpm --filter club build`
+- `pnpm --filter fund build`
+4) Start met PM2 (production)
+- `pm2 start "pnpm --filter web start" --name web`
+- `pm2 start "pnpm --filter admin start" --name admin`
+- `pm2 start "pnpm --filter club start" --name club`
+- `pm2 start "pnpm --filter fund start" --name fund`
+- `pm2 save && pm2 startup` (auto-restart na reboot)
+5) Reverse proxy
+- Met Caddy (auto-HTTPS) of Nginx: proxy domeinen naar `127.0.0.1:3000/3001/3002/3003`
+
+### Migrate database (Prisma)
+Voer na first-deploy en bij schema-wijzigingen uit op de VPS:
+```
+pnpm --filter web prisma migrate deploy
+```
+(of in de app waar Prisma CLI staat geconfigureerd)
+
+### Update workflow na livegang (eenvoudig)
+- Lokaal: wijzigingen maken en committen
+- Push naar git remote (GitHub/GitLab)
+- VPS:
+  - PM2: `git pull && pnpm i --frozen-lockfile && pnpm -r build && pm2 reload all`
+  - Docker: `git pull && docker compose up -d --build` of `docker compose pull && docker compose up -d`
+
+Backups/secrets: beheer `.env` buiten versiebeheer; gebruik een password manager of een secrets manager. Maak databasebackups (bijv. via provider of `pg_dump` cron).
+
+### Cloudflare setup (aanbevolen)
+- **DNS**: maak A-records voor alle hosts (web root en subdomeinen) en zet de oranje wolk (Proxy) aan.
+- **SSL/TLS**: zet op Full (strict).
+  - Optie 1 (aanrader bij Proxy=on): maak per host een Cloudflare Origin Certificate, installeer op de VPS en laat Caddy dat certificaat gebruiken.
+    - Cloudflare Dashboard → SSL/TLS → Origin Server → Create Certificate → Domains toevoegen → Download (PEM + private key)
+    - Plaats bv. in `/etc/ssl/cf-origin/<host>.pem` en `<host>-key.pem` (chmod 600)
+    - Caddyfile per host:
+      ```
+      levendportret.nl {
+        tls /etc/ssl/cf-origin/levendportret.nl.pem /etc/ssl/cf-origin/levendportret.nl-key.pem
+        reverse_proxy 127.0.0.1:3000
+      }
+      ```
+  - Optie 2: tijdelijk Proxy uit (grijze wolk), Caddy laat Let’s Encrypt certificaat halen, daarna Proxy weer aan. (Niet ideaal ivm toekomstige renewals.)
+- **Performance**: HTTP/2, HTTP/3 en Brotli aan. Rocket Loader uit (kan front-end breken).
+- **Caching**: standaard cachet Cloudflare geen HTML. Voeg Cache Rules toe om API en admin niet te cachen:
+  - Bypass cache op URL patterns: `*levendportret.nl/api/*`, `*admin.levendportret.nl/*`
+  - Je kunt desgewenst ook op Cookie presence (bijv. `__Secure-next-auth.session-token`) bypassen.
+- **Security headers**: we sturen al strikte headers/HSTS vanuit apps. Cloudflare kan aanvullend HSTS aanzetten; voorkom dubbele tegenstrijdige instellingen.
+- **IP-adres van echte bezoeker**: achter Cloudflare zie je het echte IP in de header `CF-Connecting-IP`.
+  - In Node/Next app routes kun je het IP bepalen met: `req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]`.
+  - Handig voor rate limiting en logging.
+- **Cache purge na deploy**: als je agressievere caching gebruikt, purge cache na een release (Dashboard → Caching → Purge Everything of gerichte rules).
 
 ## Lokale URLs en run
 - web: http://localhost:3000
@@ -301,8 +558,17 @@ Dit plan vervangt de standaard registratie met een professionele, meertraps aanm
 **Laatst voltooid (Fase A & B):**
 - **Auth & Basis:** Volledige setup van NextAuth (Google & Credentials), database migraties, en een stabiele lokale dev-omgeving.
 - **UI Package:** Gedeelde UI-bibliotheek opgezet met Tailwind, kleuren, en self-hosted fonts (Bree & Montserrat).
+  - Header navigatie volgorde aangepast: Clips → Club → Coach → Fund → Even voorstellen (packages/ui Header).
+  - Actieve navigatie highlight: huidige app/pagina wordt eenvoudig gemarkeerd (desktop + mobiel menu).
 - **Web Pagina's (MVP):**
-  - `Home`: Volledig gestyled met hero, features, werkwijze en prijs.
+  - `Home`: Volledig gestyled met hero, features, werkwijze en prijs. Copy aangevuld met aangeleverde tekst (adviesgesprek, digitale toolkit, club-voordelen) en extra CTA. "Geef een cadeau" CTA tijdelijk verwijderd. Features-sectie voorzien van subtiele achtergrond (meer contrast).
+  - `Coach`: Coming soon placeholder (apps/web/app/coach).
+  - `Fund`: Coming soon placeholder (apps/web/app/fund).
+  - `Club` (localhost:3001): Shell klaar met gedeelde Header/Footer/Fonts/Logo via `@levendportret/ui`. Pagina is afgeschermd (alleen voor ingelogde gebruikers) en toont voorlopig "coming soon". Na wijzigingen in dependencies voer `pnpm install` in de repo-root uit en herstart `pnpm dev`.
+  - `Even voorstellen`: Team-overzicht met uniforme mail-icoontjes. "Over Bert" opent nu een in-site, focusbare modal (geen aparte pagina).
+
+**Fonts (Club app)**
+- Club (3001) gebruikt dezelfde Bree/Montserrat-styling als web. Self-hosted Bree-bestanden staan onder `apps/web/public/fonts`. Kopieer voor Club naar `apps/club/public/fonts` (minimaal `Bree Regular.woff2` en `Bree Bold.woff2`).
   - `Even voorstellen`: Team-pagina met placeholders.
   - `Aanmelden`: Uitgebreid formulier met validatie, wachtwoord-toggle (Lucide Eye/EyeOff), Google-knop bovenaan. Na indienen: `signIn('email', { callbackUrl: '/post-auth' })` triggert verificatielink (development: link wordt gelogd in de terminal waar `pnpm dev:web` draait) en redirect naar `/verificatie`. Na klikken op de link: je komt op `/post-auth`, die je doorstuurt naar `/in-behandeling` zolang je nog niet `ACTIVE` bent.
   - `Inloggen`: Custom pagina op `/inloggen` met twee stappen. Stap 1: Google-knop staat boven het e-mailadres veld. Stap 2: kies methode (magic link (Email) of credentials). Wachtwoordveld heeft een toon/verberg-icoon. Ingelogd → redirect naar `/`.
@@ -465,6 +731,14 @@ Opmerking: rechten/entitlements komen uit `Membership`. `User.plan` is slechts e
   pnpm --filter @levendportret/db run prisma:migrate:dev
   pnpm --filter @levendportret/db run prisma:generate
   ```
+
+### Schema update (Clips): Company.workEmail
+- Nieuw veld: `Company.workEmail` (optioneel) voor zakelijk e-mailadres in contactsectie op de klantpagina.
+- UI/API:
+  - apps/web Instellingen → Bedrijf: nieuw inputveld “Zakelijk e-mailadres”.
+  - API `/api/settings/company` accepteert en bewaart `workEmail`.
+  - Slugpagina (Clips) gebruikt `company.workEmail` als primaire e-mail (fallback: eigenaar e-mail).
+- Na updaten: draai migratie + generate en herstart dev servers.
   
   ### Clips — Webpagina instellingen (UI + schema update)
   

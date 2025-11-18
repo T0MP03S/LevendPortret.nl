@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 export const runtime = 'nodejs';
 
@@ -30,15 +30,16 @@ export async function POST(req: Request) {
   if (!me) return bad('Not found', 404);
   if ((me as any).status !== 'ACTIVE') return bad('Forbidden', 403);
 
-  const { fileName, contentType } = await req.json().catch(() => ({}));
+  const { fileName, contentType, contentHash } = await req.json().catch(() => ({}));
   if (!fileName || !contentType) return bad('fileName en contentType zijn verplicht');
   if (!String(contentType).startsWith('image/')) return bad('Alleen afbeeldingen zijn toegestaan');
 
   try {
-    // Sanitize filename and build key
+    // Sanitize and dedupe by content hash if provided
     const base = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
-    const key = `logos/${me.id}/${Date.now()}-${base}`;
-
+    const extFromName = (base.match(/\.([a-zA-Z0-9]{1,5})$/)?.[1] || '').toLowerCase();
+    const extFromType = contentType === 'image/png' ? 'png' : contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/webp' ? 'webp' : contentType === 'image/svg+xml' ? 'svg' : '';
+    const ext = extFromName || extFromType || 'bin';
     const s3 = new S3Client({
       region: 'auto',
       endpoint: R2_ENDPOINT,
@@ -46,13 +47,24 @@ export async function POST(req: Request) {
       forcePathStyle: true,
     });
 
+    const key = contentHash
+      ? `logos/sha256/${String(contentHash).toLowerCase()}.${ext}`
+      : `logos/${me.id}/${Date.now()}-${base}`;
+
+    // If object already exists, reuse it (no need to upload)
+    try {
+      await s3.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }));
+      const publicUrl = R2_PUBLIC_BASE_URL.endsWith('/') ? `${R2_PUBLIC_BASE_URL}${key}` : `${R2_PUBLIC_BASE_URL}/${key}`;
+      return NextResponse.json({ uploadUrl: null, publicUrl, key, existing: true });
+    } catch {}
+
     const put = new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, ContentType: contentType });
     const uploadUrl = await getSignedUrl(s3, put, { expiresIn: 60 * 5 }); // 5 minutes
 
     // Build public URL: allow both styles
     const publicUrl = R2_PUBLIC_BASE_URL.endsWith('/') ? `${R2_PUBLIC_BASE_URL}${key}` : `${R2_PUBLIC_BASE_URL}/${key}`;
 
-    return NextResponse.json({ uploadUrl, publicUrl, key });
+    return NextResponse.json({ uploadUrl, publicUrl, key, existing: false });
   } catch (e: any) {
     console.error('R2 presign error:', e);
     const msg = (process.env.NODE_ENV !== 'production') ? (e?.message || 'Unknown error') : 'Kon upload-URL niet genereren';

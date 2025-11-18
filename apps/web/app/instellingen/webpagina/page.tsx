@@ -21,6 +21,7 @@ export default function WebpaginaInstellingenPage() {
   const [status, setStatus] = useState<string>("DRAFT");
   const [slug, setSlug] = useState<string>("");
   const [aboutLong, setAboutLong] = useState("");
+  const [longVideo, setLongVideo] = useState<string>("");
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [accentColor, setAccentColor] = useState<string>("#191970");
   const [titleFont, setTitleFont] = useState<string>(FONT_OPTIONS[0]);
@@ -63,6 +64,7 @@ export default function WebpaginaInstellingenPage() {
         setStatus(p.status || "DRAFT");
         setSlug(p.slug || "");
         setAboutLong(p.aboutLong || "");
+        setLongVideo(p.longVideoVimeoId || "");
         setGallery(p.gallery ? (typeof p.gallery === 'string' ? JSON.parse(p.gallery) : p.gallery) : []);
         setAccentColor(p.accentColor || "#191970");
         setTitleFont(p.titleFont || FONT_OPTIONS[0]);
@@ -87,6 +89,7 @@ export default function WebpaginaInstellingenPage() {
         setInitial({
           status: "DRAFT",
           aboutLong: "",
+          longVideo: "",
           gallery: [],
           accentColor: "#191970",
           titleFont: FONT_OPTIONS[0],
@@ -110,6 +113,28 @@ export default function WebpaginaInstellingenPage() {
     setError(""); setOk(""); setSaving(true);
     if (aboutLong.length > 5000) { setError("Over ons is te lang (max 5000 tekens)"); setSaving(false); return; }
     if (!/^#?[0-9A-Fa-f]{3,6}$/.test(accentColor)) { setError("Accentkleur moet een geldige HEX zijn"); setSaving(false); return; }
+    // Validate socials: allow @handles for IG/YouTube/TikTok, enforce correct domains for URLs
+    const s = socials || {};
+    const isValidUrl = (v: string) => {
+      try { const u = new URL(v); return !!u; } catch { return false; }
+    };
+    for (const [key, raw] of Object.entries(s)) {
+      const v = String(raw || '').trim();
+      if (!v) continue;
+      if (key === 'instagram' || key === 'tiktok') {
+        if (!(v.startsWith('@') || (isValidUrl(v) && /^(?:[^.]*\.)?(instagram|tiktok)\.com$/i.test(new URL(v).hostname)))) {
+          setError(`Ongeldige ${key} link. Gebruik @handle of een geldige URL.`); setSaving(false); return;
+        }
+      } else if (key === 'youtube') {
+        if (!(v.startsWith('@') || (isValidUrl(v) && /(youtube\.com|youtu\.be)/i.test(new URL(v).hostname)))) {
+          setError('Ongeldige YouTube link. Gebruik @handle of een geldige kanaal/video URL.'); setSaving(false); return;
+        }
+      } else if (key === 'facebook') {
+        if (!(isValidUrl(v) && /facebook\.com/i.test(new URL(v).hostname))) { setError('Ongeldige Facebook link. Gebruik een geldige facebook.com URL.'); setSaving(false); return; }
+      } else if (key === 'linkedin') {
+        if (!(isValidUrl(v) && /linkedin\.com/i.test(new URL(v).hostname))) { setError('Ongeldige LinkedIn link. Gebruik een geldige linkedin.com URL.'); setSaving(false); return; }
+      }
+    }
     const res = await fetch("/api/settings/webpage", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
       aboutLong, gallery, accentColor, titleFont, bodyFont, roundedCorners, showCompanyNameNextToLogo: showNameNextToLogo, socials, showContactPage, status: nextStatus
     }) });
@@ -135,6 +160,7 @@ export default function WebpaginaInstellingenPage() {
     const current = {
       status,
       aboutLong,
+      longVideo,
       gallery,
       accentColor,
       titleFont,
@@ -166,11 +192,18 @@ export default function WebpaginaInstellingenPage() {
       if (f.size > 5 * 1024 * 1024) { setError('Bestand is te groot (max 5MB)'); return; }
     }
     for (const f of arr) {
-      const metaRes = await fetch('/api/settings/webpage/gallery-upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileName: f.name, contentType: f.type }) });
+      // Compute SHA-256 for dedupe
+      const buf = await f.arrayBuffer();
+      const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+      const hashArr = Array.from(new Uint8Array(hashBuf));
+      const contentHash = hashArr.map(b=>b.toString(16).padStart(2,'0')).join('');
+      const metaRes = await fetch('/api/settings/webpage/gallery-upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileName: f.name, contentType: f.type, contentHash }) });
       const meta = await metaRes.json();
       if (!metaRes.ok) { setError(meta?.error || 'Kon upload-URL niet ophalen'); setUploading(false); return; }
-      const putRes = await fetch(meta.uploadUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
-      if (!putRes.ok) { setError('Upload mislukt'); setUploading(false); return; }
+      if (meta.uploadUrl) {
+        const putRes = await fetch(meta.uploadUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f });
+        if (!putRes.ok) { setError('Upload mislukt'); setUploading(false); return; }
+      }
       setGallery(g => [...g, { url: meta.publicUrl }]);
     }
     setUploading(false);
@@ -293,8 +326,11 @@ export default function WebpaginaInstellingenPage() {
         <div className="flex items-start gap-3 p-3 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800">
           <CheckCircle2 className="w-5 h-5 mt-0.5" />
           <div className="flex-1">
-            <div className="font-semibold">Je webpagina is gepubliceerd</div>
-            {slug && <a href={`/p/${slug}`} className="text-sm underline">Open je pagina</a>}
+            <div className="font-semibold">Je webpagina staat live op Levend Portret. Wil je iets laten aanpassen? Vraag een update aan bij de admins.</div>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <a href="/instellingen" className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Update aanvragen</a>
+              {slug && <a href={`/p/${slug}`} className="inline-flex items-center px-3 py-2 rounded-md border border-emerald-300 text-emerald-800 hover:bg-emerald-100">Webpagina bekijken</a>}
+            </div>
           </div>
         </div>
       )}
@@ -325,6 +361,8 @@ export default function WebpaginaInstellingenPage() {
         <textarea className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" rows={6} value={aboutLong} onChange={e=>setAboutLong(e.target.value)} disabled={isLocked} />
         <div className="text-xs text-zinc-500">{aboutLong.length}/5000</div>
         <div className="text-xs text-zinc-500">Tip: je kunt eenvoudige Markdown gebruiken, zoals **vet** en [link](https://voorbeeld.nl).</div>
+
+        {/* Lange video is alleen voor admins; verborgen in klant UI */}
       </section>
 
       <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
@@ -408,7 +446,7 @@ export default function WebpaginaInstellingenPage() {
             facebook: 'https://facebook.com/bedrijfsnaam',
             instagram: 'https://instagram.com/bedrijfsnaam of @bedrijfsnaam',
             linkedin: 'https://www.linkedin.com/company/bedrijfsnaam',
-            youtube: 'https://www.youtube.com/@kanaal',
+            youtube: 'https://www.youtube.com/@kanaal of https://www.youtube.com/channel/ID',
             tiktok: 'https://www.tiktok.com/@gebruikersnaam',
           };
           return (

@@ -5,6 +5,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import type { NextAuthOptions } from 'next-auth';
 import { prisma } from '@levendportret/db';
 import { compare } from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
 
 // Simple in-memory rate limiter (per process)
 const __rlStore = new Map<string, number[]>();
@@ -59,6 +61,7 @@ export const authOptions: NextAuthOptions = {
       server: {
         host: process.env.EMAIL_SERVER_HOST,
         port: process.env.EMAIL_SERVER_PORT ? Number(process.env.EMAIL_SERVER_PORT) : undefined,
+        secure: process.env.EMAIL_SERVER_SECURE === 'true' ? true : undefined,
         auth: process.env.EMAIL_SERVER_USER && process.env.EMAIL_SERVER_PASSWORD ? {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD
@@ -101,7 +104,7 @@ export const authOptions: NextAuthOptions = {
           }
           throw new Error('Too many requests');
         }
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production' && process.env.EMAIL_SEND_IN_DEV !== 'true') {
           const msg = [
             '',
             '┌───────────────────────────────────────────',
@@ -118,12 +121,74 @@ export const authOptions: NextAuthOptions = {
         }
         const { createTransport } = require('nodemailer');
         const transport = createTransport(provider.server);
+        const navy = '#191970';
+        const coral = '#ff546b';
+        const preheader = 'Log in met één klik via je e-mail';
+        const cwd = process.cwd();
+        const candidates = [
+          path.join(cwd, 'public', 'logo-email.png'),
+          path.join(cwd, 'public', 'Logo Wit.png'),
+          path.join(cwd, 'public', 'logo.svg'),
+        ];
+        let logoPath: string | undefined = undefined;
+        for (const p of candidates) { if (fs.existsSync(p)) { logoPath = p; break; } }
+        const logoCid = logoPath ? 'lp-logo' : undefined;
+        const isPng = logoPath ? logoPath.toLowerCase().endsWith('.png') : false;
+        const subject = 'Verifieer je e-mailadres';
+        const html = `<!doctype html>
+<html lang="nl">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" content="yes" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <meta charSet="utf-8" />
+    <title>Inloggen</title>
+  </head>
+  <body bgcolor="#f7f7fb" style="margin:0;padding:0;background:#f7f7fb;font-family:Montserrat,Segoe UI,Arial,sans-serif;color:#111;">
+    ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader}</div>` : ''}
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f7f7fb" style="background:#f7f7fb;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td bgcolor="${navy}" style="background:${navy};padding:16px 20px;color:#fff;">
+                <table width="100%">
+                  <tr>
+                    <td style="vertical-align:middle"><img src="${logoCid ? `cid:${logoCid}` : 'https://levendportret.nl/logo.svg'}" alt="Levend Portret" height="28" style="display:block;border:0;outline:none;text-decoration:none;"></td>
+                    <td align="right" style="font-weight:700">Inloggen</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 24px 8px 24px;">
+                <p style="margin:0 0 12px 0;color:#334155;">Klik op de knop hieronder om in te loggen.</p>
+                <div style="color:#111827;line-height:1.55;font-size:15px"><p>Deze link is tijdelijk geldig. Als je deze e-mail niet hebt aangevraagd, kun je deze negeren.</p></div>
+                <div style="margin-top:20px"><a href="${url}" style="display:inline-block;background:${coral};color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600">Log in</a></div>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#ffffff" style="background:#ffffff;padding:16px 24px;color:#64748b;font-size:12px;border-top:1px solid #e5e7eb;">
+                © ${new Date().getFullYear()} Levend Portret · <a href="https://levendportret.nl" style="color:#64748b;text-decoration:underline">levendportret.nl</a>
+                <div style="margin-top:4px">Contact: <a href="mailto:info@levendportret.nl" style="color:#64748b;text-decoration:underline">info@levendportret.nl</a></div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+        const text = `Inloggen\n\nKlik om in te loggen: ${url}\n\nDeze link is tijdelijk geldig. Als je dit niet hebt aangevraagd, kun je deze e-mail negeren.`;
         await transport.sendMail({
           to: identifier,
           from: provider.from,
-          subject: 'Verifieer je e-mailadres',
-          text: `Klik op de link om in te loggen: ${url}`,
-          html: `<p>Klik op de link om in te loggen: <a href="${url}">${url}</a></p>`
+          replyTo: process.env.EMAIL_REPLY_TO || 'Levend Portret <info@levendportret.nl>',
+          subject,
+          text,
+          html: logoCid ? html.replace('https://levendportret.nl/logo.svg', `cid:${logoCid}`) : html,
+          ...(logoPath ? { attachments: [{ filename: path.basename(logoPath), path: logoPath, cid: logoCid, contentType: isPng ? 'image/png' : 'image/svg+xml' }] } : {}),
         });
       }
     }),

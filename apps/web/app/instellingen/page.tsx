@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { Loader2 } from 'lucide-react';
 
 type Company = {
   id: string;
@@ -9,6 +10,7 @@ type Company = {
   zipCode: string | null;
   city: string | null;
   workPhone: string | null;
+  workEmail: string | null;
   kvkNumber: string | null;
   website: string | null;
   description: string | null;
@@ -31,6 +33,10 @@ export default function InstellingenPage() {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [updateNotes, setUpdateNotes] = useState("");
   const [pageRejectionMessage, setPageRejectionMessage] = useState("");
+  const updateModalRef = useRef<HTMLDivElement | null>(null);
+  const updateOpenBtnRef = useRef<HTMLButtonElement | null>(null);
+  const updateCloseBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [submittingUpdate, setSubmittingUpdate] = useState(false);
 
   const [personal, setPersonal] = useState({ name: "", phone: "" });
   const [password, setPassword] = useState({ oldPassword: "", newPassword: "", confirm: "" });
@@ -41,6 +47,7 @@ export default function InstellingenPage() {
     zipCode: "",
     city: "",
     workPhone: "",
+    workEmail: "",
     kvkNumber: "",
     website: "",
     description: "",
@@ -76,6 +83,7 @@ export default function InstellingenPage() {
         zipCode: json.company?.zipCode || "",
         city: json.company?.city || "",
         workPhone: json.company?.workPhone || "",
+        workEmail: (json.company as any)?.workEmail || "",
         kvkNumber: json.company?.kvkNumber || "",
         website: json.company?.website || "",
         description: json.company?.description || "",
@@ -133,6 +141,7 @@ export default function InstellingenPage() {
       zipCode: company.zipCode,
       city: company.city,
       workPhone: company.workPhone || null,
+      workEmail: company.workEmail || null,
       kvkNumber: company.kvkNumber || null,
       website: company.website || null,
       description: company.description || null,
@@ -155,11 +164,18 @@ export default function InstellingenPage() {
       setLogoFileName(file.name);
       const localUrl = URL.createObjectURL(file);
       setLogoPreview(localUrl);
-      const metaRes = await fetch("/api/settings/logo-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, contentType: file.type }) });
+      // Compute SHA-256 for dedupe
+      const buf = await file.arrayBuffer();
+      const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+      const hashArr = Array.from(new Uint8Array(hashBuf));
+      const contentHash = hashArr.map(b=>b.toString(16).padStart(2,'0')).join('');
+      const metaRes = await fetch("/api/settings/logo-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, contentType: file.type, contentHash }) });
       const meta = await metaRes.json();
       if (!metaRes.ok) throw new Error(meta?.error || "Kon upload-URL niet ophalen");
-      const putRes = await fetch(meta.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      if (!putRes.ok) throw new Error("Upload naar opslag mislukt");
+      if (meta.uploadUrl) {
+        const putRes = await fetch(meta.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+        if (!putRes.ok) throw new Error("Upload naar opslag mislukt");
+      }
 
       // Save the logo URL immediately via the new dedicated endpoint
       const saveRes = await fetch('/api/settings/logo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logoUrl: meta.publicUrl }) });
@@ -197,7 +213,7 @@ export default function InstellingenPage() {
         <div className="p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm">Je webpagina staat live op Levend Portret. Wil je iets laten aanpassen? Vraag een update aan bij de admins.</p>
-            <button onClick={()=>{ setUpdateModalOpen(true); requestAnimationFrame(()=>setUpdateModalVisible(true)); }} className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Update aanvragen</button>
+            <button ref={updateOpenBtnRef} onClick={()=>{ setUpdateModalOpen(true); requestAnimationFrame(()=>setUpdateModalVisible(true)); }} className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Update aanvragen</button>
           </div>
         </div>
       )}
@@ -287,6 +303,10 @@ export default function InstellingenPage() {
                 <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.workPhone} onChange={e=>setCompany(v=>({...v,workPhone:e.target.value}))} />
               </div>
               <div>
+                <label className="block text-sm text-zinc-700">Zakelijk e-mailadres (optioneel)</label>
+                <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" type="email" value={company.workEmail} onChange={e=>setCompany(v=>({...v,workEmail:e.target.value}))} />
+              </div>
+              <div>
                 <label className="block text-sm text-zinc-700">KVK-nummer (optioneel)</label>
                 <input className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={company.kvkNumber} onChange={e=>setCompany(v=>({...v,kvkNumber:e.target.value}))} />
               </div>
@@ -321,10 +341,29 @@ export default function InstellingenPage() {
       )}
 
       {updateModalOpen && (
-        <div className={`fixed inset-0 z-50 grid place-items-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-150 ${updateModalVisible ? 'opacity-100' : 'opacity-0'}`} role="dialog" aria-modal="true" onClick={()=>{ setUpdateModalVisible(false); setTimeout(()=>setUpdateModalOpen(false),150); }}>
-          <div className={`w-full max-w-sm bg-white rounded-xl border border-zinc-200 shadow-xl p-5 transform transition-all duration-150 ${updateModalVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-1'}`} onClick={(e)=>e.stopPropagation()}>
-            <h3 className="text-lg font-semibold">Update voor je webpagina aanvragen</h3>
-            <p className="mt-2 text-sm text-zinc-600">Beschrijf zo concreet mogelijk wat je wilt laten wijzigen op je gepubliceerde webpagina. Dit bericht komt direct bij de admins terecht.</p>
+        <div
+          className={`fixed inset-0 z-50 grid place-items-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-150 ${updateModalVisible ? 'opacity-100' : 'opacity-0'}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="update-modal-title"
+          aria-describedby="update-modal-desc"
+          onClick={()=>{ setUpdateModalVisible(false); setTimeout(()=>{ setUpdateModalOpen(false); updateOpenBtnRef.current?.focus(); },150); }}
+          onKeyDown={(e)=>{
+            if (e.key==='Escape') { setUpdateModalVisible(false); setTimeout(()=>{ setUpdateModalOpen(false); updateOpenBtnRef.current?.focus(); },150); }
+            if (e.key==='Tab' && updateModalRef.current){
+              const nodes = updateModalRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+              if (nodes.length){
+                const first = nodes[0]; const last = nodes[nodes.length-1];
+                const active = document.activeElement as HTMLElement | null;
+                if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+              }
+            }
+          }}
+        >
+          <div ref={updateModalRef} className={`w-full max-w-sm bg-white rounded-xl border border-zinc-200 shadow-xl p-5 transform transition-all duration-150 ${updateModalVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-1'}`} onClick={(e)=>e.stopPropagation()} aria-busy={submittingUpdate}>
+            <h3 id="update-modal-title" className="text-lg font-semibold">Update voor je webpagina aanvragen</h3>
+            <p id="update-modal-desc" className="mt-2 text-sm text-zinc-600">Beschrijf zo concreet mogelijk wat je wilt laten wijzigen op je gepubliceerde webpagina. Dit bericht komt direct bij de admins terecht.</p>
             <div className="mt-4">
               <label className="block text-sm text-zinc-700">Wat wil je aanpassen?</label>
               <textarea
@@ -333,17 +372,18 @@ export default function InstellingenPage() {
                 placeholder="Bijvoorbeeld: 'Logo updaten naar nieuwe versie' of 'Tekst in de intro aanpassen'."
                 value={updateNotes}
                 onChange={e=>setUpdateNotes(e.target.value)}
-              />
+                />
             </div>
             <div className="mt-5 flex flex-col sm:flex-row gap-2 sm:justify-end">
-              <button className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50" onClick={()=>{ setUpdateModalVisible(false); setTimeout(()=>setUpdateModalOpen(false),150); }}>Annuleren</button>
+              <button ref={updateCloseBtnRef} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50 disabled:opacity-50" disabled={submittingUpdate} onClick={()=>{ setUpdateModalVisible(false); setTimeout(()=>{ setUpdateModalOpen(false); updateOpenBtnRef.current?.focus(); },150); }}>Annuleren</button>
               <button
-                className="px-4 py-2 rounded-md bg-coral text-white hover:opacity-90 disabled:opacity-50"
-                disabled={!updateNotes.trim()}
+                className="px-4 py-2 rounded-md bg-coral text-white hover:opacity-90 disabled:opacity-50 inline-flex items-center"
+                disabled={!updateNotes.trim() || submittingUpdate}
                 onClick={async ()=>{
                   setError(""); setOk("");
                   const notes = updateNotes.trim();
                   if (!notes) { setError('Beschrijf wat je wilt aanpassen'); return; }
+                  setSubmittingUpdate(true);
                   const r = await fetch('/api/settings/webpage/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -358,8 +398,10 @@ export default function InstellingenPage() {
                   }
                   setUpdateModalVisible(false);
                   setTimeout(()=>setUpdateModalOpen(false),150);
+                  setSubmittingUpdate(false);
                 }}
               >
+                {submittingUpdate && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Aanvraag versturen
               </button>
             </div>

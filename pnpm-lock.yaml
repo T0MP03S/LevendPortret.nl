@@ -45,6 +45,12 @@ importers:
 
   apps/admin:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.927.0
+        version: 3.927.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.927.0
+        version: 3.927.0
       '@levendportret/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -103,6 +109,9 @@ importers:
       '@levendportret/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@levendportret/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       next:
         specifier: 14.2.14
         version: 14.2.14(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -146,6 +155,12 @@ importers:
       '@levendportret/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@levendportret/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      lucide-react:
+        specifier: ^0.263.1
+        version: 0.263.1(react@18.3.1)
       next:
         specifier: 14.2.14
         version: 14.2.14(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

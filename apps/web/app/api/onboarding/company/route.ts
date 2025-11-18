@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
     // Rate limit per IP
     const ip = getIp(req);
-    const rl = checkRateLimit({ key: `onb:ip:${ip}`, limit: 30, windowMs: 10 * 60 * 1000 });
+    const rl = await checkRateLimit({ key: `onb:ip:${ip}`, limit: 30, windowMs: 10 * 60 * 1000 });
     if (!rl.allowed) {
       return NextResponse.json({ error: 'Te veel verzoeken, probeer later opnieuw.' }, { status: 429 });
     }

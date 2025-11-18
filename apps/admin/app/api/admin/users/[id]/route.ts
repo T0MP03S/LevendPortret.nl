@@ -18,6 +18,7 @@ const UpdateSchema = z.object({
       zipCode: z.string().regex(dutchPostcode, 'Ongeldige postcode (bv. 1234 AB)').optional(),
       houseNumber: z.string().min(1).optional(),
       workPhone: z.string().regex(phoneRegex, 'Ongeldig telefoonnummer').optional().nullable(),
+      workEmail: z.string().email().optional().nullable(),
       kvkNumber: z.string().optional().nullable(),
       website: z.string().url().optional().nullable(),
     })
@@ -48,6 +49,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           zipCode: true,
           houseNumber: true,
           workPhone: true,
+          workEmail: true,
           kvkNumber: true,
           website: true,
           slug: true,
@@ -208,7 +210,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       if (existing) {
         await prisma.company.update({ where: { id: existing.id }, data: { ...company } });
       } else {
-        await prisma.company.create({ data: { ownerId: params.id, name: company.name || 'Onbekend', city: company.city || '', address: company.address || '', zipCode: company.zipCode || '', houseNumber: company.houseNumber || '', workPhone: company.workPhone || null, kvkNumber: company.kvkNumber || null, website: company.website || null, slug: (company.name || 'bedrijf').toLowerCase().replace(/\s+/g, '-') + `-${Date.now()}` } });
+        await prisma.company.create({ data: { ownerId: params.id, name: company.name || 'Onbekend', city: company.city || '', address: company.address || '', zipCode: company.zipCode || '', houseNumber: company.houseNumber || '', workPhone: company.workPhone || null, workEmail: company.workEmail || null, kvkNumber: company.kvkNumber || null, website: company.website || null, slug: (company.name || 'bedrijf').toLowerCase().replace(/\s+/g, '-') + `-${Date.now()}` } });
       }
     }
     return NextResponse.json({ ok: true });
