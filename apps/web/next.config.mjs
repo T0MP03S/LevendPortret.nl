@@ -1,4 +1,6 @@
-export default {
+import { withSentryConfig } from '@sentry/nextjs';
+
+const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@levendportret/auth', '@levendportret/db'],
   async headers() {
@@ -16,16 +18,16 @@ export default {
                     "img-src 'self' data: https:",
                     "font-src 'self' data:",
                     "style-src 'self' 'unsafe-inline'",
-                    "script-src 'self' 'unsafe-inline'",
+                    "script-src 'self' 'unsafe-inline' https://plausible.io",
                     "frame-src 'self' https://player.vimeo.com",
-                    "connect-src 'self'",
+                    "connect-src 'self' https://plausible.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]
                 : [
                     "default-src 'self'",
                     "img-src 'self' data: blob: https:",
-                    "font-src 'self' data: https://fonts.gstatic.com",
+                    "font-src 'self' data: https://fonts.gstatic.com https://use.typekit.net",
                     "style-src 'self' 'unsafe-inline' https:",
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https:",
                     "frame-src 'self' https://player.vimeo.com https://www.google.com",
@@ -49,3 +51,5 @@ export default {
     ];
   },
 };
+
+export default withSentryConfig(nextConfig, { silent: true });

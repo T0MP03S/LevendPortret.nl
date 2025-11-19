@@ -36,15 +36,19 @@ export default async function InBehandelingPage() {
         ) : (
           <div className="p-3 rounded text-sm bg-yellow-50 text-yellow-800">Status: in behandeling (wachtend op goedkeuring).</div>
         )}
-        <p>Bedankt voor je aanmelding! We hebben je gegevens ontvangen.</p>
-        <p>
-          We nemen zo snel mogelijk telefonisch contact met je op om een afspraak in te plannen. Tijdens dit gesprek spreek je met een coach die je aanmelding beoordeelt, je account
-          kan goedkeuren en je kort meeneemt in hoe alles werkt.
-        </p>
-        <p>
-          Plan je liever direct per e-mail? Stuur dan een bericht naar
-          <a className="text-coral font-medium ml-1 hover:underline" href="mailto:info@levendportret.nl">info@levendportret.nl</a>.
-        </p>
+        {status !== 'ACTIVE' && status !== 'REJECTED' && (
+          <>
+            <p>Bedankt voor je aanmelding! We hebben je gegevens ontvangen.</p>
+            <p>
+              We nemen zo snel mogelijk telefonisch contact met je op om een afspraak in te plannen. Tijdens dit gesprek spreek je met een coach die je aanmelding beoordeelt, je account
+              kan goedkeuren en je kort meeneemt in hoe alles werkt.
+            </p>
+            <p>
+              Plan je liever direct per e-mail? Stuur dan een bericht naar
+              <a className="text-coral font-medium ml-1 hover:underline" href="mailto:info@levendportret.nl">info@levendportret.nl</a>.
+            </p>
+          </>
+        )}
         <div className="pt-2">
           <Link href="/" className="inline-flex px-4 py-2 rounded-md border border-zinc-300 text-zinc-700 hover:bg-zinc-50">Terug</Link>
         </div>

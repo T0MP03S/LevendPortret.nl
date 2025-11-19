@@ -8,8 +8,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo & Tagline */}
           <div>
-            <img src="/logo.svg" alt="Levend Portret" className="h-8 mb-2" />
-            <p className="text-white/70 text-sm">Het eerlijke verhaal</p>
+            {/* Logo boven de tekst */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="Levend Portret" className="h-8 mb-3" />
+            <p className="text-white/80 text-sm leading-relaxed">
+              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Onze coaching is speciaal ontworpen voor ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
+            </p>
           </div>
 
           {/* Links */}

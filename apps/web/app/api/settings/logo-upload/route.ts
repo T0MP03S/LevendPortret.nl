@@ -30,15 +30,20 @@ export async function POST(req: Request) {
   if (!me) return bad('Not found', 404);
   if ((me as any).status !== 'ACTIVE') return bad('Forbidden', 403);
 
-  const { fileName, contentType, contentHash } = await req.json().catch(() => ({}));
+  const { fileName, contentType, contentHash, size } = await req.json().catch(() => ({}));
   if (!fileName || !contentType) return bad('fileName en contentType zijn verplicht');
-  if (!String(contentType).startsWith('image/')) return bad('Alleen afbeeldingen zijn toegestaan');
+  const ALLOWED = new Set(['image/jpeg','image/png','image/webp']);
+  if (!ALLOWED.has(String(contentType))) return bad('Alleen JPEG/PNG/WEBP zijn toegestaan');
+  const MAX_LOGO_BYTES = 5 * 1024 * 1024; // 5MB
+  if (typeof size === 'number' && size > MAX_LOGO_BYTES) {
+    return bad('Logo is te groot (max 5MB)');
+  }
 
   try {
     // Sanitize and dedupe by content hash if provided
     const base = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
     const extFromName = (base.match(/\.([a-zA-Z0-9]{1,5})$/)?.[1] || '').toLowerCase();
-    const extFromType = contentType === 'image/png' ? 'png' : contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/webp' ? 'webp' : contentType === 'image/svg+xml' ? 'svg' : '';
+    const extFromType = contentType === 'image/png' ? 'png' : contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/webp' ? 'webp' : '';
     const ext = extFromName || extFromType || 'bin';
     const s3 = new S3Client({
       region: 'auto',

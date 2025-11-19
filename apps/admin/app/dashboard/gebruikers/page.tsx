@@ -17,7 +17,7 @@ export default function GebruikersPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'PENDING_APPROVAL' | 'REJECTED' | 'PENDING_VERIFICATION'>('ACTIVE');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'PENDING_APPROVAL' | 'REJECTED' | 'PENDING_VERIFICATION'>('ALL');
   const [productFilter, setProductFilter] = useState<'ALL' | 'PAID' | 'FUND'>('ALL');
 
   const load = async () => {

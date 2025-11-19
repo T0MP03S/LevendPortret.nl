@@ -29,6 +29,7 @@ export default function InstellingenPage() {
   const [data, setData] = useState<Current | null>(null);
   const [pageStatus, setPageStatus] = useState<string>("");
   const [fullAccess, setFullAccess] = useState<boolean>(false);
+  const [canChangePassword, setCanChangePassword] = useState<boolean>(true);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [updateNotes, setUpdateNotes] = useState("");
@@ -75,6 +76,7 @@ export default function InstellingenPage() {
       if (!res.ok) throw new Error(json?.error || "Kon instellingen niet laden");
       setData(json as Current);
       setFullAccess(!!(json as any).fullAccess);
+      setCanChangePassword(!!(json as any).canChangePassword);
       setPersonal({ name: json.user?.name || "", phone: (json.user?.phone || "") });
       setCompany({
         name: json.company?.name || "",
@@ -251,24 +253,24 @@ export default function InstellingenPage() {
             <button onClick={onSavePersonal} className="px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Opslaan</button>
           </section>
 
-          <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">
+          <section className={`bg-white border border-zinc-200 rounded-2xl p-6 space-y-4 ${!canChangePassword ? 'opacity-60' : ''}`} aria-disabled={!canChangePassword}>
             <h2 className="text-xl font-semibold">Wachtwoord wijzigen</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm text-zinc-700">Oud wachtwoord</label>
-                <input type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.oldPassword} onChange={e=>setPassword(v=>({...v,oldPassword:e.target.value}))} />
+                <input disabled={!canChangePassword} type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.oldPassword} onChange={e=>setPassword(v=>({...v,oldPassword:e.target.value}))} />
               </div>
               <div>
                 <label className="block text-sm text-zinc-700">Nieuw wachtwoord</label>
-                <input type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.newPassword} onChange={e=>setPassword(v=>({...v,newPassword:e.target.value}))} />
+                <input disabled={!canChangePassword} type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.newPassword} onChange={e=>setPassword(v=>({...v,newPassword:e.target.value}))} />
               </div>
               <div>
                 <label className="block text-sm text-zinc-700">Bevestig wachtwoord</label>
-                <input type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.confirm} onChange={e=>setPassword(v=>({...v,confirm:e.target.value}))} />
+                <input disabled={!canChangePassword} type="password" className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2" value={password.confirm} onChange={e=>setPassword(v=>({...v,confirm:e.target.value}))} />
               </div>
             </div>
-            <button onClick={onChangePassword} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50">Wachtwoord wijzigen</button>
-            <div className="text-xs text-zinc-500">Niet beschikbaar voor Google-only accounts.</div>
+            <button disabled={!canChangePassword} onClick={onChangePassword} className="px-4 py-2 rounded-md border border-zinc-300 hover:bg-zinc-50 disabled:opacity-60 disabled:cursor-not-allowed">Wachtwoord wijzigen</button>
+            {!canChangePassword && <div className="text-xs text-zinc-500">Niet beschikbaar voor Google-only accounts.</div>}
           </section>
 
           <section className="bg-white border border-zinc-200 rounded-2xl p-6 space-y-4">

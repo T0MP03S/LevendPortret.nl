@@ -18,9 +18,9 @@ export default async function PostAuthRouter() {
   if ((user as any).status === 'ACTIVE') {
     redirect('/');
   }
-  // If not ACTIVE, but company not yet provided, route to onboarding first
-  const company = await prisma.company.findUnique({ where: { ownerId: user.id } });
-  if (!company) {
+  // If not ACTIVE: route to onboarding when company is missing or incomplete (required basics empty)
+  const company = await prisma.company.findUnique({ where: { ownerId: user.id }, select: { id: true, address: true, city: true, zipCode: true } });
+  if (!company || !company.address || !company.city || !company.zipCode) {
     redirect('/onboarding/bedrijf');
   }
   redirect('/in-behandeling');

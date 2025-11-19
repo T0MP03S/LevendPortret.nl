@@ -110,17 +110,16 @@ export async function GET() {
 
   const inReviewWithNotes = inReview.map((p) => ({ ...p, lastRequestNotes: null as string | null }));
 
-  const updateAanvragen = updateCandidates
+  const updates = updateCandidates
     .filter((p) => lastNoteByPage.has(p.id))
     .map((p) => ({ ...p, lastRequestNotes: lastNoteByPage.get(p.id) || '' }));
 
-  const aanvragen = [...inReviewWithNotes, ...updateAanvragen];
+  const aanvragen = [...inReviewWithNotes];
 
-  // Tab 3: Published internal pages
-  const published = await prisma.companyPage.findMany({
+  // Tab 3: Published — includes internal pages and companies with external website that have PUBLISHED clips
+  const internalPublished = await prisma.companyPage.findMany({
     where: {
       status: 'PUBLISHED' as any,
-      company: { website: null },
     },
     orderBy: { updatedAt: 'desc' },
     select: {
@@ -129,9 +128,37 @@ export async function GET() {
       companyId: true,
       slug: true,
       updatedAt: true,
-      company: { select: { id: true, name: true, city: true } },
+      company: { select: { id: true, name: true, city: true, website: true } },
     }
   });
 
-  return NextResponse.json({ websiteCompanies, aanvragen, published });
+  // Add companies that have an external website and at least one PUBLISHED clip
+  const externalWithClips = await prisma.company.findMany({
+    where: {
+      website: { not: null },
+      clips: { some: { status: 'PUBLISHED' as any } },
+    },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true, name: true, city: true, updatedAt: true, companyPage: { select: { id: true, slug: true, status: true } } },
+  });
+
+  const internalCompanyIds = new Set(internalPublished.map((p) => p.companyId));
+  const externalPublished = externalWithClips
+    .filter((c) => !internalCompanyIds.has(c.id))
+    .map((c) => ({
+      id: (c.companyPage?.id as string) || `company:${c.id}`,
+      status: (c.companyPage?.status as any) || ('PUBLISHED' as any),
+      companyId: c.id,
+      slug: (c.companyPage?.slug as string) || '',
+      updatedAt: c.updatedAt,
+      company: { id: c.id, name: c.name, city: c.city, website: (true as any) },
+      isExternal: true,
+    }));
+
+  const published = [
+    ...internalPublished.map((p) => ({ ...p, isExternal: false } as any)),
+    ...externalPublished,
+  ];
+
+  return NextResponse.json({ aanvragen, updates, published });
 }

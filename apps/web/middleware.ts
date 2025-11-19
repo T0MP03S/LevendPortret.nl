@@ -47,6 +47,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow Instellingen API routes for authenticated users (forms need to load even when status != ACTIVE)
+  if (pathname.startsWith('/api/settings')) {
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.next();
+  }
+
   // Onboarding page access rules
   if (pathname.startsWith('/onboarding/bedrijf')) {
     // Not logged in -> to login

@@ -93,6 +93,15 @@ clips.levendportret.nl {
   reverse_proxy 127.0.0.1:3002
 }
 ```
+
+www → apex redirect voorbeeld:
+```
+www.levendportret.nl {
+  redir https://levendportret.nl{uri} 301
+}
+```
+
+Let op: pas de CSP aan wanneer je externe bronnen gebruikt (bijv. Google Fonts, analytics, video, R2 public host). Voeg de betreffende domeinen toe aan `style-src`, `font-src`, `img-src`, `connect-src` etc.
 Herlaad Caddy:
 ```
 sudo systemctl reload caddy
@@ -194,28 +203,70 @@ sudo journalctl -u caddy -f   # Caddy logs
 - [ ] Rate limiting gebruikt persistente store
   - [ ] `UPSTASH_REDIS_REST_URL` en `UPSTASH_REDIS_REST_TOKEN` ingesteld in .env per app
   - [ ] (Optioneel) Auth‑rate‑limits niet alleen in‑memory in productie
-- [ ] Publiek endpoint `/api/auth/resend` gehardend
-  - [ ] Captcha of strengere throttle
-  - [ ] Generieke respons (voorkomt e‑mail‑enumeratie/DoS)
-- [ ] Registratie: generieke melding bij bestaand e‑mailadres (voorkom enumeratie)
-- [ ] Admin endpoint `is-allowed-email` beschermd of uitgeschakeld in productie
-- [ ] Wachtwoordwijziging: bcrypt cost ≥ 12 en desgewenst throttle
-- [ ] Uploads (R2 presigned) gehardend
-  - [ ] MIME‑whitelist (jpg/png/webp/svg waar toegestaan)
+- [x] Publiek endpoint `/api/auth/resend` gehardend
+  - [x] Captcha of strengere throttle
+  - [x] Generieke respons (voorkomt e‑mail‑enumeratie/DoS)
+- [x] Registratie: generieke melding bij bestaand e‑mailadres (voorkom enumeratie)
+- [x] Admin endpoint `is-allowed-email` beschermd of uitgeschakeld in productie
+- [x] Wachtwoordwijziging: bcrypt cost ≥ 12 en desgewenst throttle
+- [x] Uploads (R2 presigned) gehardend
+  - [x] MIME‑whitelist (jpg/png/webp/svg waar toegestaan)
   - [ ] Max bestandsgrootte via Content‑Length bij presign
-- [ ] Slugs: nette unieke slugs voor bedrijven/pagina’s
+    - Opmerking: logo‑grootte wordt na upload server‑side gevalideerd (HEAD ≤ 5MB). Voor galerij blokkeren we te grote bestanden op basis van client‑grootte bij presign. Volledige afdwinging kan met een presigned POST policy (`content-length-range`) als vervolgstap.
+- [x] Slugs: nette unieke slugs voor bedrijven/pagina’s
 - [ ] SEO/OG: titles/descriptions per pagina, OG‑image(s), sitemap.xml, robots.txt
+  - [x] robots.txt en sitemap.xml toegevoegd
+  - [ ] Per‑pagina titles/descriptions en OG‑image(s)
+  - [x] OG‑afbeelding aanwezig op `apps/web/public/og.png`
 - [ ] Toegankelijkheid: zichtbare focus, alt‑teksten, headings, kleurcontrast, modal keyboard‑trap
 - [ ] Performance: Lighthouse (mobiel/desktop); hero‑blur uit op mobiel; lazy‑loading afbeeldingen
-- [ ] Error pages: nette 404/500 (App Router not-found/error)
+- [x] Error pages: nette 404/500 (App Router not-found/error)
 - [ ] Monitoring: Sentry (of alternatief) geconfigureerd
+  - [ ] `pnpm -C apps/web add @sentry/nextjs` (en evt. in andere apps)
+  - [ ] `SENTRY_DSN` (env) zetten per app
+  - [ ] App Router instrumentation:
+    - [x] `apps/web/app/instrumentation.ts` (server) en `apps/web/app/instrumentation.client.ts` (client)
+    - [x] `apps/web/app/global-error.tsx` aanwezig
+    - [ ] Verwijder legacy `apps/web/sentry.client.config.ts` en `apps/web/sentry.server.config.ts`
+    - [x] Next config met `withSentryConfig`
+  - DSN vind je in Sentry → Project Settings → Client Keys (DSN). Formaat: `https://<publicKey>@<org>.ingest.sentry.io/<projectId>`.
+  - Env-locaties:
+    - Development: root `.env.local`
+    - Productie (VPS): `apps/web/.env` (en per app die Sentry gebruikt)
+  - Let op (client): voor client-side events moet ook `NEXT_PUBLIC_SENTRY_DSN` gezet zijn (zelfde waarde als `SENTRY_DSN`).
 - [ ] Analytics: cookieloos (Plausible/Umami) of cookie‑banner geregeld
+  - [ ] `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` (env) zetten
+  - [x] CSP updaten voor analytics domein: `script-src` en `connect-src` (bij Plausible: `https://plausible.io` of eigen domein)
+  - Env-locaties:
+    - Development: root `.env.local`
+    - Productie (VPS): `apps/web/.env`
 - [ ] ENV’s op productie compleet (per app)
   - [ ] NEXTAUTH_URL, NEXTAUTH_SECRET, DATABASE_URL, SMTP (EMAIL_FROM/REPLY_TO/host/port/user/pass)
   - [ ] R2_* voor uploads; (optioneel) IMAGE_DOMAINS indien extern
+  - [ ] SENTRY_DSN en NEXT_PUBLIC_SENTRY_DSN
 - [ ] Prisma migraties gedeployed op productie
 - [ ] Caching headers voor static assets (via Caddy/Cloudflare)
-- [ ] Navigatie/CTA’s controleren (wijzen naar `/aanmelden`); header tap‑targets vergroot (~44px)
+- [x] Navigatie/CTA’s controleren (wijzen naar `/aanmelden`); header tap‑targets vergroot (~44px)
+
+### Caddy security headers — voorbeeld
+Plaats binnen elk site‑blok in `Caddyfile`:
+
+```
+levendportret.nl {
+  tls /etc/ssl/cf-origin/levendportret.nl.pem /etc/ssl/cf-origin/levendportret.nl-key.pem
+  
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https:; font-src 'self' data: https://fonts.gstatic.com; frame-ancestors 'none'"
+  }
+
+  reverse_proxy 127.0.0.1:3000
+}
+```
 
 ---
 
@@ -241,6 +292,7 @@ pm2 reload all
 - 502/504 via Cloudflare: controleer of de app processen draaien en reverse_proxy juist wijst
 - E-mail bezorgt niet: check SMTP envs, logs, SPF/DKIM/DMARC in DNS
 - Bestanden (R2) werken niet: check R2 keys/endpoint/bucket en permissies
+- Instellingenpagina toont (deels) lege velden: controleer of `/api/settings` alle benodigde velden in de Prisma `select` opneemt (bijv. `company.workEmail`).
 - Rate limiting achter Cloudflare: gebruik `CF-Connecting-IP` in de server code als IP bron
 
 ## Beveiligingstips

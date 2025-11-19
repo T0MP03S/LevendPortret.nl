@@ -12,12 +12,17 @@ interface HeaderProps {
 
 export function Header({ user, onSignOut }: HeaderProps) {
   const pathname = usePathname();
-  const host = typeof window !== 'undefined' ? window.location.host : '';
-  const clipsActive = host.includes(':3002');
-  const clubActive = host.includes(':3001');
-  const coachActive = host.includes(':3000') && (pathname?.startsWith('/coach') ?? false);
-  const fundActive = host.includes(':3000') && (pathname?.startsWith('/fund') ?? false);
-  const evenActive = host.includes(':3000') && (pathname?.startsWith('/even-voorstellen') ?? false);
+  const [host, setHost] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setHost(window.location.host);
+    }
+  }, []);
+  const clipsActive = !!host && host.includes(':3002');
+  const clubActive = !!host && host.includes(':3001');
+  const coachActive = !!host && host.includes(':3000') && (pathname?.startsWith('/coach') ?? false);
+  const fundActive = !!host && host.includes(':3000') && (pathname?.startsWith('/fund') ?? false);
+  const evenActive = !!host && host.includes(':3000') && (pathname?.startsWith('/even-voorstellen') ?? false);
   const handleSignOut = () => {
     if (onSignOut) return onSignOut();
     if (typeof window !== 'undefined') {

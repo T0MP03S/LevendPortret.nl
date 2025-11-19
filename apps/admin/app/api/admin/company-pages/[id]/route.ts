@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
+import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
+
+export const runtime = 'nodejs';
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = (await getServerSession(authOptions as any)) as any;
@@ -80,6 +84,44 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       where: { resourceType: 'COMPANY' as any, resourceId: params.id, status: 'SUBMITTED' as any },
       data: { status: 'APPROVED' as any },
     });
+    // Notify the company owner that the page is published
+    try {
+      const company = await prisma.company.findUnique({ where: { id: page.companyId }, select: { ownerId: true, name: true } });
+      if (company?.ownerId) {
+        const owner = await prisma.user.findUnique({ where: { id: company.ownerId }, select: { email: true, name: true } });
+        if (owner?.email) {
+          const server: SMTPTransport.Options = {
+            host: process.env.EMAIL_SERVER_HOST,
+            port: process.env.EMAIL_SERVER_PORT ? Number(process.env.EMAIL_SERVER_PORT) : undefined,
+            secure: process.env.EMAIL_SERVER_SECURE === 'true',
+            auth: process.env.EMAIL_SERVER_USER && process.env.EMAIL_SERVER_PASSWORD ? {
+              user: process.env.EMAIL_SERVER_USER,
+              pass: process.env.EMAIL_SERVER_PASSWORD,
+            } : undefined,
+          };
+          const tx = nodemailer.createTransport(server);
+          const subject = 'Je webpagina is gepubliceerd';
+          const coral = '#ff546b';
+          const webUrl = process.env.NEXT_PUBLIC_WEB_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+          const html = `<!doctype html><html><body style="font-family:Montserrat,Arial,sans-serif;color:#111">
+            <h2>Je webpagina staat live</h2>
+            <p>Goed nieuws! Je bedrijfspagina is zojuist gepubliceerd op Levend Portret.</p>
+            <p style="margin-top:16px"><a href="${webUrl}" style="display:inline-block;background:${coral};color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600">Bekijk je pagina</a></p>
+          </body></html>`;
+          const text = 'Je webpagina is gepubliceerd op Levend Portret.';
+          await tx.sendMail({
+            to: owner.email,
+            from: process.env.EMAIL_FROM || 'Levend Portret <noreply@example.com>',
+            replyTo: process.env.EMAIL_REPLY_TO || 'Levend Portret <info@levendportret.nl>',
+            subject,
+            html,
+            text,
+          });
+        }
+      }
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.warn('publish mail failed', e);
+    }
     return NextResponse.json({ id: params.id, status: 'PUBLISHED' });
   }
 

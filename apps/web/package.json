@@ -9,11 +9,12 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.673.0",
+    "@aws-sdk/s3-request-presigner": "^3.673.0",
     "@levendportret/auth": "workspace:*",
     "@levendportret/db": "workspace:*",
     "@levendportret/ui": "workspace:*",
-    "@aws-sdk/client-s3": "^3.673.0",
-    "@aws-sdk/s3-request-presigner": "^3.673.0",
+    "@sentry/nextjs": "^10.26.0",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",

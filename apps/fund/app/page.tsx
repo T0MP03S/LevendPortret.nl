@@ -28,7 +28,7 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
   const page = Number(searchParams?.page ?? '1');
   const ua = headers().get('user-agent') || '';
   const isMobile = /Mobile|Android|iPhone|iPad|iPod|IEMobile|Windows Phone/i.test(ua);
-  const perPage = isMobile ? 8 : 2;
+  const perPage = isMobile ? 8 : 12;
   const skip = (page - 1) * perPage;
 
   const where: any = { status: 'PUBLISHED' };
@@ -36,7 +36,7 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
   // Zelfde logica als web: max. 1 clip per bedrijf
   const allClips = await prisma.clip.findMany({
     where,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { updatedAt: 'desc' },
     include: {
       company: {
         include: {
@@ -55,8 +55,16 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
     byCompany.push(clip);
   }
 
-  const total = byCompany.length;
-  const pageClips = byCompany.slice(skip, skip + perPage);
+  // Alleen tonen als er óf een externe website is óf een interne gepubliceerde pagina
+  const visible = byCompany.filter((c: any) => {
+    const company = c.company || {};
+    const hasExternal = !!company.website;
+    const hasInternalPublished = (company.companyPage?.status as string) === 'PUBLISHED';
+    return hasExternal || hasInternalPublished;
+  });
+
+  const total = visible.length;
+  const pageClips = visible.slice(skip, skip + perPage);
 
   const items: Item[] = await Promise.all(
     pageClips.map(async (c: any) => {
@@ -82,7 +90,8 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
         companyName: (company.name as string) ?? 'Onbekend bedrijf',
         companyDesc,
         website: (company.website as string) || null,
-        slug: ((company.companyPage?.slug as string) || (company.slug as string) || ''),
+        // Alleen interne link toestaan als de interne pagina daadwerkelijk PUBLISHED is
+        slug: ((company.companyPage?.status === 'PUBLISHED' ? (company.companyPage?.slug as string) : '') || ''),
         thumb: explicitThumb || vimeoThumb || galleryThumb,
         logoUrl: (company.logoUrl as string) || null,
       } as Item;

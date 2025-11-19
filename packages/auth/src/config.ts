@@ -30,6 +30,141 @@ const ADMIN_MODE = (() => {
   );
 })();
 
+function resolveLogoAsset() {
+  const cwd = process.cwd();
+  const candidates = [
+    path.join(cwd, 'public', 'logo-email.png'),
+    path.join(cwd, 'public', 'Logo Wit.png'),
+    path.join(cwd, 'public', 'logo.svg'),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      const isPng = p.toLowerCase().endsWith('.png');
+      return { logoPath: p, logoCid: 'lp-logo', isPng } as const;
+    }
+  }
+  return { logoPath: undefined, logoCid: undefined, isPng: false } as const;
+}
+
+function baseTemplate({ title, intro, body, cta, preheader, logoCid }: { title: string; intro?: string; body: string; cta?: { href: string; label: string }; preheader?: string; logoCid?: string }) {
+  const navy = '#191970';
+  const coral = '#ff546b';
+  return `<!doctype html>
+<html lang="nl">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" content="yes" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <meta charSet="utf-8" />
+    <title>${title}</title>
+  </head>
+  <body bgcolor="#f7f7fb" style="margin:0;padding:0;background:#f7f7fb;font-family:Montserrat,Segoe UI,Arial,sans-serif;color:#111;">
+    ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader}</div>` : ''}
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f7f7fb" style="background:#f7f7fb;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td bgcolor="${navy}" style="background:${navy};padding:16px 20px;color:#fff;">
+                <table width="100%">
+                  <tr>
+                    <td style="vertical-align:middle"><img src="${logoCid ? `cid:${logoCid}` : 'https://levendportret.nl/logo.svg'}" alt="Levend Portret" height="28" style="display:block;border:0;outline:none;text-decoration:none;"></td>
+                    <td align="right" style="font-weight:700">${title}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 24px 8px 24px;">
+                ${intro ? `<p style=\"margin:0 0 12px 0;color:#334155;\">${intro}</p>` : ''}
+                <div style="color:#111827;line-height:1.55;font-size:15px">${body}</div>
+                ${cta ? `<div style=\"margin-top:20px\"><a href=\"${cta.href}\" style=\"display:inline-block;background:${coral};color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600\">${cta.label}</a></div>` : ''}
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#ffffff" style="background:#ffffff;padding:16px 24px;color:#64748b;font-size:12px;border-top:1px solid #e5e7eb;">
+                © ${new Date().getFullYear()} Levend Portret · <a href="https://levendportret.nl" style="color:#64748b;text-decoration:underline">levendportret.nl</a>
+                <div style="margin-top:4px">Contact: <a href="mailto:info@levendportret.nl" style="color:#64748b;text-decoration:underline">info@levendportret.nl</a></div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+// Notify admins about a new signup (used for Google signups)
+async function sendAdminNewSignupNotifications() {
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: 'ADMIN', notifyNewSignup: true } as any,
+      select: { email: true },
+    });
+    const optedIn = admins.map((a: any) => a.email).filter((e: any): e is string => !!e);
+    const envAdmins = (process.env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    const recipients = Array.from(new Set([...(optedIn.map((e: string) => e.toLowerCase())), ...envAdmins]));
+    if (recipients.length === 0) return;
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[notify][google] Sending new-signup notification to:', recipients.join(', '));
+    }
+    const { createTransport } = require('nodemailer');
+    const transport = createTransport({
+      host: process.env.EMAIL_SERVER_HOST,
+      port: process.env.EMAIL_SERVER_PORT ? Number(process.env.EMAIL_SERVER_PORT) : undefined,
+      secure: process.env.EMAIL_SERVER_SECURE === 'true' ? true : undefined,
+      auth: process.env.EMAIL_SERVER_USER && process.env.EMAIL_SERVER_PASSWORD ? {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD,
+      } : undefined,
+    });
+    const subject = 'Nieuwe aanmelding op Levend Portret';
+    const text = 'Er is een nieuwe aanmelding gedaan. Ga naar het admin dashboard om de aanvraag te bekijken en goed te keuren.';
+    const navy = '#191970';
+    const coral = '#ff546b';
+    const baseUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3003';
+    const html = `<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width" /><meta charSet="utf-8" /></head>
+      <body style="margin:0;padding:0;background:#f7f7fb;font-family:Montserrat,Segoe UI,Arial,sans-serif;color:#111;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f7f7fb" style="background:#f7f7fb;padding:24px 0;">
+          <tr><td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+              <tr>
+                <td bgcolor="${navy}" style="background:${navy};padding:16px 20px;color:#fff;font-weight:700">Nieuwe aanmelding</td>
+              </tr>
+              <tr>
+                <td style="padding:24px 24px 8px 24px;color:#111827;line-height:1.55;font-size:15px">
+                  <p style="margin:0 0 12px 0;color:#334155;">Er is een nieuwe aanmelding binnengekomen.</p>
+                  <p style="margin:0">Open het dashboard om de aanvraag te bekijken en te beoordelen.</p>
+                  <div style="margin-top:16px">
+                    <a href="${baseUrl}/dashboard" style="display:inline-block;background:${coral};color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600">Naar admin dashboard</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 24px;color:#64748b;font-size:12px;border-top:1px solid #e5e7eb;">© ${new Date().getFullYear()} Levend Portret</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+      </body></html>`;
+    await transport.sendMail({
+      to: recipients.join(', '),
+      from: process.env.EMAIL_FROM,
+      replyTo: process.env.EMAIL_REPLY_TO || 'Levend Portret <info@levendportret.nl>',
+      subject,
+      html,
+      text,
+    });
+  } catch (e) {
+    if (process.env.NODE_ENV !== 'production') console.warn('sendAdminNewSignupNotifications failed', e);
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
@@ -50,8 +185,9 @@ export const authOptions: NextAuthOptions = {
             },
           },
         },
-      }
-    : {}),
+      } : {}),
+
+      
   providers: [
     // Email magic-link provider (logs link to terminal in development)
     EmailProvider({
@@ -121,65 +257,9 @@ export const authOptions: NextAuthOptions = {
         }
         const { createTransport } = require('nodemailer');
         const transport = createTransport(provider.server);
-        const navy = '#191970';
-        const coral = '#ff546b';
-        const preheader = 'Log in met één klik via je e-mail';
-        const cwd = process.cwd();
-        const candidates = [
-          path.join(cwd, 'public', 'logo-email.png'),
-          path.join(cwd, 'public', 'Logo Wit.png'),
-          path.join(cwd, 'public', 'logo.svg'),
-        ];
-        let logoPath: string | undefined = undefined;
-        for (const p of candidates) { if (fs.existsSync(p)) { logoPath = p; break; } }
-        const logoCid = logoPath ? 'lp-logo' : undefined;
-        const isPng = logoPath ? logoPath.toLowerCase().endsWith('.png') : false;
+        const { logoPath, logoCid, isPng } = resolveLogoAsset();
         const subject = 'Verifieer je e-mailadres';
-        const html = `<!doctype html>
-<html lang="nl">
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="x-apple-disable-message-reformatting" content="yes" />
-    <meta name="color-scheme" content="light" />
-    <meta name="supported-color-schemes" content="light" />
-    <meta charSet="utf-8" />
-    <title>Inloggen</title>
-  </head>
-  <body bgcolor="#f7f7fb" style="margin:0;padding:0;background:#f7f7fb;font-family:Montserrat,Segoe UI,Arial,sans-serif;color:#111;">
-    ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader}</div>` : ''}
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f7f7fb" style="background:#f7f7fb;padding:24px 0;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
-            <tr>
-              <td bgcolor="${navy}" style="background:${navy};padding:16px 20px;color:#fff;">
-                <table width="100%">
-                  <tr>
-                    <td style="vertical-align:middle"><img src="${logoCid ? `cid:${logoCid}` : 'https://levendportret.nl/logo.svg'}" alt="Levend Portret" height="28" style="display:block;border:0;outline:none;text-decoration:none;"></td>
-                    <td align="right" style="font-weight:700">Inloggen</td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td bgcolor="#ffffff" style="background:#ffffff;padding:24px 24px 8px 24px;">
-                <p style="margin:0 0 12px 0;color:#334155;">Klik op de knop hieronder om in te loggen.</p>
-                <div style="color:#111827;line-height:1.55;font-size:15px"><p>Deze link is tijdelijk geldig. Als je deze e-mail niet hebt aangevraagd, kun je deze negeren.</p></div>
-                <div style="margin-top:20px"><a href="${url}" style="display:inline-block;background:${coral};color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600">Log in</a></div>
-              </td>
-            </tr>
-            <tr>
-              <td bgcolor="#ffffff" style="background:#ffffff;padding:16px 24px;color:#64748b;font-size:12px;border-top:1px solid #e5e7eb;">
-                © ${new Date().getFullYear()} Levend Portret · <a href="https://levendportret.nl" style="color:#64748b;text-decoration:underline">levendportret.nl</a>
-                <div style="margin-top:4px">Contact: <a href="mailto:info@levendportret.nl" style="color:#64748b;text-decoration:underline">info@levendportret.nl</a></div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+        const html = baseTemplate({ title: 'Inloggen', intro: 'Klik op de knop hieronder om in te loggen.', body: '<p>Deze link is tijdelijk geldig. Als je deze e-mail niet hebt aangevraagd, kun je deze negeren.</p>', cta: { href: url, label: 'Log in' }, preheader: 'Log in met één klik via je e-mail', logoCid });
         const text = `Inloggen\n\nKlik om in te loggen: ${url}\n\nDeze link is tijdelijk geldig. Als je dit niet hebt aangevraagd, kun je deze e-mail negeren.`;
         await transport.sendMail({
           to: identifier,
@@ -187,7 +267,7 @@ export const authOptions: NextAuthOptions = {
           replyTo: process.env.EMAIL_REPLY_TO || 'Levend Portret <info@levendportret.nl>',
           subject,
           text,
-          html: logoCid ? html.replace('https://levendportret.nl/logo.svg', `cid:${logoCid}`) : html,
+          html: html,
           ...(logoPath ? { attachments: [{ filename: path.basename(logoPath), path: logoPath, cid: logoCid, contentType: isPng ? 'image/png' : 'image/svg+xml' }] } : {}),
         });
       }
@@ -294,6 +374,34 @@ export const authOptions: NextAuthOptions = {
         .filter(Boolean)
         .includes(email);
 
+      // Helper to send a simple transactional email to user
+      async function sendUserMail(to: string, subject: string, html: string, text: string, attachments?: any[]) {
+        try {
+          const { createTransport } = require('nodemailer');
+          const transport = createTransport({
+            host: process.env.EMAIL_SERVER_HOST,
+            port: process.env.EMAIL_SERVER_PORT ? Number(process.env.EMAIL_SERVER_PORT) : undefined,
+            secure: process.env.EMAIL_SERVER_SECURE === 'true' ? true : undefined,
+            auth: process.env.EMAIL_SERVER_USER && process.env.EMAIL_SERVER_PASSWORD ? {
+              user: process.env.EMAIL_SERVER_USER,
+              pass: process.env.EMAIL_SERVER_PASSWORD,
+            } : undefined,
+          });
+          await transport.sendMail({
+            to,
+            from: process.env.EMAIL_FROM,
+            replyTo: process.env.EMAIL_REPLY_TO || 'Levend Portret <info@levendportret.nl>',
+            subject,
+            html,
+            text,
+            ...(attachments ? { attachments } : {}),
+          });
+        } catch (e) {
+          // Log only in dev, ignore failures silently otherwise
+          if (process.env.NODE_ENV !== 'production') console.warn('sendUserMail failed', e);
+        }
+      }
+
       // Email provider verification result
       if (account?.provider === 'email') {
         const current = await prisma.user.findUnique({ where: { email: user.email }, select: { status: true, role: true } });
@@ -303,6 +411,31 @@ export const authOptions: NextAuthOptions = {
             await prisma.user.update({ where: { email: user.email }, data: { status: 'ACTIVE', role: 'ADMIN' } });
           } else {
             await prisma.user.update({ where: { email: user.email }, data: { status: 'PENDING_APPROVAL' } });
+            // Ensure a minimal Company exists so /instellingen is not empty
+            try {
+              const u2 = await prisma.user.findUnique({ where: { email: user.email }, select: { id: true, name: true, company: { select: { id: true } } } });
+              if (u2 && !u2.company) {
+                await prisma.company.create({ data: {
+                  ownerId: u2.id,
+                  name: u2.name ? `Bedrijf van ${u2.name}` : 'Nieuw bedrijf',
+                  city: '', address: '', zipCode: '', houseNumber: '',
+                  workPhone: null, workEmail: user.email, kvkNumber: null, website: null,
+                  slug: `${(u2.name || 'bedrijf').toLowerCase().replace(/\s+/g,'-')}-${Date.now()}`,
+                }});
+              }
+            } catch {}
+            // Stuur bevestiging naar gebruiker: aanmelding ontvangen + e-mail geverifieerd
+            const subject = 'Aanmelding ontvangen — e-mail geverifieerd';
+            const { logoPath, logoCid, isPng } = resolveLogoAsset();
+            const html = baseTemplate({
+              title: 'Aanmelding ontvangen',
+              intro: 'We hebben je aanmelding ontvangen.',
+              body: '<p>Je e-mailadres is geverifieerd. We beoordelen je aanmelding zo snel mogelijk. Je ontvangt bericht zodra je account is geactiveerd.</p><p>We bellen je binnenkort om je aanmelding te bespreken. Heb je vragen of wil je alvast iets doorgeven? Mail ons via <a href="mailto:info@levendportret.nl">info@levendportret.nl</a>.</p>',
+              cta: { href: process.env.NEXT_PUBLIC_WEB_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000', label: 'Ga naar de website' },
+              logoCid,
+            });
+            const text = 'We hebben je aanmelding ontvangen en je e-mailadres is geverifieerd. We beoordelen je aanmelding zo snel mogelijk. We bellen je binnenkort om je aanmelding te bespreken. Vragen? Mail ons via info@levendportret.nl.';
+            if (user.email) await sendUserMail(user.email, subject, html, text, logoPath ? [{ filename: path.basename(logoPath), path: logoPath, cid: logoCid, contentType: isPng ? 'image/png' : 'image/svg+xml' }] : undefined);
           }
         }
       }
@@ -314,6 +447,33 @@ export const authOptions: NextAuthOptions = {
         if (!current) return;
         if ((current as any).status === 'PENDING_VERIFICATION') {
           await prisma.user.update({ where: { email: user.email }, data: { status: 'PENDING_APPROVAL' } });
+          // Ensure a minimal Company exists so /instellingen is not empty
+          try {
+            const u2 = await prisma.user.findUnique({ where: { email: user.email }, select: { id: true, name: true, company: { select: { id: true } } } });
+            if (u2 && !u2.company) {
+              await prisma.company.create({ data: {
+                ownerId: u2.id,
+                name: u2.name ? `Bedrijf van ${u2.name}` : 'Nieuw bedrijf',
+                city: '', address: '', zipCode: '', houseNumber: '',
+                workPhone: null, workEmail: user.email, kvkNumber: null, website: null,
+                slug: `${(u2.name || 'bedrijf').toLowerCase().replace(/\s+/g,'-')}-${Date.now()}`,
+              }});
+            }
+          } catch {}
+          // Google signup: stuur aanmelding ontvangen
+          const subject = 'Aanmelding ontvangen';
+          const { logoPath, logoCid, isPng } = resolveLogoAsset();
+          const html = baseTemplate({
+            title: subject,
+            intro: 'We hebben je aanmelding ontvangen.',
+            body: '<p>We beoordelen je aanmelding zo snel mogelijk. Je ontvangt bericht zodra je account is geactiveerd.</p><p>We bellen je binnenkort om je aanmelding te bespreken. Heb je vragen of wil je alvast iets doorgeven? Mail ons via <a href="mailto:info@levendportret.nl">info@levendportret.nl</a>.</p>',
+            cta: { href: process.env.NEXT_PUBLIC_WEB_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000', label: 'Ga naar de website' },
+            logoCid,
+          });
+          const text = 'We hebben je aanmelding ontvangen. We beoordelen je aanmelding zo snel mogelijk. We bellen je binnenkort om je aanmelding te bespreken. Vragen? Mail ons via info@levendportret.nl.';
+          if (user.email) await sendUserMail(user.email, subject, html, text, logoPath ? [{ filename: path.basename(logoPath), path: logoPath, cid: logoCid, contentType: isPng ? 'image/png' : 'image/svg+xml' }] : undefined);
+          // Notify admins for Google-based new signup
+          await sendAdminNewSignupNotifications();
         }
       }
     }

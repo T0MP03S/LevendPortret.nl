@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { checkRateLimit } from '../../../../lib/rate-limit';
 
 function getIp(req: Request) {
-  const header = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '').split(',')[0].trim();
+  const header = (req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '').split(',')[0].trim();
   return header || '127.0.0.1';
 }
 

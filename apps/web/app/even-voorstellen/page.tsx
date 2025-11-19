@@ -5,13 +5,13 @@ import { TeamImage } from './team-image';
 
 const team = [
   { name: 'Bert Kranendonk', role: 'Coach', email: 'bert@levendportret.nl', imageUrl: '/team/bert.jpg' },
-  { name: 'Barry Annes', role: 'Coming soon', email: 'barry@levendportret.nl', imageUrl: '/team/unknown.jpg' },
+  { name: 'Barry Annes', role: 'Filmmaker', email: 'barry@levendportret.nl', imageUrl: '/team/barry.jpg' },
   { name: 'Frank van Eijk', role: 'Filmmaker', email: 'frank@levendportret.nl', imageUrl: '/team/frank.jpg' },
 ];
 
 const bios: Record<string, string> = {
-  'Bert Kranendonk': 'Binnenkort beschikbaar.',
-  'Barry Annes': 'Binnenkort beschikbaar.',
+  'Bert Kranendonk': `Bert Kranendonk begon zijn loopbaan als leraar. Vanaf de jaren ’80 introduceerde hij achtereenvolgens actueel aanvullend lesmateriaal in opdracht van derden, educatieve communicatie als marketinginstrument en ontwikkelde hij later de eerste brand experience in Nederland (Heineken Experience 1.0), die uitermate succesvol werd. Sinds 2003 produceert Bert Kranendonk onder eigen naam diverse belevingsconcepten voor onder meer bezoekerscentra, bedrijven, steden, regio’s en actuele thema’s in binnen- en buitenland, in opdracht of op eigen initiatief.`,
+  'Barry Annes': 'Barry Annes is filmmaker met ruime ervaring in commercials, televisie, bedrijfsfilms en videoclips. Volgens hem is het MKB van levensbelang en hij maakte voor een eerder project al verschillende ondernemersportretten.',
   'Frank van Eijk': 'Frank van Eijk studeerde af aan de filmacademie. Werkte daarna als editor bij de NOS en begon in 1993 als zelfstandig regisseur en scenatioschrijver. Hij werkte voor veel verschillende soorten opdrachtgevers: Omroepen, commerciële bedrijven, overheid en Defensie. Creativiteit en kwaliteit staat bij hem hoog in het vaandel. Al enige jaren maakt hij ook content voor Social Media en YouTube.'
 };
 
@@ -64,6 +64,17 @@ export default function EvenVoorstellenPage() {
         <p className="text-lg text-gray-700 max-w-3xl mx-auto">
           Levend Portret biedt een communityoplossing voor ondernemingen aan het begin van hun bestaansgeschiedenis.
         </p>
+        <div className="mt-6 max-w-3xl mx-auto space-y-4 text-gray-700 leading-relaxed text-base">
+          <p>
+            We helpen ondernemers hun kernverhaal helder te krijgen en dit te vertalen naar krachtige, korte videoclips.
+            Met coaching, feedback en een betrokken netwerk zorgen we dat jouw boodschap niet alleen overtuigt, maar ook
+            de juiste mensen bereikt.
+          </p>
+          <p>
+            Ons doel is zichtbaarheid met impact: authentieke verhalen, professioneel gebracht, die klanten in beweging
+            brengen. Zo bouw je stap voor stap aan vertrouwen, bereik en een duurzame relatie met je publiek.
+          </p>
+        </div>
       </section>
 
       {/* Team Section */}
@@ -73,8 +84,14 @@ export default function EvenVoorstellenPage() {
           {team.map((member) => (
             <div key={member.name} className="bg-white p-6 rounded-2xl shadow-sm text-center w-full max-w-[320px]">
               <div className="w-40 h-40 rounded-full mx-auto mb-4 bg-gray-200 overflow-hidden">
-                {/* Standaard gecentreerd */}
-                <TeamImage src={member.imageUrl} alt={member.name} width={320} height={320} quality={90} />
+                <TeamImage
+                  src={member.imageUrl}
+                  alt={member.name}
+                  width={320}
+                  height={320}
+                  quality={90}
+                  className={member.name === 'Barry Annes' ? 'object-[80%_center]' : ''}
+                />
               </div>
               <h3 className="text-lg font-bold text-navy">{member.name}</h3>
               <p className="text-coral mb-4">{member.role}</p>

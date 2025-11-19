@@ -9,10 +9,6 @@ export default function Page() {
       <section className="text-center py-20">
         <div className="relative mx-auto max-w-5xl rounded-3xl border border-white/50 bg-white/70 md:bg-white/60 md:backdrop-blur p-6 md:p-12 shadow-lg">
           <img src="/logo-color.svg" alt="Levend Portret" className="h-32 md:h-40 mx-auto mb-8" />
-          <div className="inline-flex items-center gap-2 text-coral mb-4">
-            <Sparkles className="w-5 h-5" />
-            <span className="font-medium">Versnel uw start</span>
-          </div>
           <p className="text-2xl text-navy/80 mb-6 font-heading" style={{ fontWeight: 500 }}>Het eerlijke verhaal</p>
           <p className="text-lg font-body text-gray-700 max-w-2xl mx-auto mb-10">
             Coaching, professionele clips en een actieve club die jouw onderneming zichtbaar maken.
@@ -31,9 +27,9 @@ export default function Page() {
       <section className="py-16">
         <div className="relative rounded-3xl p-8 md:p-12 bg-gradient-to-b from-navy/5 to-white">
           <div className="max-w-3xl mx-auto text-center space-y-3 mb-8">
-            <h2 className="text-2xl text-navy">Versnel uw start</h2>
+            <h2 className="text-2xl text-navy">Boost je onderneming!</h2>
             <p className="text-gray-700 font-body">
-              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Onze coaching is speciaal ontworpen voor startende ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
+              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Onze coaching is speciaal ontworpen voor ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">

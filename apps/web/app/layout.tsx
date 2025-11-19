@@ -5,10 +5,28 @@ import HeaderClient from './header-client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import Providers from './providers';
+import type { Metadata } from 'next';
+import Script from 'next/script';
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL('https://levendportret.nl'),
   title: 'Levend Portret — het eerlijke verhaal',
-  description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.'
+  description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
+  openGraph: {
+    title: 'Levend Portret — het eerlijke verhaal',
+    description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
+    url: 'https://levendportret.nl',
+    siteName: 'Levend Portret',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Levend Portret' }],
+    locale: 'nl_NL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Levend Portret — het eerlijke verhaal',
+    description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
+    images: ['/og.png'],
+  },
 };
 
 const fontLinks = (
@@ -36,6 +54,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="min-h-[calc(100vh-200px)]">{children}</main>
           <Footer />
         </Providers>
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (
+          <Script
+            defer
+            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+            src={process.env.NEXT_PUBLIC_PLAUSIBLE_SRC || 'https://plausible.io/js/script.js'}
+          />
+        ) : null}
       </body>
     </html>
   );

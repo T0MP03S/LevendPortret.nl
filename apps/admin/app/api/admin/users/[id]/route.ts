@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
 import { z } from 'zod';
+import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
+
+export const runtime = 'nodejs';
 
 const dutchPostcode = /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/;
 const phoneRegex = /^[0-9+\s\-()]{6,20}$/;
@@ -83,7 +87,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const action = body?.action as 'APPROVE' | 'REJECT' | 'SET_PENDING' | 'GRANT_MEMBERSHIP' | 'EXPIRE_MEMBERSHIP' | 'SWITCH_TO_FUND';
   if (!action) return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   try {
-    const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true, id: true, status: true } });
+    const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true, id: true, status: true, email: true, name: true } });
     if (!target || target.role === 'ADMIN') return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (action === 'GRANT_MEMBERSHIP' || action === 'EXPIRE_MEMBERSHIP') {
       if ((target as any).status !== 'ACTIVE') {
@@ -162,6 +166,61 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
     const status = action === 'APPROVE' ? 'ACTIVE' : action === 'REJECT' ? 'REJECTED' : 'PENDING_APPROVAL';
     const updated = await prisma.user.update({ where: { id: params.id }, data: { status } });
+
+    // Send status change email to user for ACTIVE or REJECTED
+    if ((status === 'ACTIVE' || status === 'REJECTED') && target?.email) {
+      try {
+        const server: SMTPTransport.Options = {
+          host: process.env.EMAIL_SERVER_HOST,
+          port: process.env.EMAIL_SERVER_PORT ? Number(process.env.EMAIL_SERVER_PORT) : undefined,
+          secure: process.env.EMAIL_SERVER_SECURE === 'true',
+          auth: process.env.EMAIL_SERVER_USER && process.env.EMAIL_SERVER_PASSWORD ? {
+            user: process.env.EMAIL_SERVER_USER,
+            pass: process.env.EMAIL_SERVER_PASSWORD,
+          } : undefined,
+        };
+        const tx = nodemailer.createTransport(server);
+        const subject = status === 'ACTIVE' ? 'Je account is geaccepteerd — welkom!' : 'Je aanmelding is niet goedgekeurd';
+        const text = status === 'ACTIVE'
+          ? 'Je account is geaccepteerd. Je kunt nu inloggen en aan de slag. Tip: ga naar Instellingen om je account aan te vullen.'
+          : 'Je aanmelding is helaas niet goedgekeurd. Neem contact op bij vragen.';
+        const navy = '#191970';
+        const coral = '#ff546b';
+        const webBase = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000';
+        const href = status === 'ACTIVE' ? `${webBase}/instellingen` : webBase;
+        const html = `<!doctype html><html lang="nl"><head><meta name="viewport" content="width=device-width" /><meta charSet="utf-8" /></head>
+          <body style="margin:0;padding:0;background:#f7f7fb;font-family:Montserrat,Segoe UI,Arial,sans-serif;color:#111;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f7f7fb" style="background:#f7f7fb;padding:24px 0;">
+              <tr><td align="center">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td bgcolor="${navy}" style="background:${navy};padding:16px 20px;color:#fff;font-weight:700">${subject}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:24px 24px 8px 24px;color:#111827;line-height:1.55;font-size:15px">
+                      ${status === 'ACTIVE' ? '<p style="margin:0 0 12px 0;color:#334155;">Je account is geaccepteerd.</p><p style="margin:0">Je kunt nu inloggen en aan de slag. Tip: ga naar Instellingen om je account aan te vullen.</p>' : '<p style="margin:0 0 12px 0;color:#334155;">Je aanmelding is niet goedgekeurd.</p><p style="margin:0">Neem contact op bij vragen.</p>'}
+                      ${status === 'ACTIVE' ? `<div style=\"margin-top:16px\"><a href=\"${href}\" style=\"display:inline-block;background:${coral};color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600\">Naar Instellingen</a></div>` : ''}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:16px 24px;color:#64748b;font-size:12px;border-top:1px solid #e5e7eb;">© ${new Date().getFullYear()} Levend Portret</td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body></html>`;
+        await tx.sendMail({
+          to: target.email,
+          from: process.env.EMAIL_FROM || 'Levend Portret <noreply@example.com>',
+          replyTo: process.env.EMAIL_REPLY_TO || 'Levend Portret <info@levendportret.nl>',
+          subject,
+          text,
+          html,
+        });
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'production') console.warn('status mail failed', e);
+      }
+    }
     if (status === 'ACTIVE') {
       // Ensure FUND exists if no CLUB/COACH active yet
       const company = await prisma.company.findUnique({ where: { ownerId: params.id }, select: { id: true } });

@@ -36,9 +36,9 @@ export async function POST(req: Request) {
     const head = await s3.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }));
     const size = Number(head.ContentLength || 0);
     const type = String(head.ContentType || '');
-    const maxBytes = 2 * 1024 * 1024; // 2MB
+    const maxBytes = 5 * 1024 * 1024; // 5MB
     if (size <= 0 || size > maxBytes) {
-      return NextResponse.json({ error: 'Logo is te groot (max 2MB)' }, { status: 400 });
+      return NextResponse.json({ error: 'Logo is te groot (max 5MB)' }, { status: 400 });
     }
     if (!type.startsWith('image/')) {
       return NextResponse.json({ error: 'Alleen afbeeldingen zijn toegestaan' }, { status: 400 });

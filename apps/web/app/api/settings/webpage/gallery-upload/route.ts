@@ -23,9 +23,14 @@ export async function POST(req: Request) {
   if ((me as any).status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const companyId = me.company?.id || null;
   if (!companyId) return NextResponse.json({ error: 'Geen bedrijf gevonden' }, { status: 400 });
-  const { fileName, contentType, contentHash } = await req.json().catch(() => ({}));
+  const { fileName, contentType, contentHash, size } = await req.json().catch(() => ({}));
   if (!fileName || !contentType) return NextResponse.json({ error: 'fileName en contentType zijn verplicht' }, { status: 400 });
-  if (!String(contentType).startsWith('image/')) return NextResponse.json({ error: 'Alleen afbeeldingen zijn toegestaan' }, { status: 400 });
+  const ALLOWED = new Set(['image/jpeg','image/png','image/webp']);
+  if (!ALLOWED.has(String(contentType))) return NextResponse.json({ error: 'Alleen JPEG/PNG/WEBP zijn toegestaan' }, { status: 400 });
+  const MAX_GALLERY_BYTES = 5 * 1024 * 1024; // 5MB
+  if (typeof size === 'number' && size > MAX_GALLERY_BYTES) {
+    return NextResponse.json({ error: 'Afbeelding is te groot (max 5MB)' }, { status: 400 });
+  }
   const base = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
   const extFromName = (base.match(/\.([a-zA-Z0-9]{1,5})$/)?.[1] || '').toLowerCase();
   const extFromType = contentType === 'image/png' ? 'png' : contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/webp' ? 'webp' : '';

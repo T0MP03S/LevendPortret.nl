@@ -1,3 +1,21 @@
+Copy-richtlijnen
+### Clips overzicht — zichtbaarheid en volgorde
+- Zichtbaarheid: een bedrijf verschijnt in het Clips-overzicht zodra er minimaal 1 `Clip` met `status = PUBLISHED` bestaat voor dat bedrijf.
+- Admin (Clips detail): stel 2 geldige Vimeo IDs in (short en lang). We bewaren maximaal 2 `Clip`-records en archiveren oudere entries.
+- Links: als `company.website` bestaat gaat de knop “Bekijk webpagina” naar de externe site; anders naar de interne pagina (`/p/[slug]`).
+- Sortering: nieuwste eerst (volgorde op `updatedAt desc`), zodat zojuist opgeslagen clips bovenaan staan.
+- Paginatie: mobiel 8 per pagina, desktop 12 per pagina.
+
+### Admin: Clipsbeheer tabs
+- Tabs: `Aanvragen`, `Updates`, `Gepubliceerd` (het tabje “Websites” is vervallen).
+- Aanvragen: interne pagina’s met `status = IN_REVIEW`, eigenaar `ACTIVE`, product `CLIPS` actief, en zonder externe website.
+- Updates: gepubliceerde interne pagina’s (`status = PUBLISHED`) met een ingediende update-aanvraag (`Moderation.status = SUBMITTED`).
+- Gepubliceerd: omvat
+  - Interne pagina’s met `status = PUBLISHED`.
+  - Bedrijven met een externe website en ≥1 `Clip.status = PUBLISHED` (als “Extern”).
+  - Wanneer een bedrijf zijn externe website verwijdert in Instellingen, verdwijnt deze externe vermelding automatisch uit “Gepubliceerd”. Interne gepubliceerde pagina’s blijven zichtbaar totdat de status wordt aangepast.
+- "Aanmelding ontvangen" (voor goedkeuring): vermeld dat we binnenkort bellen om de aanmelding te bespreken en geef het contactadres `info@levendportret.nl` als alternatief.
+- "Account geaccepteerd" (na goedkeuring): geen bel‑informatie meer; focus op welkom en CTA naar `/instellingen` om het account aan te vullen.
 ### Beleid credentials login
 ## E-mail checklist (deliverability & UX)
 - **Domein-authenticatie**
@@ -31,7 +49,7 @@
 - Niet-ACTIVE gebruikers kunnen wel inloggen maar worden door middleware en `/post-auth` beperkt tot `/in-behandeling` (en onboarding indien nodig).
 
 ### TODO
-- Na succesvolle registratie een notificatiemail sturen naar `info@levendportret.nl` (server-side) met de ingevulde gegevens en link naar admin-overzicht.
+- [x] Na succesvolle registratie een notificatiemail sturen naar admins die "Mail bij nieuwe aanmelding" hebben ingeschakeld (server-side) met een link naar het admin-dashboard.
 # Levend Portret — Docs gids (stap-voor-stap)
 
 Gebruik dit document als centrale leidraad. We lopen in deze volgorde:
@@ -182,6 +200,34 @@ Het script groepeert op:
   2. Ga naar `/inloggen` (web, 3000) en kies e-mail.
   3. Vul een testadres in en controleer de inbox (of spam). Klik de link om in te loggen.
 
+### Transactionele e-mails — Overzicht van flows (dev/prod)
+- Na registratie + verificatie (Email provider): gebruiker ontvangt "Aanmelding ontvangen — e-mail geverifieerd".
+- Na Google signup (zonder traditionele verificatie): gebruiker ontvangt "Aanmelding ontvangen" (status → PENDING_APPROVAL).
+- Magic link login-aanvraag: gebruiker ontvangt de verificatiemail (via NextAuth EmailProvider).
+- Statuswijziging door admin:
+  - ACTIVE → gebruiker ontvangt "Je account is geaccepteerd — welkom!" met CTA naar Instellingen.
+  - REJECTED → gebruiker ontvangt "Aanmelding niet goedgekeurd".
+- Publicatie bedrijfspagina: eigenaar ontvangt "Je webpagina is gepubliceerd".
+- Admin notificatie bij nieuwe aanmelding: admins die het vinkje aan hebben (of in `ADMIN_EMAILS` staan) krijgen een melding; toggle staat rechts van de Dashboard-titel.
+
+Stijl
+- Alle transactionele e-mails gebruiken nu één uniforme, branded template (navy header, coral CTA, Montserrat), met optionele inline logo‑bijlage waar beschikbaar.
+
+Links/URLs in e-mails
+- Gebruikers‑CTA’s (bijv. “Ga naar de website”, “Bekijk je pagina”) linken naar:
+  - `NEXT_PUBLIC_WEB_URL` (prod) of fallback `NEXTAUTH_URL` (web app) of `http://localhost:3000` (dev)
+  - Zet in prod: `NEXT_PUBLIC_WEB_URL=https://levendportret.nl`
+- Admin‑CTA’s (bijv. “Naar admin dashboard”) linken naar:
+  - `NEXT_PUBLIC_ADMIN_URL` of fallback `http://localhost:3003` (dev)
+  - Zet in prod: `NEXT_PUBLIC_ADMIN_URL=https://admin.levendportret.nl`
+- Magic‑link (inlog) gebruikt de door NextAuth gebouwde URL op basis van de app‑specifieke `NEXTAUTH_URL`.
+  - Web app: `NEXTAUTH_URL=https://levendportret.nl` in prod (dev: http://localhost:3000)
+  - Admin app: `NEXTAUTH_URL=https://admin.levendportret.nl` in prod (dev: http://localhost:3003)
+
+Notes
+- Development: voor auth-verificatie mails is `EMAIL_SEND_IN_DEV=true` vereist; overige transactionele mails (admin-notificatie/status/publicatie) gebruiken de SMTP envs direct.
+- SMTP variabelen moeten in de root `.env.local` staan en worden door alle apps gebruikt.
+
 ### Admin: E-mail templates testen (dev)
 - UI: `http://localhost:3003/dashboard/email-test`
 - API: `POST /api/dev/send-test { to, type }`
@@ -212,6 +258,20 @@ Het script groepeert op:
 - **Magic link specifiek**
   - In dev zonder `EMAIL_SEND_IN_DEV=true` wordt de link alleen in de web-terminal gelogd (niet verstuurd). Zet `EMAIL_SEND_IN_DEV=true` om echt te mailen.
   - Test via `http://localhost:3000/inloggen` en volg de logs in de web-terminal.
+
+#### Troubleshooting: Next.js dev "Unexpected end of JSON input" (load-manifest)
+- Symptoom: tijdens dev verschijnt `SyntaxError: Unexpected end of JSON input` in `load-manifest.js` bij `getNextFontManifest`.
+- Oorzaak: tijdelijk/corrupt `.next` manifest tijdens hot reload.
+- Oplossing (web-app):
+  1) Stop de dev server voor web.
+  2) Verwijder de build map en start opnieuw.
+     - PowerShell:
+       ```powershell
+       Remove-Item -Recurse -Force "apps/web/.next"
+       # optioneel cache
+       Remove-Item -Recurse -Force "apps/web/node_modules/.cache" -ErrorAction SilentlyContinue
+       ```
+  3) Start opnieuw: `pnpm -C apps/web dev` of `pnpm dev`.
 
 
 ## Security
@@ -266,7 +326,7 @@ base-uri 'self';
 - Web/Admin/Fund: productie-CSP en HSTS headers toegevoegd (dev blijft relaxed).
 - Rate limiting: Upstash Redis ondersteuning (REST) + async usage in API’s (register/onboarding). In dev fallback op in‑memory.
 - Wachtwoord hashing: cost 12.
-- Uploads (logo): server‑side HEAD validatie (type=image/*, max 2MB) voordat de URL wordt opgeslagen.
+- Uploads (logo): server‑side HEAD validatie (type=image/*, max 5MB) voordat de URL wordt opgeslagen.
 - E-mail: NextAuth verificatie gebruikt nu dezelfde branded HTML als admin (CID‑logo, preheader, plain‑text, dark‑mode hardening, reply‑to).
 
 Upstash (optioneel, productie):
@@ -290,11 +350,13 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
 
 ### UX updates (Fase 2 — 2025-11-18)
 - In behandeling: wanneer een account is geaccepteerd toont de pagina alleen nog een knop naar `Instellingen` (geen extra knoppen).
+- In behandeling: call/contact-paragrafen worden alleen getoond voor PENDING gebruikers; bij ACTIVE of REJECTED worden deze niet meer weergegeven.
 - Instellingen toegang: geaccepteerde gebruikers kunnen altijd naar `/instellingen` voor account/bedrijf. De sectie “Webpagina instellingen” is nu alleen zichtbaar/toegankelijk met een actieve CLIPS‑membership.
 - Navigatie: de link “In behandeling” wordt automatisch verborgen 7 dagen nadat de pagina voor het eerst is bekeken (client‑cookie `lp_pending_seen_at`).
 - Auth foutenpagina: nieuwe pagina op `/auth/error` met duidelijke meldingen (bijv. “Verificatie mislukt”) en knoppen “Opnieuw inloggen” en “Terug naar home”. “Verification” fouten ontstaan vaak wanneer een magic link al is gebruikt of verlopen is; vraag in dat geval een nieuwe link aan.
 - Verificatie: de pagina `/verificatie` heeft nu een knop “Nieuwe magic link” die eerst oude verificatielinks ongeldig maakt en vervolgens een nieuwe link verstuurt (met rate limiting).
 - Instellingen prefilling: `/api/settings` levert nu gegevens voor alle ingelogde gebruikers (ook in behandeling), waardoor velden in Instellingen automatisch ingevuld zijn met gegevens uit de aanmelding.
+  - Indien een gebruiker (bv. via Google) nog geen `Company` heeft, wordt een minimale placeholder aangemaakt bij het laden van `/api/settings` zodat de Instellingen-pagina nooit leeg is.
 - Even voorstellen: team toont 3 leden gecentreerd: Bert (met foto), Barry (zonder foto → nette fallback), Frank (met foto). Plaats Frank's afbeelding als `apps/web/public/team/frank.jpg` (bestand hernoemen naar `frank.jpg`).
 - Aanmelden: privacy en voorwaarden zijn nu samengevoegd tot één verplichte checkbox met links naar `/privacy` en `/voorwaarden`. Zonder vinkje kun je niet indienen.
 - Homepage facelift: subtiele achtergrond‑gradients/shapes, verbeterde depth (hover/shadow/border) op kaarten, hero met glass‑effect, en pricinglijst met check‑iconen. CTA‑links bijgewerkt naar `/aanmelden`.
@@ -303,7 +365,8 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
 - Mobile UX: tap‑targets op Even Voorstellen (mailknop, "Over" en modaal sluiten) vergroot naar ~44px.
 - Mobile UX: grotere tap‑targets voor wachtwoord toggles op Aanmelden en Inloggen (~44px) met grotere iconen.
 - Routing: Coach-pagina CTA wijst nu naar `/aanmelden`.
-
+ - Even voorstellen: intro uitgebreid met een langere toelichting; bio van Bert Kranendonk bijgewerkt.
+ - Footer: logo boven de tekst geplaatst en introparagraaf aangepast.
 ## 5) QA, SEO & Go-live
 - [ ] SEO/OG: per pagina een duidelijke title/description; OG-image(s); sitemap.xml en robots.txt
 - [ ] Toegankelijkheid: focus zichtbaar; alt-teksten; heading-structuur; toetsenbord in modals werkt (getest); kleurcontrast check
