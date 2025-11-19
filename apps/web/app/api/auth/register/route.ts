@@ -40,6 +40,13 @@ const RegisterSchema = z.object({
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    // Normalize website: allow domains without protocol by prefixing https://
+    if (typeof body.companyWebsite === 'string') {
+      const raw = (body.companyWebsite as string).trim();
+      if (raw && !/^https?:\/\//i.test(raw)) {
+        body.companyWebsite = `https://${raw}`;
+      }
+    }
     const parsed = RegisterSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Ongeldige invoer', issues: parsed.error.flatten() }, { status: 400 });

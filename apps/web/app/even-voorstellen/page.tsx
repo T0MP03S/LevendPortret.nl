@@ -5,17 +5,14 @@ import { TeamImage } from './team-image';
 
 const team = [
   { name: 'Bert Kranendonk', role: 'Coach', email: 'bert@levendportret.nl', imageUrl: '/team/bert.jpg' },
-  { name: 'Henk van Schilt', role: 'Coach', email: 'henk@levendportret.nl', imageUrl: '/team/bert.jpg' },
-  { name: 'Barry Annes', role: 'Filmmaker', email: 'barry@levendportret.nl', imageUrl: '/team/bert.jpg' },
-  { name: 'Frank van Eijk', role: 'Filmmaker', email: 'frank@levendportret.nl', imageUrl: '/team/bert.jpg' },
+  { name: 'Barry Annes', role: 'Coming soon', email: 'barry@levendportret.nl', imageUrl: '/team/unknown.jpg' },
+  { name: 'Frank van Eijk', role: 'Filmmaker', email: 'frank@levendportret.nl', imageUrl: '/team/frank.jpg' },
 ];
 
 const bios: Record<string, string> = {
-  'Bert Kranendonk':
-    "Bert Kranendonk begon zijn loopbaan als leraar. Vanaf de jaren ’80 introduceerde hij achtereenvolgens actueel aanvullend lesmateriaal in opdracht van derden, educatieve communicatie als marketinginstrument en ontwikkelde hij later de eerste brand experience in Nederland (Heineken Experience 1.0), die uitermate succesvol werd. Sinds 2003 produceert Bert Kranendonk onder eigen naam diverse belevingsconcepten voor onder meer bezoekerscentra, bedrijven, steden, regio’s en actuele thema’s in binnen-­ en buitenland, in opdracht of op eigen initiatief.",
-  'Henk van Schilt': 'Binnenkort beschikbaar.',
+  'Bert Kranendonk': 'Binnenkort beschikbaar.',
   'Barry Annes': 'Binnenkort beschikbaar.',
-  'Frank van Eijk': 'Binnenkort beschikbaar.'
+  'Frank van Eijk': 'Frank van Eijk studeerde af aan de filmacademie. Werkte daarna als editor bij de NOS en begon in 1993 als zelfstandig regisseur en scenatioschrijver. Hij werkte voor veel verschillende soorten opdrachtgevers: Omroepen, commerciële bedrijven, overheid en Defensie. Creativiteit en kwaliteit staat bij hem hoog in het vaandel. Al enige jaren maakt hij ook content voor Social Media en YouTube.'
 };
 
 export default function EvenVoorstellenPage() {
@@ -72,11 +69,11 @@ export default function EvenVoorstellenPage() {
       {/* Team Section */}
       <section className="py-16">
         <h2 className="text-3xl font-bold text-navy text-center mb-12">Ons Team</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center">
           {team.map((member) => (
-            <div key={member.name} className="bg-white p-6 rounded-2xl shadow-sm text-center">
+            <div key={member.name} className="bg-white p-6 rounded-2xl shadow-sm text-center w-full max-w-[320px]">
               <div className="w-40 h-40 rounded-full mx-auto mb-4 bg-gray-200 overflow-hidden">
-                {/* Placeholder for image */}
+                {/* Standaard gecentreerd */}
                 <TeamImage src={member.imageUrl} alt={member.name} width={320} height={320} quality={90} />
               </div>
               <h3 className="text-lg font-bold text-navy">{member.name}</h3>
@@ -85,14 +82,14 @@ export default function EvenVoorstellenPage() {
                 <a
                   href={`mailto:${member.email}`}
                   aria-label={`Mail ${member.name}`}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-zinc-200 hover:bg-zinc-50"
+                  className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-zinc-200 hover:bg-zinc-50"
                 >
                   <Mail className="w-4 h-4 text-navy" />
                 </a>
                 <button
                   type="button"
                   onClick={() => onOpen(member)}
-                  className="inline-flex items-center px-3 h-9 rounded-md bg-navy text-white hover:bg-[#15155e] text-sm"
+                  className="inline-flex items-center px-4 h-11 rounded-md bg-navy text-white hover:bg-[#15155e] text-sm"
                 >
                   {`Over ${member.name.split(' ')[0]}`}
                 </button>
@@ -123,7 +120,7 @@ export default function EvenVoorstellenPage() {
             className="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4"
           >
             <div className="flex justify-end p-3">
-              <button ref={closeBtnRef} onClick={onClose} className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-zinc-200 hover:bg-zinc-50" aria-label="Sluiten">
+              <button ref={closeBtnRef} onClick={onClose} className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-zinc-200 hover:bg-zinc-50" aria-label="Sluiten">
                 <X className="w-5 h-5" />
               </button>
             </div>

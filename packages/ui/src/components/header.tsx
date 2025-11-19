@@ -29,6 +29,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
+  const [hidePendingLink, setHidePendingLink] = useState(false);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -39,6 +40,22 @@ export function Header({ user, onSignOut }: HeaderProps) {
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+  useEffect(() => {
+    try {
+      if (typeof document === 'undefined') return;
+      const raw = document.cookie.split('; ').find(x => x.startsWith('lp_pending_seen_at='));
+      if (!raw) { setHidePendingLink(false); return; }
+      const value = raw.split('=')[1];
+      const ts = parseInt(value, 10);
+      if (!isNaN(ts)) {
+        const ageMs = Date.now() - ts;
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        setHidePendingLink(ageMs >= sevenDaysMs);
+      } else {
+        setHidePendingLink(false);
+      }
+    } catch {}
   }, []);
   return (
     <div className="w-full px-4 pt-4">
@@ -113,11 +130,12 @@ export function Header({ user, onSignOut }: HeaderProps) {
                 {open && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black/5 overflow-hidden z-50">
                     <div className="py-1 text-sm text-zinc-800">
-                      {user.status !== 'ACTIVE' ? (
+                      {/* Toon Instellingen altijd voor ingelogde gebruikers */}
+                      <Link href="http://localhost:3000/instellingen" className="block px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(false)}>Instellingen</Link>
+                      {/* Voor niet-ACTIVE gebruikers: laat tijdelijk ook In behandeling zien (verdwijnt na 7 dagen) */}
+                      {user.status !== 'ACTIVE' && !hidePendingLink ? (
                         <Link href="http://localhost:3000/in-behandeling" className="block px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(false)}>In behandeling</Link>
-                      ) : (
-                        <Link href="http://localhost:3000/instellingen" className="block px-3 py-2 hover:bg-zinc-50" onClick={() => setOpen(false)}>Instellingen</Link>
-                      )}
+                      ) : null}
                       <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-3 py-2 hover:bg-zinc-50 text-left">
                         <LogOut className="w-4 h-4" /> Uitloggen
                       </button>

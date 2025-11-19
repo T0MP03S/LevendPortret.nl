@@ -2,12 +2,23 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 
 export default async function InBehandelingPage() {
   const session = (await getServerSession(authOptions as any)) as any;
   const email = session?.user?.email || null;
   const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
   const status = (user as any)?.status as string | undefined;
+
+  // Mark this page as seen for up to 7 days to optionally hide the tab/link later
+  try {
+    const jar = cookies();
+    const key = 'lp_pending_seen_at';
+    const existing = jar.get(key)?.value;
+    if (!existing) {
+      jar.set(key, String(Date.now()), { path: '/', maxAge: 60 * 60 * 24 * 180 });
+    }
+  } catch {}
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-16">
@@ -17,9 +28,7 @@ export default async function InBehandelingPage() {
           <div className="space-y-3">
             <div className="p-3 rounded text-sm bg-emerald-50 text-emerald-800">Je account is geaccepteerd. Welkom!</div>
             <div className="flex items-center gap-3 pt-1">
-              <Link href="/" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Naar home</Link>
-              <Link href="/club" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Naar club</Link>
-              <Link href="/fund" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Naar fund</Link>
+              <Link href="/instellingen" className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50">Naar instellingen</Link>
             </div>
           </div>
         ) : status === 'REJECTED' ? (

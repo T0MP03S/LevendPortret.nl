@@ -60,4 +60,11 @@
     transition: background-color 5000s ease-in-out 0s;
     box-shadow: inset 0 0 0px 1000px #fff;
   }
+
+  /* Header tap targets (~44px) */
+  header :where(a, button) {
+    padding-block: 10px; /* ~20px total */
+    padding-inline: 10px;
+    min-height: 44px;
+  }
 }

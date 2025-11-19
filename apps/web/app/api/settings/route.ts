@@ -15,14 +15,11 @@ export async function GET() {
       }
     });
     if (!me) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if ((me as any).status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     let fullAccess = false;
     if (me.company?.id) {
       const mems = await prisma.membership.findMany({ where: { userId: me.id, companyId: me.company.id, status: 'ACTIVE' as any } });
-      const hasClub = mems.some((m:any)=> m.product === 'CLUB');
-      const hasCoach = mems.some((m:any)=> m.product === 'COACH');
       const hasClips = mems.some((m:any)=> m.product === 'CLIPS');
-      fullAccess = hasClub && hasCoach && hasClips;
+      fullAccess = hasClips;
     }
     return NextResponse.json({ user: { id: me.id, name: me.name, email: me.email, status: me.status, phone: (me as any).phone || null }, company: me.company || null, fullAccess });
   } catch (e) {

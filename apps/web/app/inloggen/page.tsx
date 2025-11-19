@@ -135,7 +135,7 @@ export default function InloggenPage() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  className={`block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-coral focus:border-coral pr-10 ${passwordError ? 'border-red-400' : 'border-gray-300'}`}
+                  className={`block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-coral focus:border-coral pr-16 ${passwordError ? 'border-red-400' : 'border-gray-300'}`}
                   value={password}
                   onChange={e => { setPassword(e.target.value); if (passwordError) setPasswordError(""); }}
                   aria-invalid={passwordError ? true : false}
@@ -145,10 +145,10 @@ export default function InloggenPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(v => !v)}
-                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 right-1 my-auto w-10 h-10 flex items-center justify-center rounded text-gray-500 hover:text-gray-700"
                   aria-label={showPassword ? "Verberg wachtwoord" : "Toon wachtwoord"}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {passwordError && <p id="password-error" className="text-xs text-red-600">{passwordError}</p>}

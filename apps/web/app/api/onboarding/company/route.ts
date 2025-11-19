@@ -80,6 +80,13 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    // Normalize website: allow domains without protocol by prefixing https://
+    if (typeof body.website === 'string') {
+      const raw = body.website.trim();
+      if (raw && !/^https?:\/\//i.test(raw)) {
+        body.website = `https://${raw}`;
+      }
+    }
     const parsed = OnboardingSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Ongeldige invoer', issues: parsed.error.flatten() }, { status: 400 });

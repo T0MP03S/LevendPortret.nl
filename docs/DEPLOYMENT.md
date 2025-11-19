@@ -15,6 +15,8 @@ Inbegrepen:
 - Domeinen/subdomeinen in Cloudflare (Proxy = aan/oranje wolk)
 - Toegang tot SMTP, Postgres (DATABASE_URL), R2 (Cloudflare R2) en (optioneel) Upstash Redis
 
+Origin IP (VPS): 54.37.227.173
+
 ## 2) Server voorbereiden (eenmalig)
 ```
 sudo apt update && sudo apt upgrade -y
@@ -42,11 +44,17 @@ sudo ufw enable
 ```
 
 ## 3) Cloudflare instellen
-- DNS: maak A-records met Proxy aan (oranje wolk) voor:
+- DNS: maak A-records met Proxy aan (oranje wolk) die naar je VPS IP (54.37.227.173) wijzen voor:
   - levendportret.nl (web)
   - admin.levendportret.nl
   - club.levendportret.nl
   - clips.levendportret.nl
+
+Voorbeeld DNS entries (Cloudflare → DNS):
+- Type A  | Naam: @           | Inhoud: 54.37.227.173 | Proxy: Aan
+- Type A  | Naam: admin       | Inhoud: 54.37.227.173 | Proxy: Aan
+- Type A  | Naam: club        | Inhoud: 54.37.227.173 | Proxy: Aan
+- Type A  | Naam: clips       | Inhoud: 54.37.227.173 | Proxy: Aan
 - SSL/TLS: zet op Full (strict)
 - Origin Certificates (aanrader bij Proxy aan):
   1. Cloudflare Dashboard → SSL/TLS → Origin Server → Create Certificate
@@ -172,6 +180,42 @@ sudo journalctl -u caddy -f   # Caddy logs
   - `*admin.levendportret.nl/*`
 - Echte client-IP (voor rate limiting/logging): header `CF-Connecting-IP`
 - Eventueel cache purge na release als je caching inzet
+
+## 10) Pre‑launch checklist (afvinken)
+- [ ] Security headers via Caddy
+  - [ ] Strict-Transport-Security: `max-age=31536000; includeSubDomains; preload`
+  - [ ] X-Content-Type-Options: `nosniff`
+  - [ ] X-Frame-Options: `DENY`
+  - [ ] Referrer-Policy: `strict-origin-when-cross-origin`
+  - [ ] Permissions-Policy: `camera=(), microphone=(), geolocation=()`
+  - [ ] Content-Security-Policy (basic): `default-src 'self'; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'`
+- [ ] Redirects actief: www → apex en http → https (Caddy/Cloudflare)
+- [ ] E‑mail deliverability: SPF, DKIM, DMARC op levendportret.nl; test magic link in productie
+- [ ] Rate limiting gebruikt persistente store
+  - [ ] `UPSTASH_REDIS_REST_URL` en `UPSTASH_REDIS_REST_TOKEN` ingesteld in .env per app
+  - [ ] (Optioneel) Auth‑rate‑limits niet alleen in‑memory in productie
+- [ ] Publiek endpoint `/api/auth/resend` gehardend
+  - [ ] Captcha of strengere throttle
+  - [ ] Generieke respons (voorkomt e‑mail‑enumeratie/DoS)
+- [ ] Registratie: generieke melding bij bestaand e‑mailadres (voorkom enumeratie)
+- [ ] Admin endpoint `is-allowed-email` beschermd of uitgeschakeld in productie
+- [ ] Wachtwoordwijziging: bcrypt cost ≥ 12 en desgewenst throttle
+- [ ] Uploads (R2 presigned) gehardend
+  - [ ] MIME‑whitelist (jpg/png/webp/svg waar toegestaan)
+  - [ ] Max bestandsgrootte via Content‑Length bij presign
+- [ ] Slugs: nette unieke slugs voor bedrijven/pagina’s
+- [ ] SEO/OG: titles/descriptions per pagina, OG‑image(s), sitemap.xml, robots.txt
+- [ ] Toegankelijkheid: zichtbare focus, alt‑teksten, headings, kleurcontrast, modal keyboard‑trap
+- [ ] Performance: Lighthouse (mobiel/desktop); hero‑blur uit op mobiel; lazy‑loading afbeeldingen
+- [ ] Error pages: nette 404/500 (App Router not-found/error)
+- [ ] Monitoring: Sentry (of alternatief) geconfigureerd
+- [ ] Analytics: cookieloos (Plausible/Umami) of cookie‑banner geregeld
+- [ ] ENV’s op productie compleet (per app)
+  - [ ] NEXTAUTH_URL, NEXTAUTH_SECRET, DATABASE_URL, SMTP (EMAIL_FROM/REPLY_TO/host/port/user/pass)
+  - [ ] R2_* voor uploads; (optioneel) IMAGE_DOMAINS indien extern
+- [ ] Prisma migraties gedeployed op productie
+- [ ] Caching headers voor static assets (via Caddy/Cloudflare)
+- [ ] Navigatie/CTA’s controleren (wijzen naar `/aanmelden`); header tap‑targets vergroot (~44px)
 
 ---
 

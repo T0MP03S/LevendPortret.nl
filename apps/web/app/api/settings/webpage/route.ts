@@ -41,12 +41,10 @@ export async function GET() {
   if ((me as any).status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const companyId = me.company?.id || null;
   if (!companyId) return NextResponse.json({ error: 'Geen bedrijf gevonden' }, { status: 400 });
-  // Require full access: CLUB + COACH + CLIPS active memberships for this user+company
+  // Require CLIPS active membership for this user+company
   const mems = await prisma.membership.findMany({ where: { userId: me.id, companyId, status: 'ACTIVE' as any } });
-  const hasClub = mems.some((m:any)=> m.product === 'CLUB');
-  const hasCoach = mems.some((m:any)=> m.product === 'COACH');
   const hasClips = mems.some((m:any)=> m.product === 'CLIPS');
-  if (!(hasClub && hasCoach && hasClips)) return NextResponse.json({ error: 'Volledige toegang vereist' }, { status: 403 });
+  if (!hasClips) return NextResponse.json({ error: 'CLIPS-toegang vereist' }, { status: 403 });
   const page = await prisma.companyPage.findUnique({ where: { companyId } });
   let lastRejectionMessage: string | null = null;
   if (page) {
@@ -69,12 +67,10 @@ export async function PUT(req: Request) {
   const companyId = me.company?.id || null;
   if (!companyId) return NextResponse.json({ error: 'Geen bedrijf gevonden' }, { status: 400 });
   if (me.company?.website) return NextResponse.json({ error: 'Niet beschikbaar voor bedrijven met externe website' }, { status: 400 });
-  // Require full access: CLUB + COACH + CLIPS active memberships for this user+company
+  // Require CLIPS active membership for this user+company
   const mems = await prisma.membership.findMany({ where: { userId: me.id, companyId, status: 'ACTIVE' as any } });
-  const hasClub = mems.some((m:any)=> m.product === 'CLUB');
-  const hasCoach = mems.some((m:any)=> m.product === 'COACH');
   const hasClips = mems.some((m:any)=> m.product === 'CLIPS');
-  if (!(hasClub && hasCoach && hasClips)) return NextResponse.json({ error: 'Volledige toegang vereist' }, { status: 403 });
+  if (!hasClips) return NextResponse.json({ error: 'CLIPS-toegang vereist' }, { status: 403 });
   const body = await req.json().catch(() => ({}));
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Ongeldige invoer' }, { status: 400 });

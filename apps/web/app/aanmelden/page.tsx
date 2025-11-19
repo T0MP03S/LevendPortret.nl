@@ -24,8 +24,7 @@ export default function AanmeldenPage() {
     companyWorkPhone: '',
     companyKvk: '',
     companyWebsite: '',
-    agreeTerms: false,
-    agreePrivacy: false,
+    agreeLegal: false,
   });
   const [passwordError, setPasswordError] = useState('');
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -83,19 +82,20 @@ export default function AanmeldenPage() {
       requestAnimationFrame(()=>focusFieldById('password'));
       return;
     }
-    if (!formData.agreeTerms || !formData.agreePrivacy) {
+    if (!formData.agreeLegal) {
       setStatus({ type: 'error', message: 'U moet akkoord gaan met de voorwaarden en het privacybeleid.' });
-      requestAnimationFrame(()=>focusFieldById(!formData.agreeTerms ? 'agreeTerms' : 'agreePrivacy'));
+      requestAnimationFrame(()=>focusFieldById('agreeLegal'));
       return;
     }
     try {
       setSubmitting(true);
+      const { agreeLegal, ...rest } = formData as any;
       const payload = {
-        ...formData,
-        phone: formData.phone || null,
-        companyWorkPhone: formData.companyWorkPhone || null,
-        companyKvk: formData.companyKvk || null,
-        companyWebsite: formData.companyWebsite || null,
+        ...rest,
+        phone: rest.phone || null,
+        companyWorkPhone: rest.companyWorkPhone || null,
+        companyKvk: rest.companyKvk || null,
+        companyWebsite: rest.companyWebsite || null,
       };
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -189,10 +189,10 @@ export default function AanmeldenPage() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute inset-y-0 right-2 my-auto p-1 text-gray-600 hover:text-navy"
+              className="absolute inset-y-0 right-1 my-auto w-10 h-10 flex items-center justify-center rounded text-gray-600 hover:text-navy"
               aria-label={showPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -211,10 +211,10 @@ export default function AanmeldenPage() {
             <button
               type="button"
               onClick={() => setShowConfirm((v) => !v)}
-              className="absolute inset-y-0 right-2 my-auto p-1 text-gray-600 hover:text-navy"
+              className="absolute inset-y-0 right-1 my-auto w-10 h-10 flex items-center justify-center rounded text-gray-600 hover:text-navy"
               aria-label={showConfirm ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
             >
-              {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -229,12 +229,29 @@ export default function AanmeldenPage() {
         <InputField label="Plaats" name="companyCity" value={formData.companyCity} onChange={handleChange} required error={errors.companyCity?.[0]} />
         <InputField label="Werktelefoon (optioneel)" name="companyWorkPhone" type="tel" value={formData.companyWorkPhone} onChange={handleChange} error={errors.companyWorkPhone?.[0]} />
         <InputField label="KVK-nummer (optioneel)" name="companyKvk" value={formData.companyKvk} onChange={handleChange} error={errors.companyKvk?.[0]} />
-        <InputField label="Website (optioneel)" name="companyWebsite" type="url" value={formData.companyWebsite} onChange={handleChange} error={errors.companyWebsite?.[0]} />
+        <InputField
+          label="Website (optioneel)"
+          name="companyWebsite"
+          type="url"
+          value={formData.companyWebsite}
+          onChange={handleChange}
+          onBlur={(e)=>{
+            const raw = e.target.value.trim();
+            if (raw && !/^https?:\/\//i.test(raw)) {
+              setFormData(prev=>({...prev, companyWebsite: `https://${raw}`}));
+            }
+          }}
+          error={errors.companyWebsite?.[0]}
+        />
 
         {/* Agreements & Submit */}
         <div className="md:col-span-2 mt-4 space-y-4">
-          <CheckboxField label={<>Ik ga akkoord met de <Link href="/voorwaarden" className="text-coral hover:underline">algemene voorwaarden</Link></>} name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} />
-          <CheckboxField label={<>Ik ga akkoord met het <Link href="/privacy" className="text-coral hover:underline">privacybeleid</Link></>} name="agreePrivacy" checked={formData.agreePrivacy} onChange={handleChange} />
+          <CheckboxField
+            label={<>Ik ga akkoord met de <Link href="/voorwaarden" className="text-coral hover:underline">algemene voorwaarden</Link> en het <Link href="/privacy" className="text-coral hover:underline">privacybeleid</Link></>}
+            name="agreeLegal"
+            checked={formData.agreeLegal}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="md:col-span-2">
@@ -250,10 +267,10 @@ export default function AanmeldenPage() {
 }
 
 // Helper components for cleaner form structure
-const InputField = ({ label, name, type = 'text', value, onChange, required = false, error }: { label: string; name: string; type?: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean; error?: string }) => (
+const InputField = ({ label, name, type = 'text', value, onChange, onBlur, required = false, error }: { label: string; name: string; type?: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void; required?: boolean; error?: string }) => (
   <div>
     <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-    <input type={type} name={name} id={name} required={required} value={value} onChange={onChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-coral focus:border-coral" />
+    <input type={type} name={name} id={name} required={required} value={value} onChange={onChange} onBlur={onBlur} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-coral focus:border-coral" />
     {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
   </div>
 );

@@ -23,7 +23,7 @@ export default function CoachComingSoon() {
         <h3 className="text-xl text-navy mb-2">Van advies naar actie</h3>
         <p className="text-gray-700 font-body">De inzichten vertalen we direct naar het script voor uw promotievideo en 30-seconden social clip. Zo bent u na de coaching strategisch scherp én heeft u direct professionele content.</p>
         <div className="mt-6 flex justify-center">
-          <a href="/register" className="inline-flex items-center px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Vraag adviesgesprek aan</a>
+          <a href="/aanmelden" className="inline-flex items-center px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Vraag adviesgesprek aan</a>
         </div>
       </div>
     </div>

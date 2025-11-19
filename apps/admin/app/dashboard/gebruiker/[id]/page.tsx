@@ -236,7 +236,7 @@ export default function GebruikerDetailPage({ params }: { params: { id: string }
   };
 
   const onDelete = async () => {
-    if (!confirm("Weet je zeker dat je deze gebruiker wilt verwijderen? Dit verwijdert ook het bedrijf.")) return;
+    setShowDeleteConfirm(false);
     setSaving(true);
     setError("");
     try {

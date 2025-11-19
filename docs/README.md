@@ -285,12 +285,40 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
 - Focus: duidelijke focus-visible outlines (coral) voor toetsenbordnavigatie.
 - Forms: knoppen tonen nu duidelijke loading states (disablen + spinner) bij Inloggen, Aanmelden en Update‑modal.
 - Autofill: consistente styling van browser‑autofill in inputs.
+- Onboarding + Aanmelden: het veld ‘Website’ accepteert nu domeinen zonder http(s) en voegt automatisch `https://` toe.
+- In-site modals: alle browser-popups (confirm/alert/prompt) zijn vervangen door in-site modals. Admin > Gebruiker verwijderen gebruikt nu een modaal. Audit uitgevoerd: geen resterende `window.confirm/alert/prompt` meer in de apps.
+
+### UX updates (Fase 2 — 2025-11-18)
+- In behandeling: wanneer een account is geaccepteerd toont de pagina alleen nog een knop naar `Instellingen` (geen extra knoppen).
+- Instellingen toegang: geaccepteerde gebruikers kunnen altijd naar `/instellingen` voor account/bedrijf. De sectie “Webpagina instellingen” is nu alleen zichtbaar/toegankelijk met een actieve CLIPS‑membership.
+- Navigatie: de link “In behandeling” wordt automatisch verborgen 7 dagen nadat de pagina voor het eerst is bekeken (client‑cookie `lp_pending_seen_at`).
+- Auth foutenpagina: nieuwe pagina op `/auth/error` met duidelijke meldingen (bijv. “Verificatie mislukt”) en knoppen “Opnieuw inloggen” en “Terug naar home”. “Verification” fouten ontstaan vaak wanneer een magic link al is gebruikt of verlopen is; vraag in dat geval een nieuwe link aan.
+- Verificatie: de pagina `/verificatie` heeft nu een knop “Nieuwe magic link” die eerst oude verificatielinks ongeldig maakt en vervolgens een nieuwe link verstuurt (met rate limiting).
+- Instellingen prefilling: `/api/settings` levert nu gegevens voor alle ingelogde gebruikers (ook in behandeling), waardoor velden in Instellingen automatisch ingevuld zijn met gegevens uit de aanmelding.
+- Even voorstellen: team toont 3 leden gecentreerd: Bert (met foto), Barry (zonder foto → nette fallback), Frank (met foto). Plaats Frank's afbeelding als `apps/web/public/team/frank.jpg` (bestand hernoemen naar `frank.jpg`).
+- Aanmelden: privacy en voorwaarden zijn nu samengevoegd tot één verplichte checkbox met links naar `/privacy` en `/voorwaarden`. Zonder vinkje kun je niet indienen.
+- Homepage facelift: subtiele achtergrond‑gradients/shapes, verbeterde depth (hover/shadow/border) op kaarten, hero met glass‑effect, en pricinglijst met check‑iconen. CTA‑links bijgewerkt naar `/aanmelden`.
+- Homepage visuals tweaked: storende blobs verwijderd; alleen een subtiele bottom‑gradient op desktop (verborgen op mobiel). Pricing overlay verzacht.
+- Homepage visuals update: laatste bottom‑blur volledig verwijderd (strakker, minder afleiding).
+- Mobile UX: tap‑targets op Even Voorstellen (mailknop, "Over" en modaal sluiten) vergroot naar ~44px.
+- Mobile UX: grotere tap‑targets voor wachtwoord toggles op Aanmelden en Inloggen (~44px) met grotere iconen.
+- Routing: Coach-pagina CTA wijst nu naar `/aanmelden`.
 
 ## 5) QA, SEO & Go-live
-- [ ] SEO/OG basics: meta titles/descriptions, OG-image(s), sitemap/robots per app
-- [ ] Toegankelijkheid quick pass; performance basics
-- [ ] Staging-deploys werkend; redirect www→apex, http→https
-- [ ] Go-live checklist doorlopen en akkoord
+- [ ] SEO/OG: per pagina een duidelijke title/description; OG-image(s); sitemap.xml en robots.txt
+- [ ] Toegankelijkheid: focus zichtbaar; alt-teksten; heading-structuur; toetsenbord in modals werkt (getest); kleurcontrast check
+- [ ] Performance: hero zonder blur op mobiel; beelden lazy waar kan; fonts al preload; test Lighthouse mobiel/desktop
+- [ ] Security headers: HSTS, no-sniff, X-Frame-Options; (optioneel) Content Security Policy
+- [ ] Redirects: www→apex en http→https actief op server/proxy
+- [ ] 404/500 pagina’s netjes (App Router not-found/error)
+- [ ] Monitoring: Sentry of vergelijkbaar (fouten vastleggen)
+- [ ] Analytics: optioneel cookieloze analytics (Plausible/Umami); anders cookie‑banner nodig
+- [ ] E‑mail: productiedomein met SPF/DKIM/DMARC; mooie afzendernaam; magic link testen
+- [ ] Legal: privacy/voorwaarden staan (basis). Juridische review gewenst. Bedrijfsgegevens (adres/KvK) toevoegen.
+- [ ] ENV: NEXTAUTH_URL, NEXTAUTH_SECRET, MAIL_* provider, DATABASE_URL, APP_URLS per app, IMAGE_DOMAINS (indien nodig)
+- [ ] Database: Prisma migraties draaien op prod
+- [ ] Caching: headers voor static assets; image domains whitelisten indien extern
+- [ ] Navigatie: CTA’s en links naar `/aanmelden`; header tap‑targets vergroot (~44px)
 
 ## VPS Deploy (praktisch)
 Aanrader OS: Debian 12 (Bookworm) of Ubuntu 22.04 LTS. Zorg voor A-records naar je VPS voor alle domeinen/subdomeinen (bijv. levendportret.nl, admin.levendportret.nl, club.levendportret.nl, clips.levendportret.nl).

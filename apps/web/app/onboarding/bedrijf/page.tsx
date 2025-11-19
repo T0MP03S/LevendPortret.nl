@@ -33,6 +33,13 @@ export default function OnboardingBedrijfPage() {
     }
   };
 
+  const onWebsiteBlur = () => {
+    const raw = form.website.trim();
+    if (raw && !/^https?:\/\//i.test(raw)) {
+      setForm(prev => ({ ...prev, website: `https://${raw}` }));
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ type: '', message: '' });
@@ -125,7 +132,7 @@ export default function OnboardingBedrijfPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700" htmlFor="website">Website (optioneel)</label>
-            <input id="website" name="website" value={form.website} onChange={onChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-coral focus:border-coral" />
+            <input id="website" name="website" value={form.website} onChange={onChange} onBlur={onWebsiteBlur} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-coral focus:border-coral" />
             {errors.website?.length ? <p className="mt-1 text-sm text-red-600">{errors.website[0]}</p> : null}
           </div>
           <Button type="submit" variant="coral" className="w-full" disabled={loading}>

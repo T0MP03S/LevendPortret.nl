@@ -39,13 +39,10 @@ export async function middleware(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  // Settings page requires authenticated ACTIVE users
+  // Instellingen: laat alle ingelogde gebruikers door; API-routes binnen instellingen handhaven toegang (ACTIVE/CLIPS)
   if (pathname.startsWith('/instellingen')) {
     if (!token) {
       return NextResponse.redirect(new URL('/inloggen', req.url));
-    }
-    if ((token as any).status !== 'ACTIVE') {
-      return NextResponse.redirect(new URL('/in-behandeling', req.url));
     }
     return NextResponse.next();
   }
