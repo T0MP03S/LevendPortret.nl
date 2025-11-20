@@ -8,6 +8,8 @@ import { compare } from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 
+const WEB_BASE = (process.env.NEXT_PUBLIC_WEB_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+
 // Simple in-memory rate limiter (per process)
 const __rlStore = new Map<string, number[]>();
 function rlCheck(key: string, limit: number, windowMs: number) {
@@ -69,7 +71,7 @@ function baseTemplate({ title, intro, body, cta, preheader, logoCid }: { title: 
               <td bgcolor="${navy}" style="background:${navy};padding:16px 20px;color:#fff;">
                 <table width="100%">
                   <tr>
-                    <td style="vertical-align:middle"><img src="${logoCid ? `cid:${logoCid}` : 'https://levendportret.nl/logo.svg'}" alt="Levend Portret" height="28" style="display:block;border:0;outline:none;text-decoration:none;"></td>
+                    <td style="vertical-align:middle"><img src="${logoCid ? `cid:${logoCid}` : `${WEB_BASE}/logo.svg`}" alt="Levend Portret" height="28" style="display:block;border:0;outline:none;text-decoration:none;"></td>
                     <td align="right" style="font-weight:700">${title}</td>
                   </tr>
                 </table>
@@ -84,7 +86,7 @@ function baseTemplate({ title, intro, body, cta, preheader, logoCid }: { title: 
             </tr>
             <tr>
               <td bgcolor="#ffffff" style="background:#ffffff;padding:16px 24px;color:#64748b;font-size:12px;border-top:1px solid #e5e7eb;">
-                © ${new Date().getFullYear()} Levend Portret · <a href="https://levendportret.nl" style="color:#64748b;text-decoration:underline">levendportret.nl</a>
+                © ${new Date().getFullYear()} Levend Portret · <a href="${WEB_BASE}" style="color:#64748b;text-decoration:underline">levendportret.nl</a>
                 <div style="margin-top:4px">Contact: <a href="mailto:info@levendportret.nl" style="color:#64748b;text-decoration:underline">info@levendportret.nl</a></div>
               </td>
             </tr>

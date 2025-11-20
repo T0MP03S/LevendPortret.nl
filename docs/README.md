@@ -55,7 +55,7 @@ Copy-richtlijnen
 Gebruik dit document als centrale leidraad. We lopen in deze volgorde:
  
 ## 0) Beslispunten (eerst afvinken)
-- [x] Prijscommunicatie op site: € 2.450 excl. btw
+- [x] Prijscommunicatie op site: € 1.675 excl. btw
 - [x] Primaire CTA: “Meld je aan” (formulier)
 - [x] Kaart (club): opnemen in v2, niet in MVP
 
@@ -223,6 +223,21 @@ Links/URLs in e-mails
 - Magic‑link (inlog) gebruikt de door NextAuth gebouwde URL op basis van de app‑specifieke `NEXTAUTH_URL`.
   - Web app: `NEXTAUTH_URL=https://levendportret.nl` in prod (dev: http://localhost:3000)
   - Admin app: `NEXTAUTH_URL=https://admin.levendportret.nl` in prod (dev: http://localhost:3003)
+
+#### Geen hardcoded URLs (policy)
+- Gebruik altijd environment variabelen voor domeinen/links in code en e‑mails; geen hardcoded `localhost` of productiedomeinen in componenten/templates.
+- Beschikbare variabelen (client/server):
+  - `NEXT_PUBLIC_WEB_URL` (bv. https://levendportret.nl)
+  - `NEXT_PUBLIC_ADMIN_URL` (bv. https://admin.levendportret.nl)
+  - `NEXT_PUBLIC_CLUB_URL` (bv. https://club.levendportret.nl)
+  - `NEXT_PUBLIC_CLIPS_URL` (bv. https://clips.levendportret.nl)
+  - `NEXTAUTH_URL` (per app; voor magic link en auth callbacks)
+- Toepaspunten (geconsolideerd in code):
+  - Navigatie en CTA’s in Header/Footer (packages/ui)
+  - Redirects voor Clips: `/clips` en `/p/[slug]` → `NEXT_PUBLIC_CLIPS_URL`
+  - SEO: `metadataBase`, `robots.ts`, `sitemap.ts` gebruiken de juiste `NEXT_PUBLIC_*`
+  - E‑mails: logo/footers en CTA’s gebruiken `NEXT_PUBLIC_WEB_URL` (users) of `NEXT_PUBLIC_ADMIN_URL` (admins)
+  - Fallbacks in dev: respectievelijk `http://localhost:3000/3001/3002/3003`
 
 Notes
 - Development: voor auth-verificatie mails is `EMAIL_SEND_IN_DEV=true` vereist; overige transactionele mails (admin-notificatie/status/publicatie) gebruiken de SMTP envs direct.

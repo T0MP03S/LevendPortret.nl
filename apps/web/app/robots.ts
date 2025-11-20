@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const base = 'https://levendportret.nl';
+  const base = (process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const host = (() => { try { return new URL(base).host; } catch { return 'localhost:3000'; } })();
   return {
     rules: [
       {
@@ -10,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: [`${base}/sitemap.xml`],
-    host: 'levendportret.nl',
+    host,
   };
 }

@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       company: { select: { name: true } },
     },
   });
-  const canonical = `https://clips.levendportret.nl/${encodeURIComponent(slugParam)}`;
+  const canonicalBase = (process.env.NEXT_PUBLIC_CLIPS_URL || 'http://localhost:3002').replace(/\/$/, '');
+  const canonical = `${canonicalBase}/${encodeURIComponent(slugParam)}`;
   if (!page || page.status !== 'PUBLISHED') {
     return {
       title: 'Levend Portret',
@@ -249,7 +250,7 @@ export default async function PublicCompanyPage({ params }: { params: { slug: st
       {/* Lokale footer voor klantpagina */}
       <footer className="mt-10 border-t border-zinc-200 py-6">
         <div className="max-w-5xl mx-auto px-6 text-sm text-zinc-600">
-          Een productie van <a href="https://levendportret.nl" className="underline">LevendPortret.nl</a>
+          Een productie van <a href={`${(process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').replace(/\/$/, '')}`} className="underline">LevendPortret.nl</a>
         </div>
       </footer>
     </div>

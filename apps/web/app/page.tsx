@@ -97,7 +97,7 @@ export default function Page() {
           <div className="relative">
           <div className="text-center mb-8">
             <h2 className="text-3xl mb-4">Levend Portret Cadeau</h2>
-            <p className="text-5xl text-coral mb-2">€2.450</p>
+            <p className="text-5xl text-coral mb-2">€1.675</p>
             <p className="text-white/70 font-body">excl. btw</p>
           </div>
           

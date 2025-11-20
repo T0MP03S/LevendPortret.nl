@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { prisma } from '@levendportret/db';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = 'https://clips.levendportret.nl';
+  const base = (process.env.NEXT_PUBLIC_CLIPS_URL || 'http://localhost:3002').replace(/\/$/, '');
   const items: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: 'daily', priority: 0.6 },
   ];

@@ -9,7 +9,7 @@ export default async function Page() {
         <h1 className="text-3xl md:text-4xl text-navy font-heading mb-3">Alleen voor leden</h1>
         <p className="text-gray-700 font-body">Log in om de Club-pagina met nieuws, tips en tricks te bekijken.</p>
         <div className="mt-6">
-          <a href="http://localhost:3000/inloggen" className="inline-flex items-center px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Inloggen</a>
+          <a href={`${(process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').replace(/\/$/, '')}/inloggen`} className="inline-flex items-center px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Inloggen</a>
         </div>
       </main>
     );

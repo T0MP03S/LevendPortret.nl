@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Button } from "./button";
 
 export function Footer() {
+  const WEB = (process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const CLUB = (process.env.NEXT_PUBLIC_CLUB_URL || 'http://localhost:3001').replace(/\/$/, '');
+  const CLIPS = (process.env.NEXT_PUBLIC_CLIPS_URL || 'http://localhost:3002').replace(/\/$/, '');
   return (
     <footer className="w-full bg-navy text-white py-12 mt-20">
       <div className="max-w-7xl mx-auto px-6">
@@ -21,25 +24,25 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Navigatie</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="http://localhost:3002" className="text-white/70 hover:text-coral transition-colors">Clips</Link>
+                <Link href={CLIPS} className="text-white/70 hover:text-coral transition-colors">Clips</Link>
               </li>
               <li>
-                <Link href="http://localhost:3001" className="text-white/70 hover:text-coral transition-colors">Club</Link>
+                <Link href={CLUB} className="text-white/70 hover:text-coral transition-colors">Club</Link>
               </li>
               <li>
-                <Link href="http://localhost:3000/coach" className="text-white/70 hover:text-coral transition-colors">Coach</Link>
+                <Link href={`${WEB}/coach`} className="text-white/70 hover:text-coral transition-colors">Coach</Link>
               </li>
               <li>
-                <Link href="http://localhost:3000/fund" className="text-white/70 hover:text-coral transition-colors">Fund</Link>
+                <Link href={`${WEB}/fund`} className="text-white/70 hover:text-coral transition-colors">Fund</Link>
               </li>
               <li>
-                <Link href="http://localhost:3000/even-voorstellen" className="text-white/70 hover:text-coral transition-colors">Even voorstellen</Link>
+                <Link href={`${WEB}/even-voorstellen`} className="text-white/70 hover:text-coral transition-colors">Even voorstellen</Link>
               </li>
               <li>
-                <Link href="http://localhost:3000/privacy" className="text-white/70 hover:text-coral transition-colors">Privacy</Link>
+                <Link href={`${WEB}/privacy`} className="text-white/70 hover:text-coral transition-colors">Privacy</Link>
               </li>
               <li>
-                <Link href="http://localhost:3000/voorwaarden" className="text-white/70 hover:text-coral transition-colors">Voorwaarden</Link>
+                <Link href={`${WEB}/voorwaarden`} className="text-white/70 hover:text-coral transition-colors">Voorwaarden</Link>
               </li>
             </ul>
           </div>
@@ -63,3 +66,4 @@ export function Footer() {
     </footer>
   );
 }
+

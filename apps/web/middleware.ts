@@ -12,6 +12,10 @@ const PUBLIC_PATHS = new Set([
   '/in-behandeling',
   '/post-auth',
   '/clips',
+  '/coach',
+  '/fund',
+  '/privacy',
+  '/voorwaarden',
 ]);
 
 export async function middleware(req: NextRequest) {
@@ -73,6 +77,14 @@ export async function middleware(req: NextRequest) {
 
   // If already authenticated and visiting /inloggen -> send to home
   if (token && pathname === '/inloggen') {
+    return NextResponse.redirect(new URL('/', req.url));
+  }
+
+  // If authenticated and visiting /aanmelden
+  if (token && pathname === '/aanmelden') {
+    if ((token as any).status && (token as any).status !== 'ACTIVE') {
+      return NextResponse.redirect(new URL('/in-behandeling', req.url));
+    }
     return NextResponse.redirect(new URL('/', req.url));
   }
 

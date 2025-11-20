@@ -8,14 +8,16 @@ import Providers from './providers';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 
+const WEB_BASE = (process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').replace(/\/$/, '');
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://levendportret.nl'),
+  metadataBase: new URL(WEB_BASE),
   title: 'Levend Portret — het eerlijke verhaal',
   description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
   openGraph: {
     title: 'Levend Portret — het eerlijke verhaal',
     description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
-    url: 'https://levendportret.nl',
+    url: WEB_BASE,
     siteName: 'Levend Portret',
     images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Levend Portret' }],
     locale: 'nl_NL',
