@@ -370,6 +370,7 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
 - Instellingen prefilling: `/api/settings` levert nu gegevens voor alle ingelogde gebruikers (ook in behandeling), waardoor velden in Instellingen automatisch ingevuld zijn met gegevens uit de aanmelding.
   - Indien een gebruiker (bv. via Google) nog geen `Company` heeft, wordt een minimale placeholder aangemaakt bij het laden van `/api/settings` zodat de Instellingen-pagina nooit leeg is.
 - Even voorstellen: team toont 3 leden gecentreerd: Bert (met foto), Barry (zonder foto → nette fallback), Frank (met foto). Plaats Frank's afbeelding als `apps/web/public/team/frank.jpg` (bestand hernoemen naar `frank.jpg`).
+  - Even voorstellen: per-persoon e-mailknoppen verwijderd; algemene contact-e-mail blijft in de Contact-sectie onderaan.
 - Aanmelden: privacy en voorwaarden zijn nu samengevoegd tot één verplichte checkbox met links naar `/privacy` en `/voorwaarden`. Zonder vinkje kun je niet indienen.
 - Homepage facelift: subtiele achtergrond‑gradients/shapes, verbeterde depth (hover/shadow/border) op kaarten, hero met glass‑effect, en pricinglijst met check‑iconen. CTA‑links bijgewerkt naar `/aanmelden`.
 - Homepage visuals tweaked: storende blobs verwijderd; alleen een subtiele bottom‑gradient op desktop (verborgen op mobiel). Pricing overlay verzacht.

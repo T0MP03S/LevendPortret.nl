@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { Mail, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { TeamImage } from './team-image';
 
 const team = [
@@ -96,13 +96,6 @@ export default function EvenVoorstellenPage() {
               <h3 className="text-lg font-bold text-navy">{member.name}</h3>
               <p className="text-coral mb-4">{member.role}</p>
               <div className="flex items-center justify-center gap-3">
-                <a
-                  href={`mailto:${member.email}`}
-                  aria-label={`Mail ${member.name}`}
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-zinc-200 hover:bg-zinc-50"
-                >
-                  <Mail className="w-4 h-4 text-navy" />
-                </a>
                 <button
                   type="button"
                   onClick={() => onOpen(member)}
