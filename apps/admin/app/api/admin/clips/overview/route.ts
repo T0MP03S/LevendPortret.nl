@@ -115,6 +115,7 @@ export async function GET() {
     where: {
       website: { not: null },
       logoUrl: { not: null } as any,
+      description: { not: null } as any,
       owner: { status: 'ACTIVE' as any },
       memberships: { some: { product: 'CLIPS' as any, status: 'ACTIVE' as any } },
       clips: { none: { status: 'PUBLISHED' as any } },

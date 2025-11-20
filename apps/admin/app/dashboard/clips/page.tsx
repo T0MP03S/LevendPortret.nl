@@ -101,7 +101,7 @@ export default function ClipsBeheerPage() {
             </div>
           ))}
           {aanvragen.length === 0 && (
-            <div className="text-sm text-zinc-600">Geen aanvragen zichtbaar. Alleen ACTIVE zonder externe website en status IN_REVIEW worden getoond.</div>
+            <div className="text-sm text-zinc-600">Geen aanvragen zichtbaar. We tonen interne pagina’s in review (ACTIVE eigenaar, CLIPS actief, zonder externe website) en externe bedrijven met website + logo + beschrijving (CLIPS actief) zonder gepubliceerde clips.</div>
           )}
         </div>
       ) : tab === 'updates' ? (

@@ -5,10 +5,13 @@ Copy-richtlijnen
 - Links: als `company.website` bestaat gaat de knop “Bekijk webpagina” naar de externe site; anders naar de interne pagina (`/p/[slug]`).
 - Sortering: nieuwste eerst (volgorde op `updatedAt desc`), zodat zojuist opgeslagen clips bovenaan staan.
 - Paginatie: mobiel 8 per pagina, desktop 12 per pagina.
+ - Thumbnails: weergegeven met `object-contain` (geen inzoomen/afsnijden) voor nette compositie in 9×16 kader.
 
 ### Admin: Clipsbeheer tabs
 - Tabs: `Aanvragen`, `Updates`, `Gepubliceerd` (het tabje “Websites” is vervallen).
-- Aanvragen: interne pagina’s met `status = IN_REVIEW`, eigenaar `ACTIVE`, product `CLIPS` actief, en zonder externe website.
+- Aanvragen:
+  - Interne pagina’s met `status = IN_REVIEW`, eigenaar `ACTIVE`, product `CLIPS` actief, en zonder externe website.
+  - Externe bedrijven met eigen website + logo, eigenaar `ACTIVE`, product `CLIPS` actief, en nog geen gepubliceerde clips (actie: “Clips invullen”).
 - Updates: gepubliceerde interne pagina’s (`status = PUBLISHED`) met een ingediende update-aanvraag (`Moderation.status = SUBMITTED`).
 - Gepubliceerd: omvat
   - Interne pagina’s met `status = PUBLISHED`.

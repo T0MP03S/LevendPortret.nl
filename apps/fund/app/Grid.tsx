@@ -60,7 +60,7 @@ export default function Grid({
             >
               {it.thumb ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={it.thumb} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover" />
+                <img src={it.thumb} alt="Thumbnail" className="absolute inset-0 w-full h-full object-contain" />
               ) : (
                 <div className="absolute inset-0 grid place-items-center text-zinc-400">Geen thumbnail</div>
               )}

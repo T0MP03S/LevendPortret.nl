@@ -60,6 +60,9 @@ export default function InstellingenPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const hasExternalWebsite = !!(data?.company?.website);
+  const hasLogo = !!(data?.company?.logoUrl);
+  const hasShortDesc = !!(data?.company?.description && data?.company?.description.trim());
+  const needsBrandForClips = hasExternalWebsite && fullAccess && (!hasLogo || !hasShortDesc);
 
   const load = async () => {
     setLoading(true);
@@ -217,6 +220,12 @@ export default function InstellingenPage() {
             <p className="text-sm">Je webpagina staat live op Levend Portret. Wil je iets laten aanpassen? Vraag een update aan bij de admins.</p>
             <button ref={updateOpenBtnRef} onClick={()=>{ setUpdateModalOpen(true); requestAnimationFrame(()=>setUpdateModalVisible(true)); }} className="inline-flex items-center px-3 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">Update aanvragen</button>
           </div>
+        </div>
+      )}
+      {needsBrandForClips && (
+        <div className="p-4 rounded-xl border border-yellow-300 bg-yellow-50 text-yellow-900">
+          <p className="text-sm font-semibold">Bijna klaar voor publicatie</p>
+          <p className="mt-1 text-sm">Upload je logo en vul de korte beschrijving in om je clips te laten publiceren op de Levend Portret website.</p>
         </div>
       )}
       {data?.company && !data.company.website && fullAccess && pageStatus !== 'PUBLISHED' ? (
