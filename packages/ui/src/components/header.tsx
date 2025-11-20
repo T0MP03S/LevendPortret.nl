@@ -20,13 +20,17 @@ export function Header({ user, onSignOut }: HeaderProps) {
   }, []);
   const clipsActive = !!host && host.includes(':3002');
   const clubActive = !!host && host.includes(':3001');
+  const adminActive = !!host && host.includes(':3003');
   const coachActive = pathname?.startsWith('/coach') ?? false;
   const fundActive = pathname?.startsWith('/fund') ?? false;
   const evenActive = pathname?.startsWith('/even-voorstellen') ?? false;
-  const WEB = (process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const WEB = ((process.env.NEXT_PUBLIC_WEB_URL && process.env.NEXT_PUBLIC_WEB_URL.length > 0)
+    ? process.env.NEXT_PUBLIC_WEB_URL
+    : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')).replace(/\/$/, '');
   const CLUB = (process.env.NEXT_PUBLIC_CLUB_URL || 'http://localhost:3001').replace(/\/$/, '');
   const CLIPS = (process.env.NEXT_PUBLIC_CLIPS_URL || 'http://localhost:3002').replace(/\/$/, '');
   const ADMIN = (process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3003').replace(/\/$/, '');
+  const onWeb = !clipsActive && !clubActive && !adminActive;
   const handleSignOut = () => {
     if (onSignOut) return onSignOut();
     if (typeof window !== 'undefined') {
@@ -56,12 +60,12 @@ export function Header({ user, onSignOut }: HeaderProps) {
     } catch {}
   }, []);
   return (
-    <div className="w-full px-4 pt-3 md:pt-4">
-      <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg px-5 py-3 md:px-6 md:py-4 flex items-center justify-between relative">
+    <div className="w-full px-4 pt-2 md:pt-4">
+      <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg px-5 py-2 md:px-6 md:py-4 flex items-center justify-between relative">
         {/* Logo */}
-        <Link href={`${WEB}/`} className="flex items-center">
+        <Link href={onWeb ? '/' : `${WEB}/`} className="flex items-center">
           {/* Logo iets kleiner op mobiel */}
-          <img src="/logo.svg" alt="Levend Portret" className="h-7 md:h-8" width={112} height={32} />
+          <img src="/logo.svg" alt="Levend Portret" className="h-5 md:h-8" width={112} height={32} />
         </Link>
 
         {/* Navigation */}
@@ -72,18 +76,18 @@ export function Header({ user, onSignOut }: HeaderProps) {
           <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
             Club
           </Link>
-          <Link href={`${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
             Coach
           </Link>
-          <Link href={`${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
             Fund
           </Link>
-          <Link href={`${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
             Even voorstellen
           </Link>
         </nav>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-0 md:space-x-3">
           {/* Burger-menu voor mobiel */}
           <div className="md:hidden" ref={mobileNavRef}>
             <button
@@ -98,13 +102,13 @@ export function Header({ user, onSignOut }: HeaderProps) {
                 <nav className="flex flex-col divide-y divide-zinc-100 text-sm">
                   <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
                   <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
-                  <Link href={`${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
-                  <Link href={`${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
-                  <Link href={`${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
+                  <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
+                  <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
+                  <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
                   {!user ? (
                     <div className="p-3 grid grid-cols-2 gap-2">
-                      <Link href={`${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>
-                      <Link href={`${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md bg-coral text-white hover:bg-[#e14c61] text-sm">Aanmelden</Link>
+                      <Link href={onWeb ? '/inloggen' : `${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>
+                      <Link href={onWeb ? '/aanmelden' : `${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md bg-coral text-white hover:bg-[#e14c61] text-sm">Aanmelden</Link>
                     </div>
                   ) : null}
                 </nav>
@@ -148,21 +152,21 @@ export function Header({ user, onSignOut }: HeaderProps) {
                 )}
               </div>
               {user.role === 'ADMIN' ? (
-                <Link href={`${ADMIN}/dashboard`}>
-                  <Button variant="ghost" size="sm" className="border border-white text-white hover:bg-white hover:text-navy">
-                    Dashboard
-                  </Button>
-                </Link>
+                <Link href={onWeb ? '/dashboard' : `${ADMIN}/dashboard`}>
+                <Button variant="ghost" size="sm" className="border border-white text-white hover:bg-white hover:text-navy">
+                  Dashboard
+                </Button>
+              </Link>
               ) : null}
             </>
           ) : (
             <>
-              <Link href={`${WEB}/inloggen`}>
+              <Link href={onWeb ? '/inloggen' : `${WEB}/inloggen`}>
                 <Button variant="ghost" size="sm">
                   Inloggen
                 </Button>
               </Link>
-              <Link href={`${WEB}/aanmelden`}>
+              <Link href={onWeb ? '/aanmelden' : `${WEB}/aanmelden`}>
                 <Button variant="coral" size="sm">
                   Aanmelden
                 </Button>
