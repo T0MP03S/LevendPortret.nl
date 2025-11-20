@@ -110,11 +110,34 @@ export async function GET() {
 
   const inReviewWithNotes = inReview.map((p) => ({ ...p, lastRequestNotes: null as string | null }));
 
+  // Externe kandidaten: bedrijven met eigen website + logo, eigenaar ACTIVE, CLIPS membership actief, en nog geen gepubliceerde clips
+  const externalCandidates = await prisma.company.findMany({
+    where: {
+      website: { not: null },
+      logoUrl: { not: null } as any,
+      owner: { status: 'ACTIVE' as any },
+      memberships: { some: { product: 'CLIPS' as any, status: 'ACTIVE' as any } },
+      clips: { none: { status: 'PUBLISHED' as any } },
+    },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true, city: true, updatedAt: true },
+  });
+  const externalAanvragen = externalCandidates.map((c) => ({
+    id: `company:${c.id}`,
+    status: 'IN_REVIEW' as any,
+    companyId: c.id,
+    slug: '',
+    updatedAt: c.updatedAt,
+    lastRequestNotes: null as string | null,
+    company: { id: c.id, name: c.name, city: c.city, website: true as any },
+    isCompany: true,
+  }));
+
   const updates = updateCandidates
     .filter((p) => lastNoteByPage.has(p.id))
     .map((p) => ({ ...p, lastRequestNotes: lastNoteByPage.get(p.id) || '' }));
 
-  const aanvragen = [...inReviewWithNotes];
+  const aanvragen = [...inReviewWithNotes, ...externalAanvragen];
 
   // Tab 3: Published — includes internal pages and companies with external website that have PUBLISHED clips
   const internalPublished = await prisma.companyPage.findMany({

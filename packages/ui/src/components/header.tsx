@@ -26,10 +26,31 @@ export function Header({ user, onSignOut }: HeaderProps) {
   const evenActive = pathname?.startsWith('/even-voorstellen') ?? false;
   const WEB = ((process.env.NEXT_PUBLIC_WEB_URL && process.env.NEXT_PUBLIC_WEB_URL.length > 0)
     ? process.env.NEXT_PUBLIC_WEB_URL
-    : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')).replace(/\/$/, '');
-  const CLUB = (process.env.NEXT_PUBLIC_CLUB_URL || 'http://localhost:3001').replace(/\/$/, '');
-  const CLIPS = (process.env.NEXT_PUBLIC_CLIPS_URL || 'http://localhost:3002').replace(/\/$/, '');
-  const ADMIN = (process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3003').replace(/\/$/, '');
+    : (typeof window !== 'undefined'
+      ? (() => {
+          const { protocol, hostname } = window.location;
+          const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+          if (isLocal) return 'http://localhost:3000';
+          const parts = hostname.split('.');
+          const apex = parts.slice(-2).join('.');
+          return `${protocol}//${apex}`;
+        })()
+      : 'http://localhost:3000')
+  ).replace(/\/$/, '');
+  const resolveBase = (sub: 'admin' | 'club' | 'clips', envVar?: string, devFallback?: string) => {
+    const env = (envVar || '').trim();
+    if (env.length > 0) return env.replace(/\/$/, '');
+    if (typeof window === 'undefined') return (devFallback || '').replace(/\/$/, '');
+    const { protocol, hostname } = window.location;
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (isLocal) return (devFallback || '').replace(/\/$/, '');
+    const parts = hostname.split('.');
+    const apex = parts.slice(-2).join('.');
+    return `${protocol}//${sub}.${apex}`;
+  };
+  const CLUB = resolveBase('club', process.env.NEXT_PUBLIC_CLUB_URL, 'http://localhost:3001');
+  const CLIPS = resolveBase('clips', process.env.NEXT_PUBLIC_CLIPS_URL, 'http://localhost:3002');
+  const ADMIN = resolveBase('admin', process.env.NEXT_PUBLIC_ADMIN_URL, 'http://localhost:3003');
   const onWeb = !clipsActive && !clubActive && !adminActive;
   const handleSignOut = () => {
     if (onSignOut) return onSignOut();
@@ -152,7 +173,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
                 )}
               </div>
               {user.role === 'ADMIN' ? (
-                <Link href={onWeb ? '/dashboard' : `${ADMIN}/dashboard`}>
+                <Link href={`${ADMIN}/dashboard`}>
                 <Button variant="ghost" size="sm" className="border border-white text-white hover:bg-white hover:text-navy">
                   Dashboard
                 </Button>

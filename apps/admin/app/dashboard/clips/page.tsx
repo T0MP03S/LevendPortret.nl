@@ -9,7 +9,8 @@ type Aanvraag = {
   slug: string;
   updatedAt: string;
   lastRequestNotes?: string | null;
-  company?: { id: string; name: string | null; city: string | null; website: string | null; owner?: { id: string; status: string; name: string | null; email: string | null } | null } | null;
+  isCompany?: boolean;
+  company?: { id: string; name: string | null; city: string | null; website: string | null | boolean; owner?: { id: string; status: string; name: string | null; email: string | null } | null } | null;
 };
 
 export default function ClipsBeheerPage() {
@@ -88,7 +89,14 @@ export default function ClipsBeheerPage() {
                 </div>
               )}
               <div className="mt-3 flex items-center gap-2">
-                <a href={`/dashboard/clips/${a.id}`} className="px-3 py-1 rounded-md border border-zinc-300 hover:bg-zinc-50">Openen</a>
+                {a.isCompany ? (
+                  <>
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Extern bedrijf</span>
+                    <a href={`/dashboard/clips/company/${a.companyId}`} className="px-3 py-1 rounded-md border border-zinc-300 hover:bg-zinc-50">Clips invullen</a>
+                  </>
+                ) : (
+                  <a href={`/dashboard/clips/${a.id}`} className="px-3 py-1 rounded-md border border-zinc-300 hover:bg-zinc-50">Openen</a>
+                )}
               </div>
             </div>
           ))}
