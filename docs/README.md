@@ -379,6 +379,8 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
 - Routing: Coach-pagina CTA wijst nu naar `/aanmelden`.
  - Even voorstellen: intro uitgebreid met een langere toelichting; bio van Bert Kranendonk bijgewerkt.
  - Footer: logo boven de tekst geplaatst en introparagraaf aangepast.
+ - Header (mobiel): consistent dunner gemaakt (gelijke verticale padding op home en subpages), hamburger rechts zonder cirkel; auth‑knoppen verplaatst naar burger‑menu en kleiner.
+ - Header links (web): relatieve links op web (bijv. `/aanmelden`) zodat er in productie nooit naar `http://localhost:3000` wordt gelinkt; fallback naar `window.location.origin` wanneer `NEXT_PUBLIC_WEB_URL` ontbreekt.
 ## 5) QA, SEO & Go-live
 - [ ] SEO/OG: per pagina een duidelijke title/description; OG-image(s); sitemap.xml en robots.txt
 - [ ] Toegankelijkheid: focus zichtbaar; alt-teksten; heading-structuur; toetsenbord in modals werkt (getest); kleurcontrast check

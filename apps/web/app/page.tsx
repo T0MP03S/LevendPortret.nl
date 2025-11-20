@@ -4,9 +4,9 @@ import { Play, Users, Gift, UserCircle, MessageSquare, Film, Video, Megaphone, C
 
 export default function Page() {
   return (
-    <div className="relative max-w-7xl mx-auto px-6 py-12">
+    <div className="relative max-w-7xl mx-auto px-6 pt-6 md:pt-12 pb-12">
       {/* Hero */}
-      <section className="text-center py-20">
+      <section className="text-center pt-10 pb-16 md:py-20">
         <div className="relative mx-auto max-w-5xl rounded-3xl border border-white/50 bg-white/70 md:bg-white/60 md:backdrop-blur p-6 md:p-12 shadow-lg">
           <img src="/logo-color.svg" alt="Levend Portret" className="h-32 md:h-40 mx-auto mb-8" />
           <p className="text-2xl text-navy/80 mb-6 font-heading" style={{ fontWeight: 500 }}>Het eerlijke verhaal</p>
