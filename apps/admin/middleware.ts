@@ -27,7 +27,9 @@ export async function middleware(req: NextRequest) {
   }
 
   // For all other routes (protected), check authentication
-  const token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET });
+  let token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET, cookieName: '__Secure-next-auth.session-token' });
+  if (!token) token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET, cookieName: 'next-auth.session-token' });
+  if (!token) token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET });
   
   // Not authenticated → send to /inloggen
   if (!token) {
