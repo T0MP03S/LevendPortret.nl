@@ -56,8 +56,8 @@ export function Header({ user, onSignOut }: HeaderProps) {
     } catch {}
   }, []);
   return (
-    <div className="w-full px-4 pt-4">
-      <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg px-6 py-4 flex items-center justify-between relative">
+    <div className="w-full px-4 pt-3 md:pt-4">
+      <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg px-5 py-3 md:px-6 md:py-4 flex items-center justify-between relative">
         {/* Logo */}
         <Link href={`${WEB}/`} className="flex items-center">
           {/* Logo iets kleiner op mobiel */}
@@ -89,12 +89,12 @@ export function Header({ user, onSignOut }: HeaderProps) {
             <button
               type="button"
               onClick={() => setMobileNavOpen(v => !v)}
-              className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/60 text-white hover:bg-white/10"
+              className="inline-flex items-center justify-center h-9 w-9 text-white hover:text-coral"
             >
               {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             {mobileNavOpen && (
-              <div className="absolute left-4 right-4 mt-3 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-40 font-heading">
+              <div className="absolute right-4 left-auto mt-3 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-40 font-heading">
                 <nav className="flex flex-col divide-y divide-zinc-100 text-sm">
                   <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
                   <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
@@ -103,8 +103,8 @@ export function Header({ user, onSignOut }: HeaderProps) {
                   <Link href={`${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
                   {!user ? (
                     <div className="p-3 grid grid-cols-2 gap-2">
-                      <Link href={`${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-9 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50">Inloggen</Link>
-                      <Link href={`${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-9 rounded-md bg-coral text-white hover:bg-[#e14c61]">Aanmelden</Link>
+                      <Link href={`${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>
+                      <Link href={`${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md bg-coral text-white hover:bg-[#e14c61] text-sm">Aanmelden</Link>
                     </div>
                   ) : null}
                 </nav>
