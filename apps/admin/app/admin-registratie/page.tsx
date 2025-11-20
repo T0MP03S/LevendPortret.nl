@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminRegistrationPage() {
-  const { data: session } = useSession();
+  const [sessionEmail, setSessionEmail] = useState<string>("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -15,6 +15,14 @@ export default function AdminRegistrationPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    getSession().then((s) => {
+      setSessionEmail(s?.user?.email || "");
+    }).catch(() => {
+      setSessionEmail("");
+    });
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +47,7 @@ export default function AdminRegistrationPage() {
         setMessage(data?.error || "Er is iets misgegaan.");
       } else {
         // Direct automatisch inloggen met credentials en naar dashboard
-        const email = session?.user?.email || "";
+        const email = sessionEmail || "";
         try {
           const resLogin = await signIn("credentials", {
             email,
@@ -65,7 +73,7 @@ export default function AdminRegistrationPage() {
   return (
     <div className="max-w-md mx-auto px-6 py-12">
       <h1 className="text-3xl font-bold mb-2 text-center">Admin-registratie</h1>
-      <p className="text-center text-zinc-600 mb-4">Wachtwoord instellen voor: <span className="font-semibold">{session?.user?.email ?? "jouw e-mailadres"}</span></p>
+      <p className="text-center text-zinc-600 mb-4">Wachtwoord instellen voor: <span className="font-semibold">{sessionEmail || "jouw e-mailadres"}</span></p>
       <div className="bg-white p-6 rounded-2xl shadow-sm">
         <p className="text-zinc-700 mb-4">Vul je naam in en stel je wachtwoord in om toegang te krijgen tot het admin dashboard.</p>
         <form onSubmit={onSubmit} className="space-y-4">

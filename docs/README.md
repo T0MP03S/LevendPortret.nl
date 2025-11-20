@@ -230,17 +230,6 @@ Links/URLs in e-mails
   - `NEXT_PUBLIC_WEB_URL` (bv. https://levendportret.nl)
   - `NEXT_PUBLIC_ADMIN_URL` (bv. https://admin.levendportret.nl)
   - `NEXT_PUBLIC_CLUB_URL` (bv. https://club.levendportret.nl)
-  - `NEXT_PUBLIC_CLIPS_URL` (bv. https://clips.levendportret.nl)
-  - `NEXTAUTH_URL` (per app; voor magic link en auth callbacks)
-- Toepaspunten (geconsolideerd in code):
-  - Navigatie en CTA’s in Header/Footer (packages/ui)
-  - Redirects voor Clips: `/clips` en `/p/[slug]` → `NEXT_PUBLIC_CLIPS_URL`
-  - SEO: `metadataBase`, `robots.ts`, `sitemap.ts` gebruiken de juiste `NEXT_PUBLIC_*`
-  - E‑mails: logo/footers en CTA’s gebruiken `NEXT_PUBLIC_WEB_URL` (users) of `NEXT_PUBLIC_ADMIN_URL` (admins)
-  - Fallbacks in dev: respectievelijk `http://localhost:3000/3001/3002/3003`
-
-Notes
-- Development: voor auth-verificatie mails is `EMAIL_SEND_IN_DEV=true` vereist; overige transactionele mails (admin-notificatie/status/publicatie) gebruiken de SMTP envs direct.
 - SMTP variabelen moeten in de root `.env.local` staan en worden door alle apps gebruikt.
 
 ### Admin: E-mail templates testen (dev)
@@ -251,6 +240,14 @@ Notes
 
 **Logo in e-mails**
 - De admin e-mails proberen het logo inline mee te sturen (CID).
+
+**Afzender-profiel foto (in Inbox UI)**
+- Dit wordt niet per e-mailbericht ingesteld maar door de mailbox provider bepaald.
+- Opties om een avatar te tonen naast de afzender:
+  - Mailbox‑profiel van het afzenderadres (`EMAIL_FROM`): stel de profielafbeelding in bij de e-mailprovider (bijv. Google Workspace voor info@levendportret.nl).
+  - BIMI (Brand Indicators for Message Identification): vereist SPF/DKIM/DMARC, een SVG‑Tiny‑PS logo, DNS‑record `default._bimi.<domain>` en optioneel een VMC‑certificaat (voor Gmail/yahoo zichtbaarheid).
+  - Gravatar: sommige clients tonen de Gravatar van het afzenderadres.
+- Dit staat los van het inline logo in de e-mailinhoud.
 - Plaats een PNG voor maximale compatibiliteit op: `apps/admin/public/logo-email.png` (aanbevolen ~280×70px, transparante achtergrond).
 - Als `logo-email.png` ontbreekt, valt het systeem terug op `apps/admin/public/logo.svg`. Let op: sommige clients (Gmail) tonen inline SVG niet; gebruik daarom bij voorkeur PNG.
 - In sommige clients moet je eerst “Afbeeldingen weergeven” toestaan voordat het logo verschijnt.
@@ -568,7 +565,24 @@ Let op:
   5. Klik de magic link → redirect naar `/dashboard` (callback). Middleware stuurt je indien nodig door naar `/admin-registratie` om eerst een wachtwoord te zetten.
   6. Stel je wachtwoord in (min 8 tekens) → je wordt automatisch ingelogd en doorgestuurd naar `/dashboard`.
   7. Vanaf nu: alleen inloggen met e-mail + wachtwoord. Google is uitgeschakeld in admin.
+  
+  Meerdere admin-e-mails instellen:
+  - Zet in je root `.env.local` (dev) of `.env.production` (prod):
+    - `ADMIN_EMAILS="alice@example.com,bob@example.com,carol@example.com"`
+  - Lijst is komma-gescheiden; spaties worden genegeerd; hoofdletterongevoelig.
+  - Herstart de betreffende apps na het aanpassen van `.env`.
   8. Admin-e-mails (opgenomen in `ADMIN_EMAILS`) worden na verificatie automatisch als `ADMIN` gemarkeerd en krijgen status `ACTIVE`. Zij komen nooit in de lijst "In behandeling" terecht.
+
+  Probleemoplossing (admin magic link / registratie):
+  - Na klikken op de verificatielink kom je terug op `/inloggen` i.p.v. `/admin-registratie`:
+    - Controleer `NEXTAUTH_URL` van de admin-app: `https://admin.levendportret.nl`.
+    - Zet `AUTH_COOKIE_DOMAIN` op `.levendportret.nl` (met punt), en gebruik een secure cookie in productie.
+    - Cookies: verwijder oude cookies of test in een privévenster.
+    - `ADMIN_EMAILS` moet het e-mailadres bevatten waarmee je aanmeldt.
+  - Eerste keer admin: je wordt na verificatie doorgestuurd naar `/admin-registratie` om een wachtwoord te zetten; daarna log je automatisch in en ga je naar `/dashboard`.
+  - Fout: `[next-auth]: useSession must be wrapped in a <SessionProvider />` op `/admin-registratie`:
+    - De layout gebruikt `<Providers>` die `SessionProvider` plaatst; de pagina haalt de sessie client‑side op met `getSession()`.
+    - Hard refresh (of dev server herstart) als je deze fout toch ziet tijdens hot reload.
 - Middleware:
   - Publieke routes (`/inloggen`, `/admin-verificatie`, `/admin-registratie`) zijn altijd toegankelijk.
   - Beschermde routes (zoals `/dashboard`) dwingen je eerst naar `/admin-registratie` als je nog geen wachtwoord hebt.

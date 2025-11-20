@@ -27,11 +27,42 @@ export async function middleware(req: NextRequest) {
   }
 
   // For all other routes (protected), check authentication
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req: req as any, secret: process.env.NEXTAUTH_SECRET });
   
   // Not authenticated → send to /inloggen
   if (!token) {
     return NextResponse.redirect(new URL('/inloggen', req.url));
+  }
+
+  // Determine if this user is an allowed admin email
+  const allowedAdminEmail = (() => {
+    const email = (token as any).email as string | null | undefined;
+    if (!email) return false;
+    const list = (process.env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    return list.includes(email.toLowerCase());
+  })();
+
+  // If user must set a password, always send them to /admin-registratie,
+  // and allow access to that page even if role is not yet ADMIN.
+  if ((token as any).needsPassword) {
+    if (pathname !== '/admin-registratie') {
+      return NextResponse.redirect(new URL('/admin-registratie', req.url));
+    }
+    // On the registration page itself: only allow if this is an allowed admin email
+    if (pathname === '/admin-registratie') {
+      if (!allowedAdminEmail) {
+        return NextResponse.redirect(new URL('/inloggen', req.url));
+      }
+      return NextResponse.next();
+    }
+  } else {
+    // If password already set, block direct access to /admin-registratie
+    if (pathname === '/admin-registratie') {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
   }
 
   // Enforce ADMIN role on protected routes
@@ -40,17 +71,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // If ADMIN needs to set a password, send to /admin-registratie first
-  if ((token as any).needsPassword) {
-    // Only allow access to /admin-registratie itself
-    if (pathname !== '/admin-registratie') {
-      return NextResponse.redirect(new URL('/admin-registratie', req.url));
-    }
-  } else {
-    // If already set password, block direct access to /admin-registratie
-    if (pathname === '/admin-registratie') {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
-  }
+  // (Handled above before role check)
 
   return NextResponse.next();
 }

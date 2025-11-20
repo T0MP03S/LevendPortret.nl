@@ -44,11 +44,12 @@ export default function AdminLoginPage() {
         callbackUrl: "/dashboard",
         redirect: false
       });
-      if ((res as any)?.error) {
-        setMessage("Kon geen magic link versturen.");
-      } else {
-        router.push(`/admin-verificatie?email=${encodeURIComponent(addr)}`);
+      if (!res || (res as any)?.error) {
+        const err = (res as any)?.error ? String((res as any).error) : "";
+        setMessage(err || "Kon geen magic link versturen.");
+        return;
       }
+      router.push(`/admin-verificatie?email=${encodeURIComponent(addr)}`);
     } catch {
       setMessage("Er is iets misgegaan.");
     } finally {

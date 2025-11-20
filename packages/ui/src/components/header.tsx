@@ -57,7 +57,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
   }, []);
   return (
     <div className="w-full px-4 pt-4">
-      <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg px-6 py-4 flex items-center justify-between">
+      <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg px-6 py-4 flex items-center justify-between relative">
         {/* Logo */}
         <Link href={`${WEB}/`} className="flex items-center">
           {/* Logo iets kleiner op mobiel */}
@@ -101,13 +101,19 @@ export function Header({ user, onSignOut }: HeaderProps) {
                   <Link href={`${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
                   <Link href={`${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
                   <Link href={`${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
+                  {!user ? (
+                    <div className="p-3 grid grid-cols-2 gap-2">
+                      <Link href={`${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-9 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50">Inloggen</Link>
+                      <Link href={`${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-9 rounded-md bg-coral text-white hover:bg-[#e14c61]">Aanmelden</Link>
+                    </div>
+                  ) : null}
                 </nav>
               </div>
             )}
           </div>
 
           {/* Auth */}
-          <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
           {user ? (
             <>
               <div className="relative" ref={accountRef}>

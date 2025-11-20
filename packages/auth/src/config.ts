@@ -177,7 +177,7 @@ export const authOptions: NextAuthOptions = {
     ? {
         cookies: {
           sessionToken: {
-            name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+            name: 'next-auth.session-token',
             options: {
               domain: process.env.AUTH_COOKIE_DOMAIN,
               path: '/',
@@ -256,6 +256,18 @@ export const authOptions: NextAuthOptions = {
           ].join('\n');
           console.log(msg);
           return;
+        }
+        if (process.env.NODE_ENV !== 'production') {
+          const msg2 = [
+            '',
+            '┌───────────────────────────────────────────',
+            '│  Magic link (DEV logging)',
+            `│  Aan:  ${identifier}`,
+            `│  Link: ${url}`,
+            '└───────────────────────────────────────────',
+            ''
+          ].join('\n');
+          console.log(msg2);
         }
         const { createTransport } = require('nodemailer');
         const transport = createTransport(provider.server);
