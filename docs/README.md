@@ -304,6 +304,11 @@ Links/URLs in e-mails
     - style-src: allow 'unsafe-inline' en https: (voor Google Fonts CSS)
     - frame-src (clips/web): allow https://player.vimeo.com en https://www.google.com (voor Vimeo en Maps embeds)
     - Let op: na wijzigen van headers: herstart de betreffende app dev-server.
+  - CSP details (prod/admin):
+    - style-src staat nu ook `https://fonts.googleapis.com` toe (Google Fonts stylesheet) en `font-src` staat `https://fonts.gstatic.com` toe.
+    - img-src staat `blob:` toe voor lokale previews (bijv. thumbnail/afbeelding voordat deze is opgeslagen).
+    - connect-src bevat het R2 endpoint host (afgeleid van `R2_ENDPOINT`) zodat presigned PUT uploads naar Cloudflare R2 werken vanuit Admin.
+    - Tip: zorg dat `R2_ENDPOINT` in de admin-omgeving is gezet; anders wordt de host niet toegevoegd en blokkeert de browser de upload.
 - NextAuth: e-mail normalisatie, credentials alleen na e-mailverificatie, status gating via middleware.
 - Aanbevelingen productie:
   - Zet `debug` en console logging uit

@@ -13,14 +13,17 @@ interface HeaderProps {
 export function Header({ user, onSignOut }: HeaderProps) {
   const pathname = usePathname();
   const [host, setHost] = useState<string | null>(null);
+  const [hostname, setHostname] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setHost(window.location.host);
+      setHostname(window.location.hostname);
     }
   }, []);
-  const clipsActive = !!host && host.includes(':3002');
-  const clubActive = !!host && host.includes(':3001');
-  const adminActive = !!host && host.includes(':3003');
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+  const clipsActive = isLocal ? (!!host && host.includes(':3002')) : (hostname?.split('.')[0] === 'clips');
+  const clubActive = isLocal ? (!!host && host.includes(':3001')) : (hostname?.split('.')[0] === 'club');
+  const adminActive = isLocal ? (!!host && host.includes(':3003')) : (hostname?.split('.')[0] === 'admin');
   const coachActive = pathname?.startsWith('/coach') ?? false;
   const fundActive = pathname?.startsWith('/fund') ?? false;
   const evenActive = pathname?.startsWith('/even-voorstellen') ?? false;

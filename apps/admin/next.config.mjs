@@ -5,6 +5,13 @@ export default {
   },
   transpilePackages: ['@levendportret/auth', '@levendportret/db'],
   async headers() {
+    const r2Host = (() => {
+      try {
+        return new URL(process.env.R2_ENDPOINT || '').host;
+      } catch {
+        return '';
+      }
+    })();
     return [
       {
         source: '/:path*',
@@ -15,11 +22,11 @@ export default {
               process.env.NODE_ENV === 'production'
                 ? [
                     "default-src 'self'",
-                    "img-src 'self' data: https:",
-                    "font-src 'self' data:",
-                    "style-src 'self' 'unsafe-inline'",
+                    "img-src 'self' data: blob: https:",
+                    "font-src 'self' data: https://fonts.gstatic.com",
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                     "script-src 'self' 'unsafe-inline'",
-                    "connect-src 'self'",
+                    (r2Host ? `connect-src 'self' https://${r2Host}` : "connect-src 'self'"),
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]
