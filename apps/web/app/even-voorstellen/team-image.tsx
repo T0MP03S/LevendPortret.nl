@@ -37,6 +37,7 @@ export function TeamImage({ src, alt, width = 128, height = 128, quality = 85, c
       onError={() => setError(true)}
       loading={loading}
       priority={priority}
+      unoptimized
     />
   );
 }

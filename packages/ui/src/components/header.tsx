@@ -87,7 +87,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
     <div className="w-full px-4 pt-2 md:pt-4">
       <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg pl-2 pr-2 py-1 md:px-6 md:py-4 flex items-center justify-between relative">
         {/* Logo */}
-        <Link href={onWeb ? '/' : `${WEB}/`} className="flex items-center">
+        <Link href={`${WEB}/`} className="flex items-center">
           {/* Logo iets kleiner op mobiel */}
           <img src="/logo.svg" alt="Levend Portret" className="h-5 md:h-8 -ml-4" width={112} height={32} />
         </Link>
