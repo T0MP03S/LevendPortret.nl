@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type LightboxProps = {
   vimeoId: string;
@@ -8,6 +8,7 @@ type LightboxProps = {
 };
 
 export default function Lightbox({ vimeoId, onClose }: LightboxProps) {
+  const touchStartYRef = useRef<number | null>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -22,6 +23,13 @@ export default function Lightbox({ vimeoId, onClose }: LightboxProps) {
       role="dialog"
       aria-modal="true"
       onClick={onClose}
+      onTouchStart={(e)=>{ touchStartYRef.current = e.touches[0]?.clientY ?? null; }}
+      onTouchMove={(e)=>{
+        const s = touchStartYRef.current;
+        const y = e.touches[0]?.clientY ?? 0;
+        if (s !== null && y - s > 60) { onClose(); touchStartYRef.current = null; }
+      }}
+      onTouchEnd={()=>{ touchStartYRef.current = null; }}
     >
       <div
         className="relative w-full max-w-[420px] md:max-w-[560px] md:max-h-[90vh] aspect-[9/16] bg-black rounded-lg overflow-hidden shadow-2xl flex flex-col"
@@ -30,7 +38,7 @@ export default function Lightbox({ vimeoId, onClose }: LightboxProps) {
         <button
           onClick={onClose}
           aria-label="Sluiten"
-          className="absolute top-3 right-3 bg-white text-black rounded-full w-9 h-9 shadow-md hover:bg-zinc-100"
+          className="absolute top-3 right-3 bg-white text-black rounded-full w-12 h-12 shadow-md hover:bg-zinc-100 text-xl"
         >
           ×
         </button>

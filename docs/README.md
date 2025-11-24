@@ -1,3 +1,13 @@
+- Testen op telefoon (LAN)
+  - Zorg dat je phone en dev‑machine op hetzelfde Wi‑Fi/LAN zitten.
+  - Zet in de root `.env.local` expliciet de publieke URLs zodat navigatie werkt op je telefoon:
+    - `NEXT_PUBLIC_WEB_URL=http://<jouw-LAN-IP>:3000`
+    - `NEXT_PUBLIC_CLUB_URL=http://<jouw-LAN-IP>:3001`
+    - `NEXT_PUBLIC_CLIPS_URL=http://<jouw-LAN-IP>:3002`
+    - `NEXT_PUBLIC_ADMIN_URL=http://<jouw-LAN-IP>:3003`
+  - Start dev (`pnpm dev`). Open op je telefoon: `http://<jouw-LAN-IP>:3000`.
+  - Alternatief: gebruik `http://<computernaam>.local:3000` (mDNS) en zet bovenstaande envs naar die hostname.
+  - Voor extern testen met HTTPS: gebruik een tunnel (ngrok/Cloudflare Tunnel) en zet `NEXT_PUBLIC_*_URL` naar de tunnel-URLs.
 Copy-richtlijnen
 ### Clips overzicht — zichtbaarheid en volgorde
 - Zichtbaarheid: een bedrijf verschijnt in het Clips-overzicht zodra er minimaal 1 `Clip` met `status = PUBLISHED` bestaat voor dat bedrijf.
@@ -389,6 +399,10 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
   - Even voorstellen: intro uitgebreid met een langere toelichting; bio van Bert Kranendonk bijgewerkt.
   - Header (mobiel): consistent dunner gemaakt (gelijke verticale padding op home en subpages), hamburger rechts zonder cirkel; auth‑knoppen verplaatst naar burger‑menu en kleiner.
   - Header links (web): relatieve links op web (bijv. `/aanmelden`) zodat er in productie nooit naar `http://localhost:3000` wordt gelinkt; fallback naar `window.location.origin` wanneer `NEXT_PUBLIC_WEB_URL` ontbreekt.
+  - Header links (subdomeinen): op club/clips/admin linken statische pagina’s (Coach, Fund, Even voorstellen) altijd naar het WEB-domein (`https://levendportret.nl/...`).
+  - Header logo: de logo-link verwijst altijd naar de homepage op het WEB-domein (`https://levendportret.nl/`).
+  - Mobile navigatie: dropdown-menu op mobiel vergroot (grotere tap-targets) en bevat voor ingelogde gebruikers: Instellingen, (indien van toepassing) In behandeling, Dashboard (ADMIN), en Uitloggen.
+  - Modals (mobiel): modale vensters kunnen nu makkelijker gesloten worden op iPhone: tik buiten de modal, grotere sluitknop, en swipe-down (±60px) om te sluiten.
 ## 5) QA, SEO & Go-live
 - [ ] SEO/OG: per pagina een duidelijke title/description; OG-image(s); sitemap.xml en robots.txt
 - [ ] Toegankelijkheid: focus zichtbaar; alt-teksten; heading-structuur; toetsenbord in modals werkt (getest); kleurcontrast check

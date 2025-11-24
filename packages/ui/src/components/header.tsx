@@ -122,19 +122,30 @@ export function Header({ user, onSignOut }: HeaderProps) {
               {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             {mobileNavOpen && (
-              <div className="absolute right-4 left-auto mt-3 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-40 font-heading">
-                <nav className="flex flex-col divide-y divide-zinc-100 text-sm">
-                  <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
-                  <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
-                  <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
-                  <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
-                  <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-4 py-3 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
+              <div className="absolute right-4 left-auto mt-3 w-72 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-40 font-heading">
+                <nav className="flex flex-col divide-y divide-zinc-100 text-base">
+                  <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
+                  <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
+                  <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
+                  <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
+                  <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
                   {!user ? (
-                    <div className="p-3 grid grid-cols-2 gap-2">
-                      <Link href={onWeb ? '/inloggen' : `${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>
-                      <Link href={onWeb ? '/aanmelden' : `${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-8 rounded-md bg-coral text-white hover:bg-[#e14c61] text-sm">Aanmelden</Link>
+                    <div className="p-4 grid grid-cols-2 gap-3">
+                      <Link href={onWeb ? '/inloggen' : `${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-10 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>
+                      <Link href={onWeb ? '/aanmelden' : `${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-10 rounded-md bg-coral text-white hover:bg-[#e14c61] text-sm">Aanmelden</Link>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex flex-col">
+                      <Link href={`${WEB}/instellingen`} className="px-5 py-4 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>Instellingen</Link>
+                      {user.status !== 'ACTIVE' ? (
+                        <Link href={`${WEB}/in-behandeling`} className="px-5 py-4 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>In behandeling</Link>
+                      ) : null}
+                      {user.role === 'ADMIN' ? (
+                        <Link href={`${ADMIN}/dashboard`} className="px-5 py-4 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>Dashboard</Link>
+                      ) : null}
+                      <button onClick={()=>{ setMobileNavOpen(false); handleSignOut(); }} className="text-left px-5 py-4 hover:bg-zinc-50">Uitloggen</button>
+                    </div>
+                  )}
                 </nav>
               </div>
             )}

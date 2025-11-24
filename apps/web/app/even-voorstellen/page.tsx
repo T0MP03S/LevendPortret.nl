@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { X as IconX } from 'lucide-react';
 import { TeamImage } from './team-image';
 
 const team = [
@@ -20,6 +20,7 @@ export default function EvenVoorstellenPage() {
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
 
   function onOpen(member: typeof team[number]) {
     lastFocusedRef.current = (document.activeElement as HTMLElement) || null;
@@ -119,7 +120,17 @@ export default function EvenVoorstellenPage() {
       </section>
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onKeyDown={(e)=>{ if (e.key==='Escape') onClose(); trapFocus(e); }}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onKeyDown={(e)=>{ if (e.key==='Escape') onClose(); trapFocus(e); }}
+          onTouchStart={(e)=>{ touchStartYRef.current = e.touches[0]?.clientY ?? null; }}
+          onTouchMove={(e)=>{
+            const s = touchStartYRef.current;
+            const y = e.touches[0]?.clientY ?? 0;
+            if (s !== null && y - s > 60) { onClose(); touchStartYRef.current = null; }
+          }}
+          onTouchEnd={()=>{ touchStartYRef.current = null; }}
+        >
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
           <div
             ref={modalRef}
@@ -130,8 +141,8 @@ export default function EvenVoorstellenPage() {
             className="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4"
           >
             <div className="flex justify-end p-3">
-              <button ref={closeBtnRef} onClick={onClose} className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-zinc-200 hover:bg-zinc-50" aria-label="Sluiten">
-                <X className="w-5 h-5" />
+              <button ref={closeBtnRef} onClick={onClose} className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-zinc-200 hover:bg-zinc-50" aria-label="Sluiten">
+                <IconX className="w-6 h-6" />
               </button>
             </div>
             <div className="grid md:grid-cols-2 gap-6 px-6 pb-6">
