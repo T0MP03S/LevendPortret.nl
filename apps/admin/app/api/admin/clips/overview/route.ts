@@ -22,12 +22,11 @@ export async function GET() {
     }
   });
 
-  // Tab 2a: Requests met status IN_REVIEW
+  // Tab 2a: Requests met status IN_REVIEW of DRAFT (ongeacht externe website), eigenaar ACTIVE en CLIPS membership ACTIVE
   const inReview = await prisma.companyPage.findMany({
     where: {
-      status: 'IN_REVIEW' as any,
+      status: { in: ['IN_REVIEW', 'DRAFT'] } as any,
       company: {
-        website: null,
         owner: { status: 'ACTIVE' as any },
         memberships: {
           some: {
