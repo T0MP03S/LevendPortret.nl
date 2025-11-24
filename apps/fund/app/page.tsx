@@ -78,7 +78,7 @@ export default async function ClipsPageFund({ searchParams }: { searchParams?: {
           companyDesc = text.length > 250 ? `${text.slice(0, 247)}…` : text;
         }
       }
-      // Prefer explicit admin-provided 9:16 thumbnail; then Vimeo oEmbed; finally first gallery image
+      // Prefer explicit admin-provided 9:16 thumbnail first; then Vimeo oEmbed; finally first gallery image
       const explicitThumb = (company.companyPage?.clipsThumbnailUrl as string) || null;
       const gallery = Array.isArray(company.companyPage?.gallery) ? (company.companyPage!.gallery as any[]) : [];
       const galleryThumb = gallery.length > 0 && typeof gallery[0]?.url === 'string' ? (gallery[0].url as string) : null;

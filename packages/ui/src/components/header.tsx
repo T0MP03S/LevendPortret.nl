@@ -66,6 +66,8 @@ export function Header({ user, onSignOut }: HeaderProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
+  const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
+  const mobileAccountRef = useRef<HTMLDivElement | null>(null);
   const [hidePendingLink, setHidePendingLink] = useState(false);
   useEffect(() => {
     try {
@@ -83,6 +85,29 @@ export function Header({ user, onSignOut }: HeaderProps) {
       }
     } catch {}
   }, []);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onDoc = (e: MouseEvent | TouchEvent) => {
+      const t = e.target as Node;
+      if (mobileAccountRef.current && mobileAccountRef.current.contains(t)) return;
+      if (mobileNavRef.current && mobileNavRef.current.contains(t)) return;
+      if (accountRef.current && accountRef.current.contains(t)) return;
+      setMobileAccountOpen(false);
+      setMobileNavOpen(false);
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setMobileAccountOpen(false); setMobileNavOpen(false); setOpen(false); }
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('touchstart', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('touchstart', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [mobileAccountRef, mobileNavRef, accountRef]);
   return (
     <div className="w-full px-4 pt-2 md:pt-4">
       <header className="max-w-7xl mx-auto bg-navy rounded-2xl shadow-lg pl-2 pr-2 py-1 md:px-6 md:py-4 flex items-center justify-between relative">
@@ -112,17 +137,44 @@ export function Header({ user, onSignOut }: HeaderProps) {
         </nav>
 
         <div className="flex items-center space-x-0 md:space-x-3">
+          {/* Mobile account menu (left of burger) */}
+          {user ? (
+            <div className="md:hidden mr-1 relative" ref={mobileAccountRef}>
+              <button
+                type="button"
+                onClick={() => { setMobileAccountOpen(v => !v); setMobileNavOpen(false); setOpen(false); }}
+                className="inline-flex items-center gap-2 h-9 px-2 text-white hover:text-coral"
+              >
+                <User className="w-5 h-5" />
+                <span className="max-w-[120px] truncate text-sm">{user.name || user.email}</span>
+              </button>
+              {mobileAccountOpen && (
+                <div className="absolute right-0 left-auto mt-3 w-72 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-50 font-heading transition-all duration-150 ease-out transform origin-top scale-100 opacity-100">
+                  <nav className="flex flex-col divide-y divide-zinc-100 text-base">
+                    <Link href={`${WEB}/instellingen`} className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileAccountOpen(false)}>Instellingen</Link>
+                    {user.status !== 'ACTIVE' && !hidePendingLink ? (
+                      <Link href={`${WEB}/in-behandeling`} className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileAccountOpen(false)}>In behandeling</Link>
+                    ) : null}
+                    {user.role === 'ADMIN' ? (
+                      <Link href={`${ADMIN}/dashboard`} className="px-4 py-3 hover:bg-zinc-50" onClick={()=>setMobileAccountOpen(false)}>Dashboard</Link>
+                    ) : null}
+                    <button onClick={()=>{ setMobileAccountOpen(false); handleSignOut(); }} className="text-left px-4 py-3 hover:bg-zinc-50">Uitloggen</button>
+                  </nav>
+                </div>
+              )}
+            </div>
+          ) : null}
           {/* Burger-menu voor mobiel */}
           <div className="md:hidden" ref={mobileNavRef}>
             <button
               type="button"
-              onClick={() => setMobileNavOpen(v => !v)}
+              onClick={() => { setMobileNavOpen(v => !v); setMobileAccountOpen(false); setOpen(false); }}
               className="inline-flex items-center justify-center h-9 w-9 text-white hover:text-coral"
             >
               {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             {mobileNavOpen && (
-              <div className="absolute right-4 left-auto mt-3 w-72 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-40 font-heading">
+              <div className="absolute right-4 left-auto mt-3 w-72 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-50 font-heading transition-all duration-150 ease-out transform origin-top scale-100 opacity-100">
                 <nav className="flex flex-col divide-y divide-zinc-100 text-base">
                   <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
                   <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
@@ -134,18 +186,7 @@ export function Header({ user, onSignOut }: HeaderProps) {
                       <Link href={onWeb ? '/inloggen' : `${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-10 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>
                       <Link href={onWeb ? '/aanmelden' : `${WEB}/aanmelden`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-10 rounded-md bg-coral text-white hover:bg-[#e14c61] text-sm">Aanmelden</Link>
                     </div>
-                  ) : (
-                    <div className="flex flex-col">
-                      <Link href={`${WEB}/instellingen`} className="px-5 py-4 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>Instellingen</Link>
-                      {user.status !== 'ACTIVE' ? (
-                        <Link href={`${WEB}/in-behandeling`} className="px-5 py-4 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>In behandeling</Link>
-                      ) : null}
-                      {user.role === 'ADMIN' ? (
-                        <Link href={`${ADMIN}/dashboard`} className="px-5 py-4 hover:bg-zinc-50" onClick={()=>setMobileNavOpen(false)}>Dashboard</Link>
-                      ) : null}
-                      <button onClick={()=>{ setMobileNavOpen(false); handleSignOut(); }} className="text-left px-5 py-4 hover:bg-zinc-50">Uitloggen</button>
-                    </div>
-                  )}
+                  ) : null}
                 </nav>
               </div>
             )}
@@ -157,12 +198,12 @@ export function Header({ user, onSignOut }: HeaderProps) {
             <>
               <div className="relative" ref={accountRef}>
                 {/* Desktop: naam + icoon */}
-                <button onClick={() => setOpen((v) => !v)} className="hidden md:inline-flex items-center gap-2 h-9 px-2 text-white font-heading hover:text-coral align-middle">
+                <button onClick={() => { setOpen((v) => !v); setMobileAccountOpen(false); setMobileNavOpen(false); }} className="hidden md:inline-flex items-center gap-2 h-9 px-2 text-white font-heading hover:text-coral align-middle">
                   <User className="w-5 h-5" />
                   <span className="text-sm">{user.name || user.email}</span>
                 </button>
                 {/* Mobiel: alleen icoon / avatar */}
-                <button onClick={() => setOpen((v) => !v)} className="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/60 text-white hover:bg-white/10">
+                <button onClick={() => { setOpen((v) => !v); setMobileAccountOpen(false); setMobileNavOpen(false); }} className="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/60 text-white hover:bg-white/10">
                   {user.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={user.image} alt={user.name || user.email || 'Account'} className="h-7 w-7 rounded-full object-cover" />

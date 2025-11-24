@@ -8,8 +8,8 @@ import Providers from "./providers";
 import HideChrome from "./hide-chrome";
 
 export const metadata = {
-  title: "Levend Portret — Funds",
-  description: "Overzicht en detail van funds (doneren in v2).",
+  title: "Levend Portret — Clips",
+  description: "Overzicht en detail van clips.",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

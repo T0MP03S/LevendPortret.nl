@@ -1,3 +1,10 @@
+### Bestandsnamen en casing (Linux servers)
+- Productieservers zijn case‑sensitive. Zorg dat bestandsnamen in `public/` exact overeenkomen met de imports in code (bijv. `public/team/frank.jpg` ↔ `/team/frank.jpg`).
+- Tip: zet lokaal voor deze repo `git config core.ignorecase false` zodat case‑wijzigingen altijd gecommit worden. Op de VPS voorkom je lingering oude files door een schone pull of her‑clone.
+  - CSP details (prod/web/club/clips):
+    - style-src staat `https://fonts.googleapis.com` en (indien gebruikt) `https://use.typekit.net` toe.
+    - font-src staat `https://fonts.gstatic.com` en (indien gebruikt) `https://use.typekit.net` en `https://p.typekit.net` toe.
+    - Hiermee verdwijnen “Refused to load the font … violates font-src” fouten.
 - Testen op telefoon (LAN)
   - Zorg dat je phone en dev‑machine op hetzelfde Wi‑Fi/LAN zitten.
   - Zet in de root `.env.local` expliciet de publieke URLs zodat navigatie werkt op je telefoon:
@@ -402,7 +409,13 @@ Zodra deze variabelen aanwezig zijn, schakelen de rate limiters automatisch over
   - Header links (subdomeinen): op club/clips/admin linken statische pagina’s (Coach, Fund, Even voorstellen) altijd naar het WEB-domein (`https://levendportret.nl/...`).
   - Header logo: de logo-link verwijst altijd naar de homepage op het WEB-domein (`https://levendportret.nl/`).
   - Mobile navigatie: dropdown-menu op mobiel vergroot (grotere tap-targets) en bevat voor ingelogde gebruikers: Instellingen, (indien van toepassing) In behandeling, Dashboard (ADMIN), en Uitloggen.
+  - Mobile account menu: alle user-acties (Instellingen, In behandeling, Dashboard, Uitloggen) zitten in het account‑menu links van de burger; het burger‑menu bevat alleen navigatie (Clips/Club/Coach/Fund/Even voorstellen + Inloggen/Aanmelden voor gasten).
   - Modals (mobiel): modale vensters kunnen nu makkelijker gesloten worden op iPhone: tik buiten de modal, grotere sluitknop, en swipe-down (±60px) om te sluiten.
+  - Clips play‑icoon: emoji vervangen door Lucide `Play` icoon voor consistente weergave op mobiel/desktop.
+  - Clips Lightbox: overlay z-index verhoogd; mobiele sluitknop (X) verborgen. Sluiten via overlay‑tik en swipe‑down blijft actief. Desktop behoudt X‑knop.
+  - Admin header: user‑dropdown met Dashboard/Uitloggen (in plaats van losse knoppen), sluit bij buitenklik/Escape.
+  - Admin Clipsbeheer: tabs mobiel als select (Aanvragen/Updates/Gepubliceerd), zoekveld responsief; topbalk kan wrappen op kleine schermen.
+  - Admin Gebruikers: acties mobiel gebundeld in een dropdown (“Acties”), desktop toont alle knoppen inline.
 ## 5) QA, SEO & Go-live
 - [ ] SEO/OG: per pagina een duidelijke title/description; OG-image(s); sitemap.xml en robots.txt
 - [ ] Toegankelijkheid: focus zichtbaar; alt-teksten; heading-structuur; toetsenbord in modals werkt (getest); kleurcontrast check

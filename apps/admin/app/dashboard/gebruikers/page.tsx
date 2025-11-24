@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { MoreVertical, ChevronDown } from "lucide-react";
 
 type Item = {
   id: string;
@@ -12,6 +13,66 @@ type Item = {
   company?: { id: string; name: string | null; city: string | null } | null;
   memberships?: { product: string; status: string; startDate: string; endDate: string | null }[];
 };
+
+function Actions({ it, changeStatus }: { it: Item; changeStatus: (id: string, action: 'APPROVE' | 'REJECT' | 'SET_PENDING') => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const onDoc = (e: MouseEvent | TouchEvent) => {
+      const t = e.target as Node;
+      if (ref.current && ref.current.contains(t)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('touchstart', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('touchstart', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+  return (
+    <>
+      <div className="hidden sm:flex items-center gap-2 shrink-0">
+        <span className="text-xs px-2 py-1 rounded-full bg-zinc-100 text-zinc-700">{it.status}</span>
+        {it.status !== 'ACTIVE' && (
+          <button onClick={() => changeStatus(it.id, 'APPROVE')} className="px-2 py-1.5 rounded-md border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs">Goedkeuren</button>
+        )}
+        {it.status !== 'REJECTED' && (
+          <button onClick={() => changeStatus(it.id, 'REJECT')} className="px-2 py-1.5 rounded-md border border-red-300 text-red-700 hover:bg-red-50 text-xs">Afkeuren</button>
+        )}
+        {it.status !== 'PENDING_APPROVAL' && (
+          <button onClick={() => changeStatus(it.id, 'SET_PENDING')} className="px-2 py-1.5 rounded-md border border-amber-300 text-amber-700 hover:bg-amber-50 text-xs">Op in behandeling</button>
+        )}
+        <Link href={`/dashboard/gebruiker/${it.id}`} className="px-3 py-1.5 rounded-md border border-zinc-300 hover:bg-zinc-50 text-sm">Bewerken</Link>
+      </div>
+      <div className="sm:hidden relative" ref={ref}>
+        <button onClick={() => setOpen(v=>!v)} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-zinc-300 text-zinc-800 bg-white">
+          <MoreVertical className="w-4 h-4" /> Acties <ChevronDown className="w-4 h-4" />
+        </button>
+        {open && (
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black/5 z-50">
+            <nav className="py-1 text-sm text-zinc-800">
+              <div className="px-3 py-2 text-xs text-zinc-500">Status: {it.status}</div>
+              {it.status !== 'ACTIVE' && (
+                <button onClick={() => { setOpen(false); changeStatus(it.id, 'APPROVE'); }} className="block w-full text-left px-3 py-2 hover:bg-zinc-50">Goedkeuren</button>
+              )}
+              {it.status !== 'REJECTED' && (
+                <button onClick={() => { setOpen(false); changeStatus(it.id, 'REJECT'); }} className="block w-full text-left px-3 py-2 hover:bg-zinc-50">Afkeuren</button>
+              )}
+              {it.status !== 'PENDING_APPROVAL' && (
+                <button onClick={() => { setOpen(false); changeStatus(it.id, 'SET_PENDING'); }} className="block w-full text-left px-3 py-2 hover:bg-zinc-50">Op in behandeling</button>
+              )}
+              <Link href={`/dashboard/gebruiker/${it.id}`} onClick={() => setOpen(false)} className="block px-3 py-2 hover:bg-zinc-50">Bewerken</Link>
+            </nav>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
 
 export default function GebruikersPage() {
   const [items, setItems] = useState<Item[]>([]);
@@ -105,7 +166,7 @@ export default function GebruikersPage() {
         ) : (
           <ul className="divide-y divide-zinc-200">
             {items.map((it) => (
-              <li key={it.id} className="p-4 flex items-center gap-4 justify-between">
+              <li key={it.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 sm:justify-between">
                 <div className="min-w-0">
                   <div className="font-medium truncate">{it.name || it.email}</div>
                   <div className="text-sm text-zinc-600 truncate">{it.company?.name || "Zonder bedrijfsnaam"} {it.company?.city ? `— ${it.company.city}` : ""}</div>
@@ -117,19 +178,7 @@ export default function GebruikersPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs px-2 py-1 rounded-full bg-zinc-100 text-zinc-700">{it.status}</span>
-                  {it.status !== 'ACTIVE' && (
-                    <button onClick={() => changeStatus(it.id, 'APPROVE')} className="px-2 py-1.5 rounded-md border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs">Goedkeuren</button>
-                  )}
-                  {it.status !== 'REJECTED' && (
-                    <button onClick={() => changeStatus(it.id, 'REJECT')} className="px-2 py-1.5 rounded-md border border-red-300 text-red-700 hover:bg-red-50 text-xs">Afkeuren</button>
-                  )}
-                  {it.status !== 'PENDING_APPROVAL' && (
-                    <button onClick={() => changeStatus(it.id, 'SET_PENDING')} className="px-2 py-1.5 rounded-md border border-amber-300 text-amber-700 hover:bg-amber-50 text-xs">Op in behandeling</button>
-                  )}
-                  <Link href={`/dashboard/gebruiker/${it.id}`} className="px-3 py-1.5 rounded-md border border-zinc-300 hover:bg-zinc-50 text-sm">Bewerken</Link>
-                </div>
+                <Actions it={it} changeStatus={changeStatus} />
               </li>
             ))}
           </ul>

@@ -13,8 +13,8 @@ export default {
                 ? [
                     "default-src 'self'",
                     "img-src 'self' data: https:",
-                    "font-src 'self' data:",
-                    "style-src 'self' 'unsafe-inline'",
+                    "font-src 'self' data: https://fonts.gstatic.com https://use.typekit.net https://p.typekit.net",
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net",
                     "script-src 'self' 'unsafe-inline'",
                     "connect-src 'self'",
                     "frame-ancestors 'none'",

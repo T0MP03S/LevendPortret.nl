@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Lightbox from "./Lightbox";
+import { Play } from "lucide-react";
 
 export type Item = {
   id: string;
@@ -60,12 +61,14 @@ export default function Grid({
             >
               {it.thumb ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={it.thumb} alt="Thumbnail" className="absolute inset-0 w-full h-full object-contain" />
+                <img src={it.thumb} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 grid place-items-center text-zinc-400">Geen thumbnail</div>
               )}
               <div className="absolute inset-0 grid place-items-center">
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-black/70 text-white">▶</span>
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-black/70 text-white">
+                  <Play className="w-5 h-5" />
+                </span>
               </div>
             </button>
             <div className="flex-1 min-w-0 flex flex-col">

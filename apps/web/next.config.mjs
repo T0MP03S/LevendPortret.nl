@@ -16,8 +16,8 @@ const nextConfig = {
                 ? [
                     "default-src 'self'",
                     "img-src 'self' data: https:",
-                    "font-src 'self' data:",
-                    "style-src 'self' 'unsafe-inline'",
+                    "font-src 'self' data: https://fonts.gstatic.com https://use.typekit.net https://p.typekit.net",
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net",
                     "script-src 'self' 'unsafe-inline' https://plausible.io",
                     "frame-src 'self' https://player.vimeo.com",
                     "connect-src 'self' https://plausible.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io",

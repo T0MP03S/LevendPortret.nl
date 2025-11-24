@@ -59,12 +59,19 @@ export default function ClipsBeheerPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="inline-flex rounded-lg border border-zinc-200 overflow-hidden">
+        <div className="hidden sm:inline-flex rounded-lg border border-zinc-200 overflow-hidden">
           <button className={`px-4 py-2 text-sm ${tab==='aanvragen' ? 'bg-coral text-white' : 'bg-white'}`} onClick={()=>setTab('aanvragen')}>Aanvragen</button>
           <button className={`px-4 py-2 text-sm ${tab==='updates' ? 'bg-coral text-white' : 'bg-white'}`} onClick={()=>setTab('updates')}>Updates</button>
           <button className={`px-4 py-2 text-sm ${tab==='gepubliceerd' ? 'bg-coral text-white' : 'bg-white'}`} onClick={()=>setTab('gepubliceerd')}>Gepubliceerd</button>
         </div>
-        <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Zoek op naam of plaats" className="border border-zinc-300 rounded-md px-3 py-2 text-sm w-64" />
+        <div className="sm:hidden">
+          <select value={tab} onChange={(e)=>setTab(e.target.value as any)} className="border border-zinc-300 rounded-md px-3 py-2 text-sm">
+            <option value="aanvragen">Aanvragen</option>
+            <option value="updates">Updates</option>
+            <option value="gepubliceerd">Gepubliceerd</option>
+          </select>
+        </div>
+        <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Zoek op naam of plaats" className="border border-zinc-300 rounded-md px-3 py-2 text-sm w-full sm:w-64" />
       </div>
 
       {error && <div className="text-red-600">{error}</div>}

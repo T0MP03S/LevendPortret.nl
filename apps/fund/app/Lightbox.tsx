@@ -19,7 +19,7 @@ export default function Lightbox({ vimeoId, onClose }: LightboxProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
@@ -38,7 +38,7 @@ export default function Lightbox({ vimeoId, onClose }: LightboxProps) {
         <button
           onClick={onClose}
           aria-label="Sluiten"
-          className="absolute top-3 right-3 bg-white text-black rounded-full w-12 h-12 shadow-md hover:bg-zinc-100 text-xl"
+          className="hidden md:inline-flex items-center justify-center absolute top-3 right-3 bg-white text-black rounded-full w-12 h-12 shadow-md hover:bg-zinc-100 text-xl z-10"
         >
           ×
         </button>
