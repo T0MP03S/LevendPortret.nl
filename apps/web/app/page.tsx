@@ -3,6 +3,8 @@ import { Button } from '@levendportret/ui';
 import { Play, Users, Gift, UserCircle, MessageSquare, Film, Video, Megaphone, Calendar, Sparkles, Check } from 'lucide-react';
 
 export default function Page() {
+  const CLUB_BASE = (process.env.NEXT_PUBLIC_CLUB_URL || 'http://localhost:3001').replace(/\/$/, '');
+  const CLIPS_BASE = (process.env.NEXT_PUBLIC_CLIPS_URL || 'http://localhost:3002').replace(/\/$/, '');
   return (
     <div className="relative max-w-7xl mx-auto px-6 pt-6 md:pt-12 pb-12">
       {/* Hero */}
@@ -33,7 +35,7 @@ export default function Page() {
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5">
+            <Link href="/coach" className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5 block focus:outline-none focus:ring-2 focus:ring-coral">
               <div className="w-12 h-12 bg-coral/10 rounded-lg flex items-center justify-center mb-4">
                 <UserCircle className="w-6 h-6 text-coral" />
               </div>
@@ -41,9 +43,9 @@ export default function Page() {
               <p className="text-gray-600 font-body">
                 Een ervaren ondernemer helpt je jouw bedrijfsidee pakkend te verwoorden in een sterke elevator pitch.
               </p>
-            </div>
+            </Link>
 
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5">
+            <Link href={CLIPS_BASE} className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5 block focus:outline-none focus:ring-2 focus:ring-coral">
               <div className="w-12 h-12 bg-turquoise/10 rounded-lg flex items-center justify-center mb-4">
                 <Play className="w-6 h-6 text-turquoise" />
               </div>
@@ -51,9 +53,9 @@ export default function Page() {
               <p className="text-gray-600 font-body">
                 Professionele video's van 5 minuten en 30 seconden die jouw verhaal vertellen en je bedrijf laten zien.
               </p>
-            </div>
+            </Link>
 
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5">
+            <Link href={CLUB_BASE} className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5 block focus:outline-none focus:ring-2 focus:ring-coral">
               <div className="w-12 h-12 bg-navy/10 rounded-lg flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-navy" />
               </div>
@@ -61,7 +63,7 @@ export default function Page() {
               <p className="text-gray-600 font-body">
                 3 jaar lidmaatschap van een actieve club ondernemers die elkaar opdrachten gunnen en samen groeien.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

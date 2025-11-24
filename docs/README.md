@@ -82,6 +82,7 @@ Gebruik dit document als centrale leidraad. We lopen in deze volgorde:
 Links ter referentie:
 - Plan: [TODO - Plan van aanpak](./TODO%20-%20Plan%20van%20aanpak.md)
 - Structuur: [Sitestructuur - Domeinen en Slugs](./Sitestructuur%20-%20Domeinen%20en%20Slugs.md)
+- Club Blog/News: [Stappenplan](./club/BLOG-ROADMAP.md) · [Questionnaire](./club/QUESTIONNAIRE.md)
 
 ---
 
@@ -959,3 +960,4 @@ Opmerking: rechten/entitlements komen uit `Membership`. `User.plan` is slechts e
  - **Plan:** je kunt `User.plan` op `PAID` zetten als signaal voor betaalde klant; rechten blijven via `Membership` bepaald.
  
  Opmerking: deze sectie beschrijft de gewenste werking voor de launch; implementatie en automatisering (jobs/webhooks) volgen in een latere fase.
+
