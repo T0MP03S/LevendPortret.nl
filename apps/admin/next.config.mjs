@@ -27,6 +27,7 @@ export default {
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                     "script-src 'self' 'unsafe-inline'",
                     (r2Host ? `connect-src 'self' https://${r2Host}` : "connect-src 'self'"),
+                    "frame-src https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com",
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]
@@ -37,6 +38,7 @@ export default {
                     "style-src 'self' 'unsafe-inline' https:",
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https:",
                     "connect-src 'self' http://localhost:* ws: https:",
+                    "frame-src https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com",
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]

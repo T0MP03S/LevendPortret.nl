@@ -1,6 +1,18 @@
-export const metadata = {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: 'Levend Portret — Admin',
-  description: 'Beheer en moderatie.'
+  description: 'Beheer en moderatie.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
 };
 
 import './globals.css';
@@ -16,6 +28,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = (await getServerSession(authOptions as any)) as Session | null;
   return (
     <html lang="nl">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=2" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+        <link rel="manifest" href="/site.webmanifest?v=2" />
+      </head>
       <body className="min-h-screen bg-white text-zinc-900 antialiased">
         <Providers session={session}>
           <header className="bg-transparent">

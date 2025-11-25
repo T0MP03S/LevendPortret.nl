@@ -15,12 +15,12 @@ const nextConfig = {
               process.env.NODE_ENV === 'production'
                 ? [
                     "default-src 'self'",
-                    "img-src 'self' data: blob: https:",
+                    "img-src 'self' data: https:",
                     "font-src 'self' data: https://fonts.gstatic.com https://use.typekit.net https://p.typekit.net",
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net",
                     "script-src 'self' 'unsafe-inline' https://plausible.io",
                     "frame-src 'self' https://player.vimeo.com",
-                    "connect-src 'self' https://plausible.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.cloudflarestorage.com https://*.r2.dev",
+                    "connect-src 'self' https://plausible.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]

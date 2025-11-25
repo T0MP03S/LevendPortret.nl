@@ -108,6 +108,13 @@ export default function DashboardPage() {
           </a>
         </div>
         <div className="relative rounded-2xl border border-zinc-200 p-6">
+          <h2 className="text-xl font-semibold mb-2">Artikelen</h2>
+          <p className="text-zinc-600 mb-4">Maak en beheer blog/news artikelen voor de Club.</p>
+          <a href="/dashboard/artikelen" className="inline-flex px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">
+            Open artikelen
+          </a>
+        </div>
+        <div className="relative rounded-2xl border border-zinc-200 p-6">
           <h2 className="text-xl font-semibold mb-2">E-mail templates testen</h2>
           <p className="text-zinc-600 mb-4">Verstuur testmails (magic link, bevestigingen) naar een ontvanger.</p>
           <a href="/dashboard/email-test" className="inline-flex px-4 py-2 rounded-md bg-coral text-white hover:bg-[#e14c61]">

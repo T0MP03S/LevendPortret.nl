@@ -48,6 +48,32 @@ Copy-richtlijnen
   - Reply-To: instellen op serviceadres (`EMAIL_REPLY_TO`, bv. `info@levendportret.nl`).
   - List-Unsubscribe: alleen voor marketing/mailings (niet voor transactionele mails).
 - **Content**
+
+---
+
+## Production deployment checklist
+
+- **Env URLs**
+  - `NEXT_PUBLIC_WEB_URL=https://levendportret.nl`
+  - `NEXT_PUBLIC_CLUB_URL=https://club.levendportret.nl`
+  - `NEXT_PUBLIC_ADMIN_URL=https://admin.levendportret.nl`
+  - Per app: set `NEXTAUTH_URL` to its own origin.
+  - `NEXTAUTH_SECRET` must be identical across all apps.
+  - Optional SSO across subdomains: `AUTH_COOKIE_DOMAIN=.levendportret.nl`.
+- **Storage (R2)**
+  - `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`.
+- **Email** (optional): `EMAIL_SERVER_*`, `EMAIL_FROM`.
+- **Favicons**
+  - Files present in each app `public/` and linked in layout.
+  - If cache sticks, version bump query `?v=2` is already included.
+- **Draft preview**
+  - Alleen admins kunnen `/nieuws/preview/[id]` zien (geen tokens nodig).
+- **Scheduled publishing**
+  - Wordt automatisch gepubliceerd bij bezoek aan de club site wanneer tijd verstreken is.
+- **Sitemap/RSS**
+  - Club: `/sitemap.xml`, `/feed.xml`.
+  - Web: `/sitemap.xml`, `/robots.txt` verwijst naar sitemap.
+
   - Preheader-tekst en plain-text fallback aanwezig (alle templates).
   - Logo inline via CID; gebruik PNG (`apps/admin/public/logo-email.png`), fallback SVG.
   - Alt-teksten voor afbeeldingen; knoppen zijn `<a>` met inline styles.

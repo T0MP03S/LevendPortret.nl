@@ -17,6 +17,7 @@ export default {
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net",
                     "script-src 'self' 'unsafe-inline'",
                     "connect-src 'self'",
+                    "frame-src https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com",
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]
@@ -27,6 +28,7 @@ export default {
                     "style-src 'self' 'unsafe-inline' https:",
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https:",
                     "connect-src 'self' http://localhost:* ws: https:",
+                    "frame-src https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com",
                     "frame-ancestors 'none'",
                     "base-uri 'self'",
                   ]

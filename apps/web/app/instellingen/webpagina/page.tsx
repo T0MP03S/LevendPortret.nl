@@ -307,13 +307,6 @@ export default function WebpaginaInstellingenPage() {
     return () => el.removeEventListener('keydown', onKeyDown as any);
   }, [confirmSubmitOpen]);
 
-  // Autosave every 30s when there are unsaved changes
-  useEffect(() => {
-    if (!dirty || loading || saving || uploading || isLocked) return;
-    const t = setInterval(() => { void save('DRAFT'); }, 30000);
-    return () => clearInterval(t);
-  }, [dirty, loading, saving, uploading, isLocked]);
-
   if (loading) return <div className="max-w-3xl mx-auto p-6">Laden…</div>;
   if (!fullAccess) return <div className="max-w-3xl mx-auto p-6">Je hebt geen toegang tot Webpagina instellingen. Neem contact op met support of een admin om CLIPS te activeren.</div>;
   if (companyHasWebsite) return <div className="max-w-3xl mx-auto p-6">Je hebt een externe website opgegeven. De webpagina-instellingen zijn niet nodig.</div>;

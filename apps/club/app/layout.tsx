@@ -1,6 +1,18 @@
-export const metadata = {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: 'Levend Portret Club',
-  description: 'Club – tips, nieuws en ledenomgeving.'
+  description: 'Club – tips, nieuws en ledenomgeving.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
 };
 
 import './globals.css';
@@ -24,7 +36,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await getServerSession(authOptions);
   return (
     <html lang="nl">
-      <head>{fontLinks}</head>
+      <head>
+        {fontLinks}
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+        <link rel="manifest" href="/site.webmanifest?v=2" />
+      </head>
       <body className="min-h-screen bg-gray-50 text-zinc-900 antialiased font-body">
         <Providers session={session}>
           <HeaderClient user={session?.user} />

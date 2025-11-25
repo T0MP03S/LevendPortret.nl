@@ -14,6 +14,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(WEB_BASE),
   title: 'Levend Portret — het eerlijke verhaal',
   description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: 'Levend Portret — het eerlijke verhaal',
     description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
@@ -49,6 +59,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="nl">
       <head>
         {fontLinks}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className="min-h-screen bg-gray-50 text-zinc-900 antialiased font-body">
         <Providers session={session}>

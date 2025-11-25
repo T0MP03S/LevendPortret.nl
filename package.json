@@ -12,7 +12,9 @@
     "lint": "turbo run lint",
     "prisma:generate": "dotenv -e .env.local -- pnpm --filter @levendportret/db run prisma:generate",
     "prisma:migrate:dev": "dotenv -e .env.local -- pnpm --filter @levendportret/db run prisma:migrate:dev",
-    "prisma:studio": "dotenv -e .env.local -- pnpm --filter @levendportret/db run prisma:studio"
+    "prisma:studio": "dotenv -e .env.local -- pnpm --filter @levendportret/db run prisma:studio",
+    "scheduler": "dotenv -e .env.local -- node scripts/scheduler.js",
+    "scheduler:watch": "dotenv -e .env.local -- node scripts/scheduler.js --watch"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
