@@ -53,6 +53,8 @@ Copy-richtlijnen
 
 ## Production deployment checklist
 
+Note: On the VPS we also load environment variables from `.env.local` (no `.env.production`). All root and per‑app build/start scripts already use `dotenv -e ../../.env.local`.
+
 - **Env URLs**
   - `NEXT_PUBLIC_WEB_URL=https://levendportret.nl`
   - `NEXT_PUBLIC_CLUB_URL=https://club.levendportret.nl`
