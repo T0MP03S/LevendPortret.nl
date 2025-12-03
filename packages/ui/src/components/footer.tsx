@@ -15,7 +15,7 @@ export function Footer() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="Levend Portret" className="h-8 mb-3" />
             <p className="text-white/80 text-sm leading-relaxed">
-              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Onze coaching is speciaal ontworpen voor ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
+              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Ons concept is speciaal ontworpen voor ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
             </p>
           </div>
 

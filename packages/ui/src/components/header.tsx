@@ -118,20 +118,20 @@ export function Header({ user, onSignOut }: HeaderProps) {
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-8 font-heading">
-          <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+        <nav className="hidden md:flex items-center space-x-8 font-heading leading-none">
+          <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Clips
           </Link>
-          <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Club
           </Link>
-          <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Coach
           </Link>
-          <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Fund
           </Link>
-          <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors'}>
+          <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Even voorstellen
           </Link>
         </nav>

@@ -12,7 +12,7 @@ const WEB_BASE = (process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000').re
 
 export const metadata: Metadata = {
   metadataBase: new URL(WEB_BASE),
-  title: 'Levend Portret — het eerlijke verhaal',
+  title: 'Levend Portret — De ondernemer aan het woord',
   description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
   icons: {
     icon: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Levend Portret — het eerlijke verhaal',
+    title: 'Levend Portret — De ondernemer aan het woord',
     description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
     url: WEB_BASE,
     siteName: 'Levend Portret',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Levend Portret — het eerlijke verhaal',
+    title: 'Levend Portret — De ondernemer aan het woord',
     description: 'Welkomstpagina, propositie en aanmelding voor Levend Portret.',
     images: ['/og.png'],
   },

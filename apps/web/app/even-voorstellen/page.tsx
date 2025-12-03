@@ -63,7 +63,7 @@ export default function EvenVoorstellenPage() {
       <section className="text-center py-16">
         <h1 className="text-4xl md:text-5xl font-bold text-navy mb-6">Even voorstellen</h1>
         <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-          Levend Portret biedt een communityoplossing voor ondernemingen aan het begin van hun bestaansgeschiedenis.
+          Levend Portret biedt een communityoplossing voor ondernemingen die zich willen onderscheiden.
         </p>
         <div className="mt-6 max-w-3xl mx-auto space-y-4 text-gray-700 leading-relaxed text-base">
           <p>

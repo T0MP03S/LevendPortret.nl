@@ -11,16 +11,22 @@ export default function Page() {
       <section className="text-center pt-10 pb-16 md:py-20">
         <div className="relative mx-auto max-w-5xl rounded-3xl border border-white/50 bg-white/70 md:bg-white/60 md:backdrop-blur p-6 md:p-12 shadow-lg">
           <img src="/logo-color.svg" alt="Levend Portret" className="h-32 md:h-40 mx-auto mb-8" />
-          <p className="text-2xl text-navy/80 mb-6 font-heading" style={{ fontWeight: 500 }}>Het eerlijke verhaal</p>
+          <p className="text-2xl text-navy/80 mb-6 font-heading" style={{ fontWeight: 500 }}>De ondernemer aan het woord</p>
           <p className="text-lg font-body text-gray-700 max-w-2xl mx-auto mb-10">
             Coaching, professionele clips en een actieve club die jouw onderneming zichtbaar maken.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/aanmelden">
-              <Button variant="default" size="lg">
-                Start jouw verhaal
-              </Button>
-            </Link>
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative inline-block">
+              <span className="absolute -top-3 -left-3 inline-flex items-center px-3 py-1 rounded-full bg-coral text-white text-xs font-semibold shadow-sm">
+                Gratis
+              </span>
+              <Link href="/aanmelden">
+                <Button variant="default" size="lg" className="pl-6 pr-6">
+                  Start jouw verhaal
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm text-navy/80 font-heading">Aanmelden is kosteloos</p>
           </div>
         </div>
       </section>
@@ -75,7 +81,7 @@ export default function Page() {
           {[
             'Aanmelding',
             'Introductiegesprek',
-            'Coachingsgesprek',
+            'Adviesgesprek',
             'Scripts evalueren',
             'Opnames',
             'Montage',
@@ -103,44 +109,47 @@ export default function Page() {
             <p className="text-white/70 font-body">excl. btw</p>
           </div>
           
-          <div className="max-w-md mx-auto space-y-3 mb-8">
-            {[ 
-              'Coachingsgesprek', 
-              '5 min video clip', 
-              '30 sec social clip', 
-              '3 jaar clublidmaatschap', 
-              'Eigen bedrijfspagina', 
-              'Webinars voor leden' 
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/10">
-                  <Check className="w-4 h-4" />
-                </span>
-                <span className="text-white/90 font-body">{item}</span>
-              </div>
-            ))}
-          </div>
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            {/* Links: inbegrepen onderdelen */}
+            <div className="space-y-3">
+              {[
+                'Adviesgesprek',
+                '5 min video clip',
+                '30 sec social clip',
+                '3 jaar clublidmaatschap',
+                'Eigen bedrijfspagina',
+                'Webinars voor leden',
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/10">
+                    <Check className="w-4 h-4" />
+                  </span>
+                  <span className="text-white/90 font-body">{item}</span>
+                </div>
+              ))}
+            </div>
 
-          <div className="text-center">
-            <Link href="/aanmelden">
-              <Button variant="coral" size="lg">
-                Meld je aan
-              </Button>
-            </Link>
+            {/* Rechts: gratis adviesgesprek + CTA */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <h3 className="text-xl font-semibold mb-3">Meld je aan voor een gratis adviesgesprek</h3>
+              <p className="text-white/80 mb-6">Plan kosteloos je intake. Samen checken we of het past.</p>
+              <Link href="/aanmelden">
+                <Button variant="coral" size="lg" className="w-full md:w-auto">
+                  Meld je aan
+                </Button>
+              </Link>
+            </div>
           </div>
           </div>
         </div>
       </section>
 
-      {/* Extra CTA */}
+      {/* CTA naar Over ons */}
       <section className="py-20">
-        <div className="relative overflow-hidden max-w-4xl mx-auto rounded-3xl border border-zinc-100 bg-white p-8 md:p-12 shadow-sm text-center">
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-coral/10 via-transparent to-turquoise/10" />
-          <div className="relative">
-            <h3 className="text-2xl md:text-3xl text-navy mb-3">Klaar om te starten?</h3>
-            <p className="text-gray-700 font-body mb-6 md:mb-8">Plan een vrijblijvend kennismakingsgesprek en zet vandaag de eerste stap.</p>
-            <Link href="/aanmelden"><Button variant="default" size="lg">Vrijblijvend kennismaken</Button></Link>
-          </div>
+        <div className="text-center">
+          <h3 className="text-2xl md:text-3xl text-navy mb-3">Meer over ons</h3>
+          <p className="text-gray-700 font-body mb-6 md:mb-8">Leer het team kennen en onze aanpak.</p>
+          <Link href="/even-voorstellen"><Button variant="default" size="lg">Over ons</Button></Link>
         </div>
       </section>
     </div>

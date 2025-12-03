@@ -87,6 +87,21 @@ Note: On the VPS we also load environment variables from `.env.local` (no `.env.
 - **Links & tracking**
   - Gebruik HTTPS-links met herkenbaar domein; geen IP’s/localhost in productie.
   - Voeg UTM-tags toe voor marketingcampagnes (niet voor auth-transacties).
+
+---
+
+## Copy updates (2025-12-03)
+
+- Slogan gewijzigd naar: “De ondernemer aan het woord” (metadata en hero).
+- Hero: optie B — badge “Gratis” + subline “Aanmelden is kosteloos” + bestaande knop.
+  - Badge geïntegreerd op de knop (links‑boven) met subline onder de knop voor een samenhangend geheel.
+- Even voorstellen: mission-tekst aangepast naar “Levend Portret biedt een communityoplossing voor ondernemingen die zich willen onderscheiden.”
+- “Levend Portret Cadeau” blok:
+  - Item hernoemd: Coachingsgesprek → Adviesgesprek.
+  - Opzet in 2 kolommen: links features, rechts CTA “Meld je aan voor een gratis adviesgesprek”.
+  - Header-dikte gecorrigeerd: consistente hoogte over alle pagina’s (nav leading tightened).
+  - Footer-tekst: “Onze coaching…” → “Ons concept…”.
+  - Onderste CTA op homepage vervangen door CTA naar Over ons (link: `/even-voorstellen`).
 - **Testing**
   - Testmatrix: Gmail (web/iOS/Android), Outlook (Win/Mac), Apple Mail (iOS/macOS).
   - Controleer spam/“gevaarlijk” waarschuwingen na DNS-aanpassingen (duurt soms 30–60 min).
