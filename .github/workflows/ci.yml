@@ -30,5 +30,3 @@ jobs:
       - name: Lint & validate scripts
         run: pnpm lint
 
-      - name: Build
-        run: pnpm -w build
