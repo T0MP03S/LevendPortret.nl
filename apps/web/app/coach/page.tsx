@@ -1,21 +1,23 @@
-export default function CoachComingSoon() {
+export default function CoachPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl md:text-4xl text-center text-navy mb-2">Persoonlijk Adviesgesprek</h1>
-      <p className="text-center text-gray-700 font-body mb-8">Onze coach gaat met jou aan de slag om jouw positionering te verscherpen en direct toepasbaar te maken.</p>
+      <h1 className="text-3xl md:text-4xl text-center text-navy mb-4">Coach</h1>
+      <p className="text-center text-gray-700 font-body mb-8">
+        Onze coach is een ervaren ondernemer die je gaat helpen om een elevator pitch te maken. Een elevator pitch is een korte krachtige presentatie waarin u de kern van uw bedrijf verwoord.
+      </p>
 
       <div className="grid md:grid-cols-3 gap-6 mb-10">
         <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg text-navy mb-2">1. De kern van uw bedrijf</h3>
-          <p className="text-gray-700 font-body">We identificeren de unieke sterke punten en specialisaties. Wat maakt u anders en waar ligt de meeste potentie?</p>
+          <p className="text-gray-700 font-body">We stellen samen vast wat uw bedrijf te bieden heeft.</p>
         </div>
         <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-lg text-navy mb-2">2. Het onweerstaanbare aanbod</h3>
-          <p className="text-gray-700 font-body">Hoe zet u zich het beste in de markt? Welke boodschap raakt uw ideale klant en hoe positioneert u zich?</p>
+          <h3 className="text-lg text-navy mb-2">2. Onderscheidend vermogen</h3>
+          <p className="text-gray-700 font-body">Wij gaan op zoek naar die elementen in uw propositie waarin u zich onderscheidt van uw concurrenten.</p>
         </div>
         <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-lg text-navy mb-2">3. De klantkeuze formule</h3>
-          <p className="text-gray-700 font-body">Concrete handvatten zodat potentiële klanten voor u kiezen. Met overtuigende argumenten en heldere Call-to-Action.</p>
+          <h3 className="text-lg text-navy mb-2">3. Klantgerichtheid</h3>
+          <p className="text-gray-700 font-body">Hoe kunt u uw klanten verleiden om zaken met u te doen.</p>
         </div>
       </div>
 

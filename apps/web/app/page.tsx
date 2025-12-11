@@ -37,20 +37,10 @@ export default function Page() {
           <div className="max-w-3xl mx-auto text-center space-y-3 mb-8">
             <h2 className="text-2xl text-navy">Boost je onderneming!</h2>
             <p className="text-gray-700 font-body">
-              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Onze coaching is speciaal ontworpen voor ondernemers die direct impact willen maken met een helder en visueel krachtig marketingverhaal én die willen bouwen aan een netwerk.
+              U heeft een geweldig idee. Nu is het tijd om de wereld dat te laten weten. Met onze ervaring en expertise op het gebied van videoproductie en marketing zorgen wij ervoor dat uw verhaal op een aansprekende wijze wordt neergezet op uw website en social media.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <Link href="/coach" className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5 block focus:outline-none focus:ring-2 focus:ring-coral">
-              <div className="w-12 h-12 bg-coral/10 rounded-lg flex items-center justify-center mb-4">
-                <UserCircle className="w-6 h-6 text-coral" />
-              </div>
-              <h3 className="text-xl text-navy mb-3">Coach</h3>
-              <p className="text-gray-600 font-body">
-                Een ervaren ondernemer helpt je jouw bedrijfsidee pakkend te verwoorden in een sterke elevator pitch.
-              </p>
-            </Link>
-
             <Link href={CLIPS_BASE} className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5 block focus:outline-none focus:ring-2 focus:ring-coral">
               <div className="w-12 h-12 bg-turquoise/10 rounded-lg flex items-center justify-center mb-4">
                 <Play className="w-6 h-6 text-turquoise" />
@@ -70,6 +60,16 @@ export default function Page() {
                 3 jaar lidmaatschap van een actieve club ondernemers die elkaar opdrachten gunnen en samen groeien.
               </p>
             </Link>
+
+            <Link href="/coach" className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100 transition hover:shadow-md hover:-translate-y-0.5 block focus:outline-none focus:ring-2 focus:ring-coral">
+              <div className="w-12 h-12 bg-coral/10 rounded-lg flex items-center justify-center mb-4">
+                <UserCircle className="w-6 h-6 text-coral" />
+              </div>
+              <h3 className="text-xl text-navy mb-3">Coach</h3>
+              <p className="text-gray-600 font-body">
+                Onze coach helpt je om de kern van je bedrijf scherp te verwoorden in een krachtige elevator pitch.
+              </p>
+            </Link>
           </div>
         </div>
       </section>
@@ -80,9 +80,9 @@ export default function Page() {
         <div className="max-w-4xl mx-auto grid md:grid-cols-4 gap-4">
           {[
             'Aanmelding',
-            'Introductiegesprek',
+            'Kennismaking',
             'Adviesgesprek',
-            'Scripts evalueren',
+            'Script',
             'Opnames',
             'Montage',
             'Clip op clubwebsite',

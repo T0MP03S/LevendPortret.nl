@@ -25,7 +25,6 @@ export function Header({ user, onSignOut }: HeaderProps) {
   const clubActive = isLocal ? (!!host && host.includes(':3001')) : (hostname?.split('.')[0] === 'club');
   const adminActive = isLocal ? (!!host && host.includes(':3003')) : (hostname?.split('.')[0] === 'admin');
   const coachActive = pathname?.startsWith('/coach') ?? false;
-  const fundActive = pathname?.startsWith('/fund') ?? false;
   const evenActive = pathname?.startsWith('/even-voorstellen') ?? false;
   const WEB = ((process.env.NEXT_PUBLIC_WEB_URL && process.env.NEXT_PUBLIC_WEB_URL.length > 0)
     ? process.env.NEXT_PUBLIC_WEB_URL
@@ -125,14 +124,11 @@ export function Header({ user, onSignOut }: HeaderProps) {
           <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Club
           </Link>
-          <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
-            Coach
-          </Link>
-          <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
-            Fund
-          </Link>
           <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
             Even voorstellen
+          </Link>
+          <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'text-coral ' : 'text-white hover:text-coral ') + 'transition-colors leading-none'}>
+            Coach
           </Link>
         </nav>
 
@@ -178,9 +174,8 @@ export function Header({ user, onSignOut }: HeaderProps) {
                 <nav className="flex flex-col divide-y divide-zinc-100 text-base">
                   <Link href={CLIPS} aria-current={clipsActive ? 'page' : undefined} className={(clipsActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Clips</Link>
                   <Link href={CLUB} aria-current={clubActive ? 'page' : undefined} className={(clubActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Club</Link>
-                  <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
-                  <Link href={onWeb ? '/fund' : `${WEB}/fund`} aria-current={fundActive ? 'page' : undefined} className={(fundActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Fund</Link>
                   <Link href={onWeb ? '/even-voorstellen' : `${WEB}/even-voorstellen`} aria-current={evenActive ? 'page' : undefined} className={(evenActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Even voorstellen</Link>
+                  <Link href={onWeb ? '/coach' : `${WEB}/coach`} aria-current={coachActive ? 'page' : undefined} className={(coachActive ? 'bg-zinc-50 ' : '') + 'px-5 py-4 hover:bg-zinc-50'} onClick={()=>setMobileNavOpen(false)}>Coach</Link>
                   {!user ? (
                     <div className="p-4 grid grid-cols-2 gap-3">
                       <Link href={onWeb ? '/inloggen' : `${WEB}/inloggen`} onClick={()=>setMobileNavOpen(false)} className="inline-flex items-center justify-center h-10 rounded-md border border-zinc-300 text-zinc-800 hover:bg-zinc-50 text-sm">Inloggen</Link>

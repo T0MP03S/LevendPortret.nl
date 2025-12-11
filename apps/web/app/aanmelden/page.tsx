@@ -138,10 +138,13 @@ export default function AanmeldenPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-navy mb-8 text-center">Meld je bedrijf aan</h1>
+      <h1 className="text-4xl font-bold text-navy mb-8 text-center">Meldt je bedrijf aan</h1>
       <div className="bg-white p-8 rounded-2xl shadow-sm space-y-6">
         <p className="text-sm text-gray-600">
           Na het indienen ontvang je een verificatiemail. Klik op de link in die mail om je aanmelding te bevestigen.
+        </p>
+        <p className="text-sm text-gray-600">
+          Na aanmelding nemen wij binnen een week contact op om het vervolg te bespreken.
         </p>
         <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => signIn('google', { callbackUrl: '/post-auth' })}>
           <svg className="mr-2 -ml-1 w-4 h-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 136.5 28.7 184.4 75.4l-62.9 62.9C337 119.3 293.8 96 244 96c-88.8 0-160.1 71.1-160.1 158.8s71.3 158.8 160.1 158.8c98.2 0 135-70.4 140.8-106.9H244v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>

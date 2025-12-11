@@ -96,18 +96,12 @@ export default async function Page() {
         </div>
 
         <div className="mb-8 p-4 bg-gradient-to-r from-navy/5 to-coral/5 rounded-xl border border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-zinc-700 text-sm sm:text-base">Meld je aan voor exclusieve content en leden-only artikelen.</p>
-          <a href={`${WEB}/inloggen`} className="inline-flex items-center px-4 py-2 rounded-lg bg-coral text-white hover:bg-[#e14c61] whitespace-nowrap font-medium">Aanmelden</a>
+          <p className="text-zinc-700 text-sm sm:text-base">Log in of meld je aan om de clubartikelen te bekijken.</p>
+          <div className="flex gap-2">
+            <a href={`${WEB}/inloggen`} className="inline-flex items-center px-4 py-2 rounded-lg border border-coral text-coral hover:bg-coral/10 whitespace-nowrap font-medium">Inloggen</a>
+            <a href={`${WEB}/aanmelden`} className="inline-flex items-center px-4 py-2 rounded-lg bg-coral text-white hover:bg-[#e14c61] whitespace-nowrap font-medium">Aanmelden</a>
+          </div>
         </div>
-
-        {mappedArticles.length > 0 ? (
-          <ArticleList
-            articles={mappedArticles}
-            categories={uniqueCategories}
-          />
-        ) : (
-          <p className="text-center text-zinc-500 py-12">Nog geen artikelen gepubliceerd.</p>
-        )}
       </main>
     );
   }

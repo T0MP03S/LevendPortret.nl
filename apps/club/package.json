@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -e ../../.env.local -- next dev -p 3001",
-    "build": "dotenv -e ../../.env.local -- next build",
-    "start": "cross-env NEXTAUTH_URL=$NEXT_PUBLIC_CLUB_URL dotenv -e ../../.env.local -- next start -p 3001",
+    "build": "next build",
+    "start": "next start -p $PORT",
     "lint": "eslint ."
   },
   "dependencies": {

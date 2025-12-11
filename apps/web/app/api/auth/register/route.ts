@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma as db } from '@levendportret/db';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { checkRateLimit } from '../../../../lib/rate-limit';
 import nodemailer from 'nodemailer';

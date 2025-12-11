@@ -4,9 +4,9 @@ import { X as IconX } from 'lucide-react';
 import { TeamImage } from './team-image';
 
 const team = [
-  { name: 'Bert Kranendonk', role: 'Coach', email: 'bert@levendportret.nl', imageUrl: '/team/bert.jpg' },
-  { name: 'Barry Annes', role: 'Filmmaker', email: 'barry@levendportret.nl', imageUrl: '/team/barry.jpg' },
   { name: 'Frank van Eijk', role: 'Filmmaker', email: 'frank@levendportret.nl', imageUrl: '/team/frank.jpg' },
+  { name: 'Barry Annes', role: 'Filmmaker', email: 'barry@levendportret.nl', imageUrl: '/team/barry.jpg' },
+  { name: 'Bert Kranendonk', role: 'Coach', email: 'bert@levendportret.nl', imageUrl: '/team/bert.jpg' },
 ];
 
 const bios: Record<string, string> = {
@@ -63,7 +63,7 @@ export default function EvenVoorstellenPage() {
       <section className="text-center py-16">
         <h1 className="text-4xl md:text-5xl font-bold text-navy mb-6">Even voorstellen</h1>
         <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-          Levend Portret biedt een communityoplossing voor ondernemingen die zich willen onderscheiden.
+          Wij van Levend Portret bieden een communityoplossing voor ondernemingen die zich willen onderscheiden.
         </p>
         <div className="mt-6 max-w-3xl mx-auto space-y-4 text-gray-700 leading-relaxed text-base">
           <p>
@@ -71,10 +71,7 @@ export default function EvenVoorstellenPage() {
             Met coaching, feedback en een betrokken netwerk zorgen we dat jouw boodschap niet alleen overtuigt, maar ook
             de juiste mensen bereikt.
           </p>
-          <p>
-            Ons doel is zichtbaarheid met impact: authentieke verhalen, professioneel gebracht, die klanten in beweging
-            brengen. Zo bouw je stap voor stap aan vertrouwen, bereik en een duurzame relatie met je publiek.
-          </p>
+          
         </div>
       </section>
 

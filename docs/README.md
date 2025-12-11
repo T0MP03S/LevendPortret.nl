@@ -1,4 +1,53 @@
 ### Bestandsnamen en casing (Linux servers)
+## Copy updates (2025-12-10)
+
+- **Homepage (hero)**
+  - Tekst: “Professionele clips, een actieve club en coaching om jouw onderneming zichtbaar te maken.”
+  - Extra alinea: “In de video: …” (verklaring over vertrouwen en coach-ondersteuning).
+- **Homepage (Boost je onderneming!)**
+  - Paragraaf geüpdatet: “U heeft … laten weten...”
+  - Tegelvolgorde: Clips, Club, Coach (Coach staat rechts).
+  - Clips-tegel tekst: “Maak kennis met onze leden… thumbnail… langere film op de webpagina.”
+- **Hoe werkt het**
+  - Stap 2: Kennismaking
+  - Stap 4: Script (zonder evalueren)
+- **Header navigatie**
+  - Fund verwijderd.
+  - Volgorde: Clips, Club, Even voorstellen, Coach (Coach meest rechts).
+- **Even voorstellen**
+  - Intro ingekort naar “Wij van Levend Portret … onderscheiden.”
+  - Laatste zin verwijderd.
+  - Teamvolgorde: Frank links, Bert rechts.
+- **Club (niet ingelogd)**
+  - In plaats van content: uitnodiging om in te loggen of aan te melden.
+- **Aanmelden**
+  - Titel: “Meldt je bedrijf aan”.
+  - Extra zin: “Na aanmelding nemen wij binnen een week contact op om het vervolg te bespreken.”
+
+- **Coach-pagina**
+  - Inhoud herschreven conform klantverzoek: intro over elevator pitch + 3 punten (De kern van uw bedrijf, Onderscheidend vermogen, Klantgerichtheid).
+
+- **Teamfoto’s (Even voorstellen)**
+  - Foto’s in zwart-wit (permanent, geen hover).
+
+- **Footer**
+  - Fund-link verwijderd.
+
+---
+
+## Monorepo build & env policy (production)
+
+- **Single source of truth for env (runtime):** systemd `EnvironmentFile` (e.g. `/etc/levendportret/env/*.env` and `shared.env`).
+- **Scripts:**
+  - Dev: `dotenv -e ../../.env.local -- next dev -p <port>`
+  - Build: `next build`
+  - Start: `next start -p <port>`
+  - Root: `pnpm build` runs `turbo run build` (no dotenv)
+- **Turbo globalEnv:** `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, Google creds.
+- **bcrypt:** we gebruiken alleen `bcryptjs` (server-only import); geen `bcrypt` of lokale `types` hacks nodig. Types via `@types/bcryptjs` in repo.
+- **TypeScript:** `tsconfig.base.json` bevat `typeRoots: ["./node_modules/@types"]` en `skipLibCheck: true`. Apps/packages erven hiervan.
+- **Build-time DB:** vermijd DB calls tijdens build; pages die runtime data nodig hebben zijn dynamic (zonder pre-render).
+
 - Productieservers zijn case‑sensitive. Zorg dat bestandsnamen in `public/` exact overeenkomen met de imports in code (bijv. `public/team/frank.jpg` ↔ `/team/frank.jpg`).
 - Tip: zet lokaal voor deze repo `git config core.ignorecase false` zodat case‑wijzigingen altijd gecommit worden. Op de VPS voorkom je lingering oude files door een schone pull of her‑clone.
   - CSP details (prod/web/club/clips):
@@ -53,7 +102,7 @@ Copy-richtlijnen
 
 ## Production deployment checklist
 
-Note: On the VPS we also load environment variables from `.env.local` (no `.env.production`). All root and per‑app build/start scripts already use `dotenv -e ../../.env.local`.
+Note: In production we load env exclusively via systemd `EnvironmentFile` (no `.env.local` and no dotenv). `.env.local` is only used by `dev` scripts on local machines.
 
 - **Env URLs**
   - `NEXT_PUBLIC_WEB_URL=https://levendportret.nl`

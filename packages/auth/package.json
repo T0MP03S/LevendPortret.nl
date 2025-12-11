@@ -12,7 +12,5 @@
     "bcryptjs": "^2.4.3",
     "next-auth": "^4.24.7"
   },
-  "devDependencies": {
-    "@types/bcrypt": "^6.0.0"
-  }
+  "devDependencies": {}
 }

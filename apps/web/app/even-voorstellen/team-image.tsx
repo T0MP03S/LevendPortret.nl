@@ -33,7 +33,7 @@ export function TeamImage({ src, alt, width = 128, height = 128, quality = 85, c
       width={width}
       height={height}
       quality={quality}
-      className={`w-full h-full object-cover ${className}`}
+      className={`w-full h-full object-cover grayscale ${className}`}
       onError={() => setError(true)}
       loading={loading}
       priority={priority}

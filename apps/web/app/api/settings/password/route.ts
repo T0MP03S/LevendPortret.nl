@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@levendportret/auth';
 import { prisma } from '@levendportret/db';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { checkRateLimit } from '../../../../lib/rate-limit';
 
 export async function POST(req: Request) {

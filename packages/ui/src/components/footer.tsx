@@ -33,9 +33,6 @@ export function Footer() {
                 <Link href={`${WEB}/coach`} className="text-white/70 hover:text-coral transition-colors">Coach</Link>
               </li>
               <li>
-                <Link href={`${WEB}/fund`} className="text-white/70 hover:text-coral transition-colors">Fund</Link>
-              </li>
-              <li>
                 <Link href={`${WEB}/even-voorstellen`} className="text-white/70 hover:text-coral transition-colors">Even voorstellen</Link>
               </li>
               <li>
