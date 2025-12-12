@@ -24,6 +24,8 @@
     "@typescript-eslint/parser": "^8.49.0",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.4.2",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.14",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "pnpm": "^9.11.0",
